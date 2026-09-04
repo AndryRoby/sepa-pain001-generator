@@ -1,0 +1,45 @@
+# SEPA pain.001 Generátor: hromadné príkazy pre slovenské banky
+
+> Free, client-side tool that builds a SEPA pain.001 XML batch payment file (hromadný príkaz na úhradu) directly from payments pasted or uploaded from Excel or CSV, ready for import into Tatra banka, Slovenská sporiteľňa (SLSP), VÚB, or ČSOB internet banking.
+
+Paste rows copied from Excel (tab-separated) or a CSV/TSV file, fill in the payer's IBAN once, and download a `pain.001.001.03` file: no account, no backend, nothing you enter leaves your browser except an optional email if you join the mailing list.
+
+## What it does
+
+- Parses a pasted TSV/CSV block or an uploaded `.csv`/`.txt`/`.tsv` file (read client-side with `FileReader`) into a payment list.
+- Auto-detects columns by header name: IBAN, amount (`suma`/`amount`/`čiastka`), recipient name (`názov`/`meno`/`príjemca`/`name`), variabilný/špecifický/konštantný symbol, message (`správa`/`poznámka`/`message`/`info`), date, and BIC, with manual dropdowns to fix any column the auto-detection gets wrong.
+- Derives the payer's BIC from the bank code in their IBAN (Tatra banka `TATRSKBX`, SLSP `GIBASKBX`, VÚB `SUBASKBX`, ČSOB `CEKOSKBX`, and others), with a manual field for unrecognized codes.
+- Writes the fixed values every Slovak bank requires for a SEPA batch credit transfer: `PmtMtd = TRF`, `PmtTpInf/SvcLvl/Cd = SEPA`, `ChrgBr = SLEV`, currency `EUR`.
+- Packs variabilný/špecifický/konštantný symbol into the end-to-end reference as `/VS.../SS.../KS...`, the National Bank of Slovakia convention, since `pain.001.001.03` has no dedicated fields for them.
+- Generates `MsgId` automatically as `ARL-YYYYMMDD-HHMMSS` and defaults the requested execution date to tomorrow.
+- Lets you pick a target-bank profile (Tatra banka, SLSP, VÚB, ČSOB, or a generic SEPA profile) and downloads the finished XML.
+
+## Who it's for
+
+Slovak accountants, company directors, and e-shop owners who keep a list of payments (payroll, supplier invoices, refunds) in a spreadsheet rather than accounting software with a built-in SEPA export, and need a `pain.001` file a bank's internet banking will accept.
+
+## How it works
+
+Static HTML plus one dependency-free JavaScript engine. All parsing and XML generation happens in your browser against the rows you paste or upload; the tool has no backend and makes no request that carries your payment data anywhere.
+
+## Before importing
+
+Each bank layers its own extra rules on top of the shared schema (execution-date window, transaction cap, diacritics handling). The sibling tool, SEPA pain.001 Doctor, checks a finished file against those bank-specific rules: https://arling.sk/sepa-pain001-doctor/
+
+## Privacy
+
+No account, no login, no cookies for the tool itself, no server-side processing of your payment data. The only analytics are anonymous usage counts (event name + count, never IBANs/names/amounts) sent to a self-hosted Umami instance.
+
+## Links
+
+- Tool: https://arling.sk/sepa-pain001-generator/
+- Full reference (input format, BIC table, worked example, FAQ): https://arling.sk/sepa-pain001-generator/llms-full.txt
+- Source code: https://github.com/AndryRoby/sepa-pain001-generator
+- Sibling tool (checks a finished pain.001 file against bank rules): https://arling.sk/sepa-pain001-doctor/
+- Sibling tool (Supabase Auth redirects, web): https://arling.sk/supabase-redirect-doctor/
+- Sibling tool (Supabase Auth redirects, Flutter): https://arling.sk/flutter-supabase-doctor/
+- Hub (more ARLing tools): https://arling.sk/
+
+## Contact
+
+Built by ARLing s. r. o. (Bratislava, Slovakia). andrej@arling.sk
