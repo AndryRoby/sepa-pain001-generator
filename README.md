@@ -2,6 +2,20 @@
 
 Live: https://arling.sk/sepa-pain001-generator/
 
+**English summary:** a free, client-side tool that turns payments
+pasted from Excel or CSV into a SEPA `pain.001.001.03` XML batch
+payment file, entirely in the browser. It has two country profiles:
+**"sk"** (default, current behaviour: Tatra banka/SLSP/VÚB/ČSOB,
+variabilný/špecifický/konštantný symbol packed into `EndToEndId` as
+`/VS.../SS.../KS...`) and **"de"** (Deutsche Kreditwirtschaft, no
+VS/ŠS/KS at all: an unstructured Verwendungszweck in `RmtInf/Ustrd`,
+an optional `EndToEndId` column, and a single generic "Bank nach
+DK-Regelwerk (pain.001.001.03)" preset instead of the four Slovak
+banks). The page itself has a language switcher and is fully
+available in Slovak, English and German (SK/EN/DE); the "de" country
+profile is used automatically when the page language is German, and
+can be picked manually in English or Slovak too.
+
 A free, static, client-side tool that builds a **SEPA pain.001.001.03
 XML** batch payment file (hromadný príkaz na úhradu) straight out of
 payments you already have in Excel or a CSV export, so you don't have
@@ -27,20 +41,21 @@ the rows, fill in the payer's details once, and download a ready
    file is read with the browser's own `FileReader` API and never
    leaves the page.
 
-   Column headers are detected automatically by name, in Slovak or
-   English:
+   Column headers are detected automatically by name, in Slovak,
+   English or German:
 
    | Field | Recognized header names |
    |---|---|
    | IBAN | `iban` |
-   | Amount | `suma`, `amount`, `čiastka` |
-   | Recipient name | `názov`, `meno`, `príjemca`, `name` |
-   | Variabilný symbol | `vs`, `variabilný` |
-   | Špecifický symbol | `ss`, `špecifický` |
-   | Konštantný symbol | `ks`, `konštantný` |
-   | Message / remittance text | `správa`, `poznámka`, `message`, `info` |
-   | Date | `dátum`, `date` |
+   | Amount | `suma`, `amount`, `čiastka`, `betrag` |
+   | Recipient name | `názov`, `meno`, `príjemca`, `name`, `empfänger`, `beneficiary` |
+   | Variabilný symbol ("sk" profile only) | `vs`, `variabilný` |
+   | Špecifický symbol ("sk" profile only) | `ss`, `špecifický` |
+   | Konštantný symbol ("sk" profile only) | `ks`, `konštantný` |
+   | Message / Verwendungszweck / remittance text | `správa`, `poznámka`, `message`, `info`, `verwendungszweck`, `reference` |
+   | Date | `dátum`, `date`, `ausführungsdatum` |
    | BIC | `bic` |
+   | EndToEndId ("de" profile only) | `endtoend`, `e2e` |
 
    If the automatic detection gets a column wrong (or your headers
    don't match any of the above), every column has a manual dropdown
@@ -81,6 +96,35 @@ in the `pain.001.001.03` schema. Following the National Bank of
 Slovakia convention (the same one documented in ČSOB's own SEPA
 guide), the generator packs whichever of the three you supplied into
 the end-to-end reference as `/VS.../SS.../KS...`, in that exact order.
+This is the default **"sk"** country profile.
+
+## Country profiles: "sk" and "de"
+
+The generator supports two country profiles, picked with the
+**"profil krajiny" / "country profile"** selector next to the bank
+selector:
+
+- **"sk"** (default): the behaviour described above. VS/ŠS/KS packed
+  into `EndToEndId`, and a bank selector with Tatra banka, SLSP, VÚB,
+  ČSOB, or a generic profile.
+- **"de"** (Deutsche Kreditwirtschaft, DK): no VS/ŠS/KS columns at
+  all. The message column is instead labelled **Verwendungszweck**
+  and written unstructured into `RmtInf/Ustrd` (max. 140 characters,
+  checked against the SEPA character set: `a-z A-Z 0-9 / - ? : ( ) . ,
+  ' +` and a space). An optional `EndToEndId` column is read directly
+  (header `EndToEndId` or `E2E`); if it's empty or unmapped,
+  `PmtId/EndToEndId` defaults to the ISO 20022 fallback value
+  `NOTPROVIDED`. The bank selector collapses to a single generic
+  **"Bank nach DK-Regelwerk (pain.001.001.03)"** preset, since the
+  four Slovak banks' own per-bank rules (execution-date window,
+  transaction cap, diacritics handling) don't apply here. BIC stays
+  optional, as it has been since February 2016 for any IBAN from an
+  EEA/SEPA country, SEPA Regulation (EU) 260/2012.
+
+The "de" profile is selected automatically when the page language is
+German, and can be picked manually while browsing in English or
+Slovak too. The output XML is `pain.001.001.03` either way; only the
+remittance-reference handling and the bank preset list differ.
 
 ## How it works (client-side only)
 

@@ -6,7 +6,8 @@
 
 import {
   parseRows, mapColumns, buildXml, bicFromIban, parseAmount, parseFlexibleDate,
-  buildEndToEndId, checkIban, transliterate, autoMsgId, defaultExecDate, MAX_PAYMENTS,
+  buildEndToEndId, resolveEndToEndId, checkIban, transliterate, autoMsgId, defaultExecDate, MAX_PAYMENTS,
+  isSepaCharset, sepaCharsetViolations,
 } from './generator-pain001.js';
 import { diagnose } from './doctor-pain001.js';
 import { parse as parseLicence, verify as verifyLicence, isValid as isValidLicence, load as loadLicence, save as saveLicence, clear as clearLicence, todayIso as licenceTodayIso, STORAGE_KEY as LICENCE_STORAGE_KEY, DEFAULT_PLAN, BUNDLE_PLAN, BUNDLE_STORAGE_KEY, ACCEPTED_PLANS, STORAGE_KEYS as LICENCE_STORAGE_KEYS } from './licence.js';
@@ -14,6 +15,10 @@ import {
   MAPPING_TEMPLATES, applyTemplate, loadProfiles, addProfile, removeProfile,
   mergeBlockPayments, blockTotals, loadHistory, addHistoryEntry, clearHistory, HISTORY_MAX,
 } from './pro.js';
+import {
+  LANGS, DEFAULT_LANG, STORAGE_KEY as I18N_STORAGE_KEY, DICT, t, tf, formatAmountForLang, formatDateForLang,
+  localeTagForLang, ogLocaleForLang, langFromLocale, langFromQueryString, findIncompleteEntries,
+} from './i18n.js';
 
 // Minimal in-memory localStorage polyfill: Node has no Web Storage API by
 // default (only behind an experimental flag this repo's `node tests.mjs`
@@ -39,6 +44,10 @@ function ok(name, cond, detail) {
 }
 function eq(name, actual, expected) {
   const cond = actual === expected;
+  ok(name, cond, cond ? '' : `expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+function deepEq(name, actual, expected) {
+  const cond = JSON.stringify(actual) === JSON.stringify(expected);
   ok(name, cond, cond ? '' : `expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
 }
 function includes(name, haystack, needle) {
@@ -683,6 +692,210 @@ eq('checkIban: empty string is invalid', checkIban('').valid, false);
 eq('transliterate: strips Slovak diacritics', transliterate('Žofia Šťastná'), 'Zofia Stastna');
 ok('autoMsgId: matches the documented pattern', /^ARL-\d{8}-\d{6}$/.test(autoMsgId(new Date('2026-09-05T09:03:07'))));
 eq('defaultExecDate: is exactly one day after the given date', defaultExecDate(new Date('2026-09-04T12:00:00')), '2026-09-05');
+
+// ═══════════════ K. "de" country profile (engine change) ═══════════════
+// Slovak "sk" profile behaviour (VS/ŠS/KS -> EndToEndId) is asserted
+// exhaustively above and untouched; this section is the "de" profile's own
+// new surface: no VS/ŠS/KS, an EndToEndId column instead (default
+// NOTPROVIDED), German/English header auto-detection, and a SEPA
+// character-set check on Verwendungszweck. Fixture IBANs are the two
+// checksum-correct example IBANs German banking documentation itself uses.
+const IBAN_DE_1 = 'DE89370400440532013000';
+const IBAN_DE_2 = 'DE02120300000000202051';
+
+eq('resolveEndToEndId (de): taken from payment.endToEndId', resolveEndToEndId({ endToEndId: 'INV-2026-01' }, 'de'), 'INV-2026-01');
+eq('resolveEndToEndId (de): trims whitespace', resolveEndToEndId({ endToEndId: '  INV-9  ' }, 'de'), 'INV-9');
+eq('resolveEndToEndId (de): empty/missing falls back to NOTPROVIDED', resolveEndToEndId({ endToEndId: '' }, 'de'), 'NOTPROVIDED');
+eq('resolveEndToEndId (de): vs/ss/ks are ignored outright', resolveEndToEndId({ vs: '123', ss: '456', endToEndId: '' }, 'de'), 'NOTPROVIDED');
+eq('resolveEndToEndId (sk, default): still builds from vs/ss/ks, unaffected by the de profile', resolveEndToEndId({ vs: '123' }), '/VS123');
+eq('resolveEndToEndId: unknown profile falls back to "sk" behaviour', resolveEndToEndId({ vs: '77' }, 'fr'), '/VS77');
+
+{
+  // German headers: IBAN, Betrag, Name, Empfänger, Verwendungszweck,
+  // Ausführungsdatum, BIC — per the brief's own header list.
+  const rows = parseRows('IBAN\tBetrag\tEmpfänger\tVerwendungszweck\tAusführungsdatum\tBIC\n' + IBAN_DE_1 + '\t123,45\tMax Mustermann\tRechnung 2026-01\t15.9.2026\tCOBADEFFXXX');
+  const r = mapColumns(rows, undefined, 'de');
+  eq('German headers: IBAN column detected', r.mapping.iban, 0);
+  eq('German headers: "Betrag" detected as amount', r.mapping.amount, 1);
+  eq('German headers: "Empfänger" detected as name', r.mapping.name, 2);
+  eq('German headers: "Verwendungszweck" detected as message', r.mapping.message, 3);
+  eq('German headers: "Ausführungsdatum" detected as date', r.mapping.date, 4);
+  eq('German headers: BIC column detected', r.mapping.bic, 5);
+  eq('German headers: amount "123,45" (decimal comma) parsed correctly', r.payments[0].amount, 123.45);
+  eq('German headers: date "15.9.2026" parsed to ISO', r.payments[0].dateIso, '2026-09-15');
+}
+{
+  // English headers: Amount, Beneficiary, Reference, Execution date.
+  const rows = parseRows('IBAN\tAmount\tBeneficiary\tReference\tExecution date\tEndToEndId\n' + IBAN_DE_1 + '\t50.00\tJohn Smith\tInvoice ref\t2026-09-15\tINV-42');
+  const r = mapColumns(rows, undefined, 'de');
+  eq('English headers: "Amount" detected', r.mapping.amount, 1);
+  eq('English headers: "Beneficiary" detected as name', r.mapping.name, 2);
+  eq('English headers: "Reference" detected as message', r.mapping.message, 3);
+  eq('English headers: "Execution date" detected as date', r.mapping.date, 4);
+  eq('English headers: "EndToEndId" column detected', r.mapping.endToEndId, 5);
+  eq('English headers: EndToEndId value parsed through to the payment row', r.payments[0].endToEndId, 'INV-42');
+}
+{
+  // de profile with no header row: positional fallback is iban, amount,
+  // name, message, endToEndId — no vs/ss/ks slots at all.
+  const rows = parseRows(`${IBAN_DE_1}\t50.00\tMax Mustermann\tRechnung\tINV-1`);
+  const r = mapColumns(rows, undefined, 'de');
+  eq('de profile positional fallback: column 3 maps to message, not vs', r.mapping.message, 3);
+  eq('de profile positional fallback: column 4 maps to endToEndId', r.mapping.endToEndId, 4);
+  eq('de profile positional fallback: vs is not mapped at all', r.mapping.vs, null);
+}
+
+{
+  const rows = [['IBAN', 'Betrag', 'Empfänger', 'Verwendungszweck', 'EndToEndId'], [IBAN_DE_1, '450,00', 'Max Mustermann', 'Rechnung 2026-01', 'INV-2026-01']];
+  const mapped = mapColumns(rows, undefined, 'de');
+  const xml = buildXml({ profile: 'de', bank: 'generic', payer: { name: 'Firma GmbH', iban: IBAN_DE_2 }, payments: mapped.payments });
+  includes('de profile XML: RmtInf/Ustrd carries the Verwendungszweck text', xml, '<Ustrd>Rechnung 2026-01</Ustrd>');
+  includes('de profile XML: EndToEndId taken from the mapped column', xml, '<EndToEndId>INV-2026-01</EndToEndId>');
+  notIncludes('de profile XML: no "/VS" reference symbol anywhere in the file', xml, '/VS');
+  notIncludes('de profile XML: no "/SS" reference symbol anywhere in the file', xml, '/SS');
+  notIncludes('de profile XML: no "/KS" reference symbol anywhere in the file', xml, '/KS');
+  includes('de profile XML: stays pain.001.001.03', xml, 'urn:iso:std:iso:20022:tech:xsd:pain.001.001.03');
+  const result = diagnose({ xml, bank: 'generic' });
+  eq('de profile XML: Doctor status is not "fail"', result.status !== 'fail', true);
+}
+{
+  // EndToEndId column left blank -> NOTPROVIDED, per ISO 20022 convention.
+  const rows = [['IBAN', 'Betrag', 'Empfänger', 'Verwendungszweck'], [IBAN_DE_1, '10', 'Max Mustermann', 'Test']];
+  const mapped = mapColumns(rows, undefined, 'de');
+  eq('de profile, no EndToEndId column mapped: payment.endToEndId is empty', mapped.payments[0].endToEndId, '');
+  const xml = buildXml({ profile: 'de', bank: 'generic', payer: { name: 'Firma', iban: IBAN_DE_2 }, payments: mapped.payments });
+  includes('de profile XML: missing EndToEndId column defaults to NOTPROVIDED', xml, '<EndToEndId>NOTPROVIDED</EndToEndId>');
+}
+{
+  // sk profile (default, unaffected): same fixture columns given a de-style
+  // header still round-trips VS as before when profile is omitted.
+  const rows = [['IBAN', 'Suma', 'Nazov', 'VS'], [IBAN_TATRA, '10', 'Jozef', '123']];
+  const mapped = mapColumns(rows);
+  const xml = buildXml({ bank: 'tatrabanka', payer: { name: 'Firma', iban: IBAN_TATRA }, payments: mapped.payments });
+  includes('sk profile (default, no profile option given) still builds /VS as before', xml, '<EndToEndId>/VS123</EndToEndId>');
+}
+
+// ── SEPA character set (used for de-profile Verwendungszweck) ───────────
+eq('isSepaCharset: plain ASCII text is SEPA-safe', isSepaCharset('Rechnung 2026-01 / Invoice No. 5'), true);
+eq('isSepaCharset: German umlauts are NOT in the SEPA character set', isSepaCharset('Rechnung für Büro'), false);
+eq('isSepaCharset: empty string is trivially SEPA-safe', isSepaCharset(''), true);
+deepEq('sepaCharsetViolations: reports each distinct offending character once', sepaCharsetViolations('äöü äöü'), ['ä', 'ö', 'ü']);
+deepEq('sepaCharsetViolations: clean text has no violations', sepaCharsetViolations('Invoice 2026-01'), []);
+{
+  const rows = [['IBAN', 'Betrag', 'Empfänger', 'Verwendungszweck'], [IBAN_DE_1, '10', 'Max Mustermann', 'Rechnung für Büro']];
+  const mapped = mapColumns(rows, undefined, 'de');
+  ok('de profile row validation: non-SEPA character in Verwendungszweck is flagged', mapped.payments[0].errors.some((e) => /SEPA/.test(e)));
+  eq('de profile row validation: same row is fine under the sk profile (no SEPA charset check there)', mapColumns(rows, undefined, 'sk').payments[0].hasError, false);
+}
+{
+  const longE2e = 'X'.repeat(36);
+  const rows = [['IBAN', 'Betrag', 'Empfänger', 'Verwendungszweck', 'EndToEndId'], [IBAN_DE_1, '10', 'Max', 'Test', longE2e]];
+  const mapped = mapColumns(rows, undefined, 'de');
+  ok('de profile row validation: EndToEndId over 35 chars flagged (ISO 20022 Max35Text)', mapped.payments[0].errors.some((e) => /35/.test(e)));
+}
+
+// ═══════════════════════════ i18n.js: SK/EN/DE dictionary ═══════════════
+// The tool is one page for Slovak accountants and for an English/German
+// visitor using the "de" country profile (SK/EN/DE), driven by a single
+// dictionary object and pure helpers in i18n.js, following exactly the
+// pattern already built for the sibling tool camt053-to-excel. These
+// assertions check the dictionary itself, not the DOM wiring (applyI18n/
+// setLang), which needs a real browser.
+
+eq('i18n LANGS: exactly [sk, en, de]', LANGS.join(','), 'sk,en,de');
+eq('i18n DEFAULT_LANG: "en" (fallback when navigator.language is neither de nor sk/cs)', DEFAULT_LANG, 'en');
+eq('i18n STORAGE_KEY: shared "arling_lang" key across every ARLing tool', I18N_STORAGE_KEY, 'arling_lang');
+
+{
+  const incomplete = findIncompleteEntries();
+  deepEq('i18n dictionary: every DICT entry has a non-empty sk/en/de', incomplete, []);
+}
+ok('i18n dictionary: has a substantial number of keys (every visible string on the page)', Object.keys(DICT).length >= 150);
+ok('i18n dictionary: has exactly 12 FAQ question/answer pairs (11 original + the new de-profile one)', Object.keys(DICT).filter((k) => /^faq\.q\d+$/.test(k)).length === 12 && Object.keys(DICT).filter((k) => /^faq\.a\d+$/.test(k)).length === 12);
+
+// ── t()/tf() lookup ────────────────────────────────────────────────────
+eq('t: unknown key returns the key itself (missing translation stays visible, not blank)', t('no.such.key', 'en'), 'no.such.key');
+eq('t: falls back to DEFAULT_LANG for an unsupported language code', t('js.status.pass', 'fr'), t('js.status.pass', 'en'));
+includes('tf: fills a single {placeholder}', tf('js.download.all', { n: 5 }, 'en'), '5');
+includes('tf: fills a {placeholder} used inside a longer German string', tf('js.doctor.execwindow.days', { n: 30 }, 'de'), '30');
+eq('t: bank.genericDe carries the DK-Regelwerk German label', t('bank.genericDe', 'de'), 'Bank nach DK-Regelwerk (pain.001.001.03)');
+eq('t: profile.de.label is translated per language', t('profile.de.label', 'en'), 'Germany (DK, Verwendungszweck)');
+
+// ── number formatting per language ──────────────────────────────────────
+eq('formatAmountForLang: English keeps a decimal point', formatAmountForLang(1234.5, 'en'), '1234.50');
+eq('formatAmountForLang: Slovak uses a decimal comma', formatAmountForLang(1234.5, 'sk'), '1234,50');
+eq('formatAmountForLang: German uses a decimal comma', formatAmountForLang(1234.5, 'de'), '1234,50');
+eq('formatAmountForLang: negative amount, German decimal comma', formatAmountForLang(-89.9, 'de'), '-89,90');
+eq('formatAmountForLang: null amount renders as an empty string, not "null"', formatAmountForLang(null, 'en'), '');
+eq('formatAmountForLang: NaN renders as an empty string', formatAmountForLang(NaN, 'sk'), '');
+
+// ── per-language number PARSING (the engine's own parseAmount(), which is
+// already locale-tolerant — these assert the specific sk/en/de-typical
+// input shapes the brief calls out: decimal comma vs. decimal point) ─────
+eq('parseAmount: Slovak/German-typical decimal comma "450,00"', parseAmount('450,00'), 450);
+eq('parseAmount: Slovak/German-typical thousands dot + decimal comma "1.234,56"', parseAmount('1.234,56'), 1234.56);
+eq('parseAmount: English-typical decimal point "450.00"', parseAmount('450.00'), 450);
+eq('parseAmount: English-typical thousands comma + decimal point "1,234.56"', parseAmount('1,234.56'), 1234.56);
+eq('parseAmount: German "€" currency suffix stripped, decimal comma kept', parseAmount('123,45 €'), 123.45);
+
+// ── date formatting per language ────────────────────────────────────────
+eq('formatDateForLang: English keeps ISO yyyy-mm-dd', formatDateForLang('2026-09-02', 'en'), '2026-09-02');
+eq('formatDateForLang: Slovak reformats to dd.mm.yyyy', formatDateForLang('2026-09-02', 'sk'), '02.09.2026');
+eq('formatDateForLang: German reformats to dd.mm.yyyy', formatDateForLang('2026-09-02', 'de'), '02.09.2026');
+eq('formatDateForLang: empty input passes through as an empty string', formatDateForLang('', 'en'), '');
+eq('formatDateForLang: non-ISO input passes through unchanged', formatDateForLang('n/a', 'de'), 'n/a');
+
+// ── date PARSING per language (the engine's own parseFlexibleDate(),
+// already accepting both ISO and dd.mm.yyyy regardless of UI language) ───
+eq('parseFlexibleDate: German/Slovak-typical dd.mm.yyyy "15.09.2026"', parseFlexibleDate('15.09.2026'), '2026-09-15');
+eq('parseFlexibleDate: English-typical ISO yyyy-mm-dd "2026-09-15"', parseFlexibleDate('2026-09-15'), '2026-09-15');
+
+// ── locale detection (pure logic; the DOM-facing detectLang() wraps this
+// with location.search / localStorage / navigator.language, untestable
+// under Node without a browser) ──────────────────────────────────────────
+eq('langFromLocale: "de-DE" -> de', langFromLocale('de-DE'), 'de');
+eq('langFromLocale: "de-AT" -> de (Austrian German)', langFromLocale('de-AT'), 'de');
+eq('langFromLocale: "de-CH" -> de (Swiss German)', langFromLocale('de-CH'), 'de');
+eq('langFromLocale: "sk-SK" -> sk', langFromLocale('sk-SK'), 'sk');
+eq('langFromLocale: "cs-CZ" -> sk (Czech maps to Slovak, per the brief)', langFromLocale('cs-CZ'), 'sk');
+eq('langFromLocale: "fr-FR" -> en (anything else defaults to English)', langFromLocale('fr-FR'), 'en');
+eq('langFromQueryString: "?lang=de" -> de', langFromQueryString('?lang=de'), 'de');
+eq('langFromQueryString: "?lang=SK" is case-insensitive -> sk', langFromQueryString('?lang=SK'), 'sk');
+eq('langFromQueryString: unsupported ?lang= value -> null (caller falls through)', langFromQueryString('?lang=fr'), null);
+eq('langFromQueryString: no ?lang= param -> null', langFromQueryString('?other=1'), null);
+
+// ── misc per-language lookups used in the page ───────────────────────────
+eq('localeTagForLang: sk -> sk-SK (history timestamp locale)', localeTagForLang('sk'), 'sk-SK');
+eq('localeTagForLang: de -> de-DE', localeTagForLang('de'), 'de-DE');
+eq('localeTagForLang: en -> en-GB', localeTagForLang('en'), 'en-GB');
+eq('ogLocaleForLang: sk -> sk_SK', ogLocaleForLang('sk'), 'sk_SK');
+eq('ogLocaleForLang: de -> de_DE', ogLocaleForLang('de'), 'de_DE');
+eq('ogLocaleForLang: en -> en_US', ogLocaleForLang('en'), 'en_US');
+
+// ── no leftover Slovak in the English/German copy ────────────────────────
+{
+  const leftoverWords = ['Máte', 'Dostanete', 'Vložte platby', 'Skopírujte'];
+  const offenders = [];
+  for (const [key, entry] of Object.entries(DICT)) {
+    for (const lang of ['en', 'de']) {
+      for (const w of leftoverWords) {
+        if (String(entry[lang] || '').includes(w)) offenders.push(`${key}.${lang}`);
+      }
+    }
+  }
+  ok('i18n dictionary: no leftover Slovak "Máte"/"Dostanete"/etc. in any English or German value', offenders.length === 0, offenders.join(', '));
+}
+{
+  // No em dash (—) in any translated value (Paper design system rule).
+  const emdash = '—';
+  const offenders = [];
+  for (const [key, entry] of Object.entries(DICT)) {
+    for (const lang of LANGS) {
+      if (String(entry[lang] || '').includes(emdash)) offenders.push(`${key}.${lang}`);
+    }
+  }
+  ok('i18n dictionary: no em dash in any sk/en/de value', offenders.length === 0, offenders.join(', '));
+}
 
 // ═══════════════════════════ summary ═══════════════════════════════════
 

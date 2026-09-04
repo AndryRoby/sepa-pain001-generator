@@ -169,6 +169,31 @@ export function transliterate(str) {
   return out;
 }
 
+// ─────────────────────── SEPA character set (profile "de") ────────────────
+// Same allowed set doctor-pain001.js already checks generically (its own
+// SEPA_CHARSET_RE, sourced from ČSOB's published character-set list): a-z
+// A-Z 0-9, space, and / - – ? : ( ) . , ' +. Kept as its own small export
+// here (not imported from doctor-pain001.js, to keep this module's "zero
+// cross-file dependency" property from the header comment) so the "de"
+// country profile can flag a Verwendungszweck that would fail a strict
+// Deutsche Kreditwirtschaft (DK) import validator instead of only Doctor's
+// post-generation pass catching it.
+export const SEPA_CHARSET_RE = /^[A-Za-z0-9 \/\-–?:().,'+]*$/;
+
+export function isSepaCharset(str) {
+  return SEPA_CHARSET_RE.test(safeStr(str));
+}
+
+/** @returns {string[]} the distinct characters in `str` outside the SEPA set. */
+export function sepaCharsetViolations(str) {
+  const bad = [];
+  const seen = new Set();
+  for (const ch of safeStr(str)) {
+    if (!SEPA_CHARSET_RE.test(ch) && !seen.has(ch)) { seen.add(ch); bad.push(ch); }
+  }
+  return bad;
+}
+
 // ──────────────────────────────── XML escape ───────────────────────────────
 
 function xmlEscape(s) {
@@ -238,7 +263,12 @@ export function parseRows(text) {
 
 // ───────────────────────── column auto-detection ──────────────────────────
 
-const FIELD_LIST = ['iban', 'amount', 'name', 'vs', 'ss', 'ks', 'message', 'date', 'bic'];
+// "endToEndId" is only ever populated by the "de" country profile (see
+// buildXml()'s `profile` option below): pain.001.001.03 already carries it
+// for every profile (PmtId/EndToEndId), but the "sk" profile keeps building
+// it from vs/ss/ks (buildEndToEndId(), unchanged), so a mapped column here
+// is only consulted by resolveEndToEndId() when profile === 'de'.
+const FIELD_LIST = ['iban', 'amount', 'name', 'vs', 'ss', 'ks', 'message', 'date', 'bic', 'endToEndId'];
 
 function foldLower(s) {
   const str = safeStr(s);
@@ -250,19 +280,28 @@ function foldLower(s) {
 }
 
 // Tested in this order per column (first match wins); order matters so the
-// narrow VS/ŠS/KS codes are checked before the broader name/message ones.
-const FIELD_DETECT_ORDER = ['iban', 'bic', 'vs', 'ss', 'ks', 'date', 'amount', 'message', 'name'];
+// narrow VS/ŠS/KS/EndToEndId codes are checked before the broader
+// name/message ones.
+const FIELD_DETECT_ORDER = ['iban', 'bic', 'endToEndId', 'vs', 'ss', 'ks', 'date', 'amount', 'message', 'name'];
 
+// Header vocabulary covers Slovak (the "sk" profile's own export headers),
+// German (Deutsche Kreditwirtschaft / Excel-DE headers: IBAN, Betrag, Name,
+// Empfänger, Verwendungszweck, Ausführungsdatum, BIC — diacritics are
+// stripped by foldLower() before this regex runs, so "Empfänger" folds to
+// "empfanger" and "Ausführungsdatum" to "ausfuhrungsdatum", already caught
+// by /datum/) and English (Amount, Beneficiary, Reference, Execution date —
+// "Reference" already matches the existing /referenc/ alternative below).
 const FIELD_PATTERNS = {
   iban: /iban/,
   bic: /^bic$|swift/,
-  amount: /suma|amount|ciastka|castka/,
+  endToEndId: /endtoend|e2e/,
+  amount: /suma|amount|ciastka|castka|betrag/,
   vs: /^vs$|variabiln/,
   ss: /^ss$|specifick/,
   ks: /^ks$|konstantn/,
   date: /datum|date|splatnost/,
-  message: /sprava|poznamk|message|\binfo\b|popis|referenc/,
-  name: /nazov|meno|prijemc|name|dodavat|odberat|firma/,
+  message: /sprava|poznamk|message|\binfo\b|popis|referenc|verwendungszweck/,
+  name: /nazov|meno|prijemc|name|dodavat|odberat|firma|empfanger|beneficiary/,
 };
 
 function emptyMapping() {
@@ -302,9 +341,13 @@ function looksLikeHeader(row) {
 }
 
 // Fallback when no header row is recognized: assume the common Excel export
-// order IBAN, suma, názov, VS, ŠS, KS, správa (only as many as exist).
-function defaultPositionalMapping(columnCount) {
-  const order = ['iban', 'amount', 'name', 'vs', 'ss', 'ks', 'message'];
+// order IBAN, suma, názov, VS, ŠS, KS, správa (only as many as exist) for
+// the "sk" profile, or IBAN, Betrag, Name, Verwendungszweck, EndToEndId for
+// "de" (no VS/ŠS/KS columns in that profile — see FIELD_LIST's comment).
+function defaultPositionalMapping(columnCount, profile) {
+  const order = profile === 'de'
+    ? ['iban', 'amount', 'name', 'message', 'endToEndId']
+    : ['iban', 'amount', 'name', 'vs', 'ss', 'ks', 'message'];
   const mapping = emptyMapping();
   for (let i = 0; i < order.length && i < columnCount; i++) mapping[order[i]] = i;
   return mapping;
@@ -394,7 +437,7 @@ function nowCreDtTm(base) {
 
 // ─────────────────────────── row build + validation ────────────────────────
 
-function buildPaymentRow(cells, mapping, rowNumber) {
+function buildPaymentRow(cells, mapping, rowNumber, profile) {
   const get = (field) => {
     const idx = mapping[field];
     if (idx === null || idx === undefined || idx < 0) return '';
@@ -412,6 +455,7 @@ function buildPaymentRow(cells, mapping, rowNumber) {
   const ks = onlyDigits(get('ks'));
   const message = get('message');
   const bic = get('bic').toUpperCase();
+  const endToEndId = get('endToEndId');
   const dateRaw = get('date');
   const dateIso = dateRaw ? parseFlexibleDate(dateRaw) : null;
 
@@ -423,14 +467,28 @@ function buildPaymentRow(cells, mapping, rowNumber) {
   else if (amount <= 0) errors.push('Suma musí byť kladná.');
   if (!name) errors.push('Chýba názov príjemcu.');
   else if (name.length > 70) errors.push(`Názov má ${name.length} znakov, maximum je 70.`);
-  if (vs.length > 10) errors.push(`VS má ${vs.length} číslic, maximum je 10.`);
-  if (ss.length > 10) errors.push(`ŠS má ${ss.length} číslic, maximum je 10.`);
-  if (ks.length > 4) errors.push(`KS má ${ks.length} číslice, maximum je 4.`);
   if (message.length > 140) errors.push(`Správa má ${message.length} znakov, maximum je 140.`);
   if (dateRaw && !dateIso) errors.push('Dátum sa nepodarilo rozpoznať, použije sa predvolený dátum splatnosti.');
 
+  if (profile === 'de') {
+    // "de" country profile: no VS/ŠS/KS fields at all (Verwendungszweck
+    // carries the whole remittance text instead), so those two length
+    // checks below are skipped; EndToEndId and the SEPA character set on
+    // Verwendungszweck are checked instead — see FIELD_LIST's comment and
+    // resolveEndToEndId() further down.
+    if (endToEndId.length > 35) errors.push(`EndToEndId má ${endToEndId.length} znakov, maximum je 35.`);
+    if (message) {
+      const bad = sepaCharsetViolations(message);
+      if (bad.length) errors.push(`Verwendungszweck obsahuje znak mimo znakovej sady SEPA: ${bad.join(' ')}.`);
+    }
+  } else {
+    if (vs.length > 10) errors.push(`VS má ${vs.length} číslic, maximum je 10.`);
+    if (ss.length > 10) errors.push(`ŠS má ${ss.length} číslic, maximum je 10.`);
+    if (ks.length > 4) errors.push(`KS má ${ks.length} číslice, maximum je 4.`);
+  }
+
   return {
-    row: rowNumber, iban, ibanRaw, amount, amountRaw, name, vs, ss, ks, message, bic,
+    row: rowNumber, iban, ibanRaw, amount, amountRaw, name, vs, ss, ks, message, bic, endToEndId,
     date: dateRaw, dateIso, errors, hasError: errors.length > 0,
   };
 }
@@ -440,17 +498,21 @@ function buildPaymentRow(cells, mapping, rowNumber) {
  * validated payment list from parsed rows.
  * @param {string[][]} rows Output of parseRows().
  * @param {Object<string, number|null>} [overrides] Manual column index per
- *   field (iban/amount/name/vs/ss/ks/message/date/bic); any field present
- *   here overrides auto-detection, `null` means "no column".
+ *   field (iban/amount/name/vs/ss/ks/message/date/bic/endToEndId); any
+ *   field present here overrides auto-detection, `null` means "no column".
+ * @param {'sk'|'de'} [profile] Country profile: 'sk' (default, current
+ *   behaviour) or 'de' (no VS/ŠS/KS, EndToEndId column instead — see
+ *   buildXml()'s own `profile` option for what this changes in the XML).
  */
-export function mapColumns(rows, overrides) {
+export function mapColumns(rows, overrides, profile) {
+  const prof = profile === 'de' ? 'de' : 'sk';
   const allRows = Array.isArray(rows) ? rows : [];
   const columnCount = allRows.reduce((max, r) => Math.max(max, Array.isArray(r) ? r.length : 0), 0);
   const hasHeader = allRows.length > 0 && looksLikeHeader(allRows[0]);
   const headerRow = hasHeader ? allRows[0] : [];
   const dataRows = hasHeader ? allRows.slice(1) : allRows;
 
-  const detectedMapping = hasHeader ? detectMapping(headerRow) : defaultPositionalMapping(columnCount);
+  const detectedMapping = hasHeader ? detectMapping(headerRow) : defaultPositionalMapping(columnCount, prof);
   let mapping = Object.assign({}, detectedMapping);
   if (overrides && typeof overrides === 'object') {
     for (const field of FIELD_LIST) {
@@ -464,9 +526,9 @@ export function mapColumns(rows, overrides) {
   const headerLabels = [];
   for (let c = 0; c < columnCount; c++) headerLabels.push(hasHeader && headerRow[c] ? headerRow[c] : `Stĺpec ${c + 1}`);
 
-  const payments = dataRows.map((cells, i) => buildPaymentRow(cells, mapping, i + 1));
+  const payments = dataRows.map((cells, i) => buildPaymentRow(cells, mapping, i + 1, prof));
 
-  return { hasHeader, headerLabels, columnCount, detectedMapping, mapping, payments, rowCount: dataRows.length };
+  return { hasHeader, headerLabels, columnCount, detectedMapping, mapping, payments, rowCount: dataRows.length, profile: prof };
 }
 
 // ──────────────────────────────── XML building ─────────────────────────────
@@ -492,6 +554,23 @@ export function buildEndToEndId(vs, ss, ks) {
   return out || 'NOTPROVIDED';
 }
 
+/**
+ * Picks PmtId/EndToEndId's value for one payment, per country profile:
+ *  - "sk" (default): same as always, built from vs/ss/ks (buildEndToEndId()
+ *    above) — the NBS "/VS.../SS.../KS..." convention.
+ *  - "de": taken directly from the payment's own `endToEndId` field (an
+ *    optional mapped column — see FIELD_LIST's comment), trimmed, or the
+ *    ISO fallback "NOTPROVIDED" when that column is empty/unmapped. vs/ss/
+ *    ks are ignored outright: the "de" profile has no such columns.
+ */
+export function resolveEndToEndId(p, profile) {
+  if (profile === 'de') {
+    const v = safeStr(p && p.endToEndId).trim();
+    return v || 'NOTPROVIDED';
+  }
+  return buildEndToEndId(p && p.vs, p && p.ss, p && p.ks);
+}
+
 function groupByDate(payments, fallbackDate) {
   const map = new Map();
   payments.forEach((p) => {
@@ -504,12 +583,12 @@ function groupByDate(payments, fallbackDate) {
     .map(([date, pays]) => ({ date, payments: pays }));
 }
 
-function buildTx(p, transliterateValues) {
+function buildTx(p, transliterateValues, profile) {
   const name = transliterateValues ? transliterate(safeStr(p.name)) : safeStr(p.name);
   const message = transliterateValues ? transliterate(safeStr(p.message)) : safeStr(p.message);
   const amount = isNum(p.amount) ? p.amount : 0;
   const bic = (safeStr(p.bic).toUpperCase() || bicFromIban(p.iban) || '').trim();
-  const endToEndId = buildEndToEndId(p.vs, p.ss, p.ks);
+  const endToEndId = resolveEndToEndId(p, profile);
 
   let xml = `      <CdtTrfTxInf>
         <PmtId>
@@ -588,10 +667,11 @@ ${txXml}
  * @param {{
  *   payer: {name:string, iban:string, bic?:string},
  *   bank?: 'tatrabanka'|'slsp'|'vub'|'csob'|'generic',
+ *   profile?: 'sk'|'de', // country profile for PmtId/EndToEndId (see resolveEndToEndId()); default 'sk'
  *   execDate?: string,   // YYYY-MM-DD fallback for rows with no usable date
  *   msgId?: string,      // auto-generated (ARL-YYYYMMDD-HHMMSS) if omitted
  *   now?: Date,          // for deterministic tests; defaults to current time
- *   payments: Array<{iban:string, amount:number|null, name:string, vs?:string, ss?:string, ks?:string, message?:string, bic?:string, dateIso?:string|null}>
+ *   payments: Array<{iban:string, amount:number|null, name:string, vs?:string, ss?:string, ks?:string, message?:string, bic?:string, endToEndId?:string, dateIso?:string|null}>
  * }} config
  * @returns {string} pain.001.001.03 XML
  */
@@ -600,6 +680,7 @@ export function buildXml(config) {
   const payer = cfg.payer && typeof cfg.payer === 'object' ? cfg.payer : {};
   const payments = Array.isArray(cfg.payments) ? cfg.payments : [];
   const bankKey = ['tatrabanka', 'slsp', 'vub', 'csob', 'generic'].includes(cfg.bank) ? cfg.bank : 'generic';
+  const profile = cfg.profile === 'de' ? 'de' : 'sk';
 
   if (payments.length === 0) throw new Error('Žiadne platby na spracovanie. Vložte aspoň jeden riadok s platbou.');
   if (payments.length > MAX_PAYMENTS) throw new Error(`Príliš veľa platieb (${payments.length}). Maximum je ${MAX_PAYMENTS} v jednom súbore: rozdeľte platby do viacerých súborov.`);
@@ -621,7 +702,7 @@ export function buildXml(config) {
     const txXml = g.payments.map((p) => {
       totalCount++;
       if (isNum(p.amount)) totalSum += p.amount;
-      return buildTx(p, csob);
+      return buildTx(p, csob, profile);
     }).join('\n');
     return buildPmtInf({ index: gi, msgId, date: g.date, payerName, payerIban, payerBic, txXml });
   }).join('\n');
@@ -646,5 +727,5 @@ ${pmtInfBlocks}
 
 // Also expose as a plain browser global when loaded via <script type="module">.
 if (typeof window !== 'undefined') {
-  window.SepaGenerator = { parseRows, mapColumns, buildXml, bicFromIban };
+  window.SepaGenerator = { parseRows, mapColumns, buildXml, bicFromIban, resolveEndToEndId, isSepaCharset, sepaCharsetViolations };
 }
