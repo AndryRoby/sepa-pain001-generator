@@ -12,6 +12,10 @@
 <meta property="og:url" content="https://arling.sk/sepa-pain001-generator/" />
 <meta property="og:locale" content="sk_SK" />
 <link rel="canonical" href="https://arling.sk/sepa-pain001-generator/" />
+<link rel="alternate" hreflang="sk" href="https://arling.sk/sepa-pain001-generator/?lang=sk" />
+<link rel="alternate" hreflang="en" href="https://arling.sk/sepa-pain001-generator/?lang=en" />
+<link rel="alternate" hreflang="de" href="https://arling.sk/sepa-pain001-generator/?lang=de" />
+<link rel="alternate" hreflang="x-default" href="https://arling.sk/sepa-pain001-generator/" />
 <meta property="og:image" content="https://arling.sk/sepa-pain001-generator/icon-512.png" />
 <link rel="icon" href="favicon.svg" type="image/svg+xml" />
 <link rel="alternate icon" href="favicon.ico" />
@@ -26,9 +30,10 @@
   "@type": "SoftwareApplication",
   "name": "SEPA pain.001 Generátor (slovenské banky)",
   "url": "https://arling.sk/sepa-pain001-generator/",
-  "description": "Free, client-side tool that builds a SEPA pain.001.001.03 XML batch payment file (hromadný príkaz na úhradu) from payments pasted or uploaded from Excel or CSV, ready for import into Tatra banka, Slovenská sporiteľňa (SLSP), VÚB, or ČSOB internet banking. Runs the sibling SEPA pain.001 Doctor engine on every generated file automatically.",
+  "description": "Free, client-side tool that builds a SEPA pain.001.001.03 XML batch payment file (hromadný príkaz na úhradu) from payments pasted or uploaded from Excel or CSV, ready for import into Tatra banka, Slovenská sporiteľňa (SLSP), VÚB, or ČSOB internet banking, or a generic German (Deutsche Kreditwirtschaft, \"de\" country profile) pain.001 file with Verwendungszweck instead of VS/SS/KS. Runs the sibling SEPA pain.001 Doctor engine on every generated file automatically. Available in Slovak, English and German.",
   "applicationCategory": "FinanceApplication",
   "operatingSystem": "Any (web browser)",
+  "inLanguage": ["sk", "en", "de"],
   "offers": [
     {
       "@type": "Offer",
@@ -153,6 +158,14 @@
         "@type": "Answer",
         "text": "Áno. Ak vám Pro nesadne, napíšte do 14 dní od kúpy na andrej@arling.sk a peniaze vrátime bez zbytočných otázok."
       }
+    },
+    {
+      "@type": "Question",
+      "name": "Čím sa líši profil „Nemecko (DK)“ od „Slovensko“?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Profil „Nemecko (DK)“ (Deutsche Kreditwirtschaft, pravidlá pre pain.001.001.03 platné v nemeckom bankovníctve) skryje stĺpce VS/ŠS/KS a namiesto nich ponúkne jeden voľný text Verwendungszweck (max. 140 znakov, znaková sada SEPA) a voliteľný stĺpec EndToEndId. Zoznam bánk sa zjednoduší na jednu všeobecnú predlohu „Bank nach DK-Regelwerk (pain.001.001.03)“ namiesto štyroch slovenských bánk. BIC zostáva nepovinný, ako pri každom IBAN z krajiny EHP/SEPA."
+      }
     }
   ]
 }
@@ -190,10 +203,18 @@
   .wordmark { font:600 21px/1.25 var(--serif); text-decoration:none; overflow-wrap:anywhere; }
   .wordmark-sub { font:13px/1 var(--sans); color:var(--muted); letter-spacing:.02em; text-decoration:none; white-space:nowrap; }
   .wordmark-sub:hover { color:var(--accent); }
+  .headnav { display:flex; align-items:center; flex-wrap:wrap; gap:6px 20px; }
   nav.main { display:flex; flex-wrap:wrap; }
   nav.main a { font-size:14px; margin-left:20px; text-decoration:none; color:var(--ink-2); white-space:nowrap; }
   nav.main a:first-child { margin-left:0; }
   nav.main a:hover { color:var(--accent); }
+  .lang-switch { display:flex; align-items:center; gap:0; }
+  .lang-switch button { font:600 12px/1 var(--sans); padding:6px 9px; border:1px solid var(--line); background:var(--paper); color:var(--ink-2); cursor:pointer; appearance:none; -webkit-appearance:none; }
+  .lang-switch button:first-child { border-radius:4px 0 0 4px; }
+  .lang-switch button:last-child { border-radius:0 4px 4px 0; }
+  .lang-switch button + button { margin-left:-1px; }
+  .lang-switch button:hover { border-color:var(--accent); color:var(--accent); position:relative; z-index:1; }
+  .lang-switch button.lang-active { background:var(--ink); border-color:var(--ink); color:var(--paper); position:relative; z-index:1; }
 
   /* Hero */
   .hero { padding:64px 0 40px; border-bottom:1px solid var(--line); }
@@ -432,8 +453,6 @@
   footer b { color:var(--ink); font-weight:600; }
   footer a { color:var(--ink-2); }
   .footer-note { margin-top:14px; font-size:12px; color:var(--muted); }
-  .footer-en { margin-top:18px; padding-top:18px; border-top:1px solid var(--line); font-size:12.5px; color:var(--muted); line-height:1.6; max-width:72ch; }
-  .footer-en b { color:var(--muted); }
 
   @media (max-width:480px) {
     .hero { padding:44px 0 32px; }
@@ -445,35 +464,42 @@
 </head>
 <body>
 
-<a class="skip" href="#playground">Skočiť na generátor</a>
+<a class="skip" href="#playground" data-i18n="skip">Skočiť na generátor</a>
 <header class="top">
   <div class="wrap">
     <div class="brand">
       <a class="wordmark" href="https://arling.sk/sepa-pain001-generator/">SEPA pain.001 Generátor</a>
-      <a class="wordmark-sub" href="https://arling.sk/">nástroj ARLing</a>
+      <a class="wordmark-sub" href="https://arling.sk/" data-i18n="brand.sub">nástroj ARLing</a>
     </div>
-    <nav class="main" aria-label="Stránka">
-      <a href="#problem">Ako to funguje</a>
-      <a href="#playground">Generátor</a>
-      <a href="#endpoint">API</a>
-      <a href="#pro">Pro</a>
-      <a href="#faq">Otázky</a>
-    </nav>
+    <div class="headnav">
+      <nav class="main" aria-label="Stránka">
+        <a href="#problem" data-i18n="nav.how">Ako to funguje</a>
+        <a href="#playground" data-i18n="nav.convert">Generátor</a>
+        <a href="#endpoint" data-i18n="nav.api">API</a>
+        <a href="#pro" data-i18n="nav.pro">Pro</a>
+        <a href="#faq" data-i18n="nav.faq">Otázky</a>
+      </nav>
+      <div class="lang-switch" role="group" aria-label="Jazyk stránky" data-i18n-aria-label="lang.switch.aria">
+        <button type="button" data-set-lang="sk" aria-pressed="true" aria-label="Slovenčina" data-i18n-aria-label="lang.sk.aria">SK</button>
+        <button type="button" data-set-lang="en" aria-pressed="false" aria-label="English" data-i18n-aria-label="lang.en.aria">EN</button>
+        <button type="button" data-set-lang="de" aria-pressed="false" aria-label="Deutsch" data-i18n-aria-label="lang.de.aria">DE</button>
+      </div>
+    </div>
   </div>
 </header>
 
 <main>
   <div class="hero">
     <div class="wrap">
-      <h1>Zoznam platieb z Excelu na XML pre banku. Skontrolovaný, za minútu.</h1>
-      <p class="lead">Vložte platby skopírované z Excelu alebo CSV, vyplňte IBAN platiteľa a stiahnite pain.001 hromadný príkaz. Súbor sa hneď po vygenerovaní skontroluje cez ten istý engine ako SEPA pain.001 Doctor.</p>
-      <a class="btn btn-solid" href="#playground">Vytvoriť súbor</a><a class="btn btn-line" href="https://github.com/AndryRoby/sepa-pain001-generator" target="_blank" rel="noopener">Zdrojový kód na GitHube</a>
+      <h1 data-i18n="hero.h1">Zoznam platieb z Excelu na XML pre banku. Skontrolovaný, za minútu.</h1>
+      <p class="lead" data-i18n="hero.lead">Vložte platby skopírované z Excelu alebo CSV, vyplňte IBAN platiteľa a stiahnite pain.001 hromadný príkaz. Súbor sa hneď po vygenerovaní skontroluje cez ten istý engine ako SEPA pain.001 Doctor.</p>
+      <a class="btn btn-solid" href="#playground" data-i18n="hero.cta">Vytvoriť súbor</a><a class="btn btn-line" href="https://github.com/AndryRoby/sepa-pain001-generator" target="_blank" rel="noopener" data-i18n="hero.source">Zdrojový kód na GitHube</a>
       <ul class="facts">
-        <li><b>4</b> banky: Tatra banka, SLSP, VÚB, ČSOB</li>
-        <li><b>109</b> automatizovaných testov</li>
-        <li>max. <b>5000</b> platieb</li>
-        <li><b>0 €</b>, bez účtu</li>
-        <li>beží vo vašom prehliadači</li>
+        <li data-i18n="hero.fact.banks">4 banky: Tatra banka, SLSP, VÚB, ČSOB</li>
+        <li data-i18n="hero.fact.tests">277 automatizovaných testov</li>
+        <li data-i18n="hero.fact.maxpayments">max. 5000 platieb</li>
+        <li data-i18n="hero.fact.free">0 €, bez účtu</li>
+        <li data-i18n="hero.fact.browser">beží vo vašom prehliadači</li>
       </ul>
     </div>
   </div>
@@ -481,20 +507,20 @@
   <section id="problem">
     <div class="wrap">
       <p class="kicker">01</p>
-      <h2>Tri veci, ktoré pri ručnom skladaní XML najčastejšie pokazia súbor.</h2>
-      <p class="sub">Zložiť pain.001 XML v texťáku alebo vzorci v Exceli sa dá, ale stačí jedna maličkosť a banka súbor odmietne bez vysvetlenia.</p>
+      <h2 data-i18n="s1.h2">Tri veci, ktoré pri ručnom skladaní XML najčastejšie pokazia súbor.</h2>
+      <p class="sub" data-i18n="s1.sub">Zložiť pain.001 XML v texťáku alebo vzorci v Exceli sa dá, ale stačí jedna maličkosť a banka súbor odmietne bez vysvetlenia.</p>
       <ol class="rules">
         <li>
-          <b>Stĺpce sa rozpoznávajú podľa názvu, nie podľa poradia.</b>
-          <p>Generátor hľadá „IBAN“, „suma“, „názov“ a podobné hlavičky automaticky. Pri nezvyčajnom Exceli mapovanie skontrolujte a v prípade potreby ho ručne opravte vo výberoch nad náhľadom.</p>
+          <b data-i18n="s1.r1.title">Stĺpce sa rozpoznávajú podľa názvu, nie podľa poradia.</b>
+          <p data-i18n-html="s1.r1.body">Generátor hľadá „IBAN“, „suma“, „názov“ a podobné hlavičky automaticky. Pri nezvyčajnom Exceli mapovanie skontrolujte a v prípade potreby ho ručne opravte vo výberoch nad náhľadom.</p>
         </li>
         <li>
-          <b>VS, ŠS a KS nemajú v XML vlastné pole.</b>
-          <p>Musia byť zapísané v <code>EndToEndId</code> v presnom poradí <code>/VS.../SS.../KS...</code>. Zlé poradie prevod nezastaví, ale príjemca si platbu nespáruje s faktúrou.</p>
+          <b data-i18n="s1.r2.title">VS, ŠS a KS nemajú v XML vlastné pole.</b>
+          <p data-i18n-html="s1.r2.body">Musia byť zapísané v <code>EndToEndId</code> v presnom poradí <code>/VS.../SS.../KS...</code>. Zlé poradie prevod nezastaví, ale príjemca si platbu nespáruje s faktúrou.</p>
         </li>
         <li>
-          <b>Formát je jedna vec, pravidlá banky druhá.</b>
-          <p>Po vygenerovaní beží nad súborom rovnaký engine ako v <a href="https://arling.sk/sepa-pain001-doctor/">SEPA pain.001 Doctorovi</a>: BIC, dátum splatnosti, diakritika a limit transakcií podľa vybranej banky.</p>
+          <b data-i18n="s1.r3.title">Formát je jedna vec, pravidlá banky druhá.</b>
+          <p data-i18n-html="s1.r3.body">Po vygenerovaní beží nad súborom rovnaký engine ako v <a href="https://arling.sk/sepa-pain001-doctor/">SEPA pain.001 Doctorovi</a>: BIC, dátum splatnosti, diakritika a limit transakcií podľa vybranej banky.</p>
         </li>
       </ol>
     </div>
@@ -503,86 +529,94 @@
   <section id="playground">
     <div class="wrap">
       <p class="kicker">02</p>
-      <h2>Vložte platby, vyplňte platiteľa. Dostanete hotový XML.</h2>
-      <p class="sub">Nič z toho, čo vložíte, sa neodosiela. Generovanie aj kontrola bežia vo vašom prehliadači.</p>
+      <h2 data-i18n="s2.h2">Vložte platby, vyplňte platiteľa. Dostanete hotový XML.</h2>
+      <p class="sub" data-i18n="s2.sub">Nič z toho, čo vložíte, sa neodosiela. Generovanie aj kontrola bežia vo vašom prehliadači.</p>
 
       <div class="play">
         <div class="play-body">
           <div class="pane">
             <div class="pane-head">
               <div class="tabs">
-                <button class="tab-btn active" id="tab-form" type="button">Formulár</button>
-                <button class="tab-btn" id="tab-json" type="button">JSON</button>
+                <button class="tab-btn active" id="tab-form" type="button" data-i18n="s2.tab.form">Formulár</button>
+                <button class="tab-btn" id="tab-json" type="button" data-i18n="s2.tab.json">JSON</button>
               </div>
               <div class="pane-actions">
-                <button class="icon-btn" id="sample-btn" type="button" title="Načítať ukážkové platby (jedna zámerne s neplatným IBAN-om)">ukážka</button>
-                <button class="icon-btn primary" id="generate-btn" type="button">Generovať ↵</button>
+                <button class="icon-btn" id="sample-btn" type="button" title="Načítať ukážkové platby (jedna zámerne s neplatným IBAN-om)" data-i18n="s2.sample.btn" data-i18n-title="s2.sample.btn.title">ukážka</button>
+                <button class="icon-btn primary" id="generate-btn" type="button" data-i18n="s2.generate.btn">Generovať ↵</button>
               </div>
             </div>
 
             <div id="form-pane">
               <div class="form-section">
-                <div class="form-section-title">Platiteľ<span class="hint-inline">uložené profily <a class="pro-badge" href="#pro">PRO</a></span></div>
+                <div class="form-section-title"><span data-i18n="s2.payer.title">Platiteľ</span><span class="hint-inline"><span data-i18n="s2.payer.hint">uložené profily</span> <a class="pro-badge" href="#pro" data-i18n="s2.pro.badge">PRO</a></span></div>
                 <div class="field-grid">
                   <div class="field full pro-profile-row">
-                    <label for="pro-profile-select">uložený profil platiteľa</label>
+                    <label for="pro-profile-select" data-i18n="s2.profile.select.label">uložený profil platiteľa</label>
                     <div class="pro-profile-controls">
-                      <select id="pro-profile-select" disabled><option value="">(vybrať uložený profil)</option></select>
-                      <button class="icon-btn" id="pro-profile-save-btn" type="button" disabled>Uložiť ako profil</button>
-                      <button class="icon-btn" id="pro-profile-delete-btn" type="button" disabled>Zmazať profil</button>
+                      <select id="pro-profile-select" disabled><option value="" data-i18n="s2.profile.select.placeholder">(vybrať uložený profil)</option></select>
+                      <button class="icon-btn" id="pro-profile-save-btn" type="button" disabled data-i18n="s2.profile.save.btn">Uložiť ako profil</button>
+                      <button class="icon-btn" id="pro-profile-delete-btn" type="button" disabled data-i18n="s2.profile.delete.btn">Zmazať profil</button>
                     </div>
                   </div>
                   <div class="field full">
-                    <label for="f-payer-name">názov firmy</label>
-                    <input type="text" id="f-payer-name" placeholder="Moja firma s. r. o." />
+                    <label for="f-payer-name" data-i18n="s2.payer.name.label">názov firmy</label>
+                    <input type="text" id="f-payer-name" placeholder="Moja firma s. r. o." data-i18n-placeholder="s2.payer.name.placeholder" />
                   </div>
                   <div class="field">
-                    <label for="f-payer-iban">IBAN debetného účtu</label>
+                    <label for="f-payer-iban" data-i18n="s2.payer.iban.label">IBAN debetného účtu</label>
                     <input type="text" id="f-payer-iban" placeholder="SK00 0000 0000 0000 0000 0000" />
                   </div>
                   <div class="field">
-                    <label for="f-payer-bic">BIC platiteľa</label>
-                    <input type="text" id="f-payer-bic" placeholder="odvodí sa z IBAN" />
-                    <span class="hint" id="payer-bic-hint">Odvodí sa automaticky zo 4-miestneho kódu banky v IBAN. Ak sa nepodarí, vyplňte ručne.</span>
+                    <label for="f-payer-bic" data-i18n="s2.payer.bic.label">BIC platiteľa</label>
+                    <input type="text" id="f-payer-bic" placeholder="odvodí sa z IBAN" data-i18n-placeholder="s2.payer.bic.placeholder" />
+                    <span class="hint" id="payer-bic-hint" data-i18n="s2.payer.bic.hint">Odvodí sa automaticky zo 4-miestneho kódu banky v IBAN. Ak sa nepodarí, vyplňte ručne.</span>
                   </div>
                 </div>
               </div>
 
               <div class="form-section">
-                <div class="form-section-title">Nastavenia</div>
+                <div class="form-section-title" data-i18n="s2.settings.title">Nastavenia</div>
                 <div class="field-grid cols-3">
                   <div class="field">
-                    <label for="f-bank">banka (cieľový import)</label>
+                    <label for="f-countryprofile" data-i18n="s2.countryprofile.label">profil krajiny</label>
+                    <select id="f-countryprofile">
+                      <option value="sk" data-i18n="profile.sk.label">Slovensko (VS/ŠS/KS)</option>
+                      <option value="de" data-i18n="profile.de.label">Nemecko (DK, Verwendungszweck)</option>
+                    </select>
+                    <span class="hint" id="countryprofile-hint" data-i18n="s2.countryprofile.hint">Slovensko: VS/ŠS/KS v EndToEndId. Nemecko (DK): žiadne VS/ŠS/KS, namiesto toho Verwendungszweck a voliteľné EndToEndId.</span>
+                  </div>
+                  <div class="field">
+                    <label for="f-bank" data-i18n="s2.bank.label">banka (cieľový import)</label>
                     <select id="f-bank">
-                      <option value="tatrabanka">Tatra banka</option>
-                      <option value="slsp">Slovenská sporiteľňa (SLSP)</option>
-                      <option value="vub">VÚB</option>
-                      <option value="csob">ČSOB</option>
-                      <option value="generic">iná, neuvedená banka</option>
+                      <option value="tatrabanka" data-i18n="bank.tatrabanka">Tatra banka</option>
+                      <option value="slsp" data-i18n="bank.slsp">Slovenská sporiteľňa (SLSP)</option>
+                      <option value="vub" data-i18n="bank.vub">VÚB</option>
+                      <option value="csob" data-i18n="bank.csob">ČSOB</option>
+                      <option value="generic" data-i18n="bank.generic">iná, neuvedená banka</option>
                     </select>
                   </div>
                   <div class="field">
-                    <label for="f-execdate">dátum splatnosti</label>
+                    <label for="f-execdate" data-i18n="s2.execdate.label">dátum splatnosti</label>
                     <input type="date" id="f-execdate" />
                   </div>
                   <div class="field">
-                    <label for="f-msgid">MsgId (nepovinné)</label>
-                    <input type="text" id="f-msgid" placeholder="auto: ARL-YYYYMMDD-HHMMSS" />
+                    <label for="f-msgid" data-i18n="s2.msgid.label">MsgId (nepovinné)</label>
+                    <input type="text" id="f-msgid" placeholder="auto: ARL-YYYYMMDD-HHMMSS" data-i18n-placeholder="s2.msgid.placeholder" />
                   </div>
                 </div>
               </div>
 
               <div class="form-section grow">
-                <div class="form-section-title">Platby<span class="hint-inline">z Excelu (Ctrl+V) alebo súbor .csv/.txt/.tsv</span></div>
+                <div class="form-section-title"><span data-i18n="s2.payments.title">Platby</span><span class="hint-inline" data-i18n="s2.payments.hint">z Excelu (Ctrl+V) alebo súbor .csv/.txt/.tsv</span></div>
                 <div class="field">
                   <input type="file" id="f-file" accept=".csv,.txt,.tsv" />
                 </div>
-                <textarea id="f-payments" class="json-in" spellcheck="false" wrap="off" placeholder="Sem vložte platby skopírované z Excelu (IBAN, suma, názov, VS, správa…)."></textarea>
+                <textarea id="f-payments" class="json-in" spellcheck="false" wrap="off" placeholder="Sem vložte platby skopírované z Excelu (IBAN, suma, názov, VS, správa…)." data-i18n-placeholder="s2.payments.placeholder"></textarea>
 
                 <div class="field">
-                  <label for="pro-template-select">šablóna mapovania stĺpcov <a class="pro-badge" href="#pro">PRO</a></label>
+                  <label for="pro-template-select"><span data-i18n="s2.template.label">šablóna mapovania stĺpcov</span> <a class="pro-badge" href="#pro" data-i18n="s2.pro.badge">PRO</a></label>
                   <select id="pro-template-select" disabled>
-                    <option value="">(automatické rozpoznanie)</option>
+                    <option value="" data-i18n="s2.template.auto">(automatické rozpoznanie)</option>
                     <option value="POHODA">Pohoda (Stormware)</option>
                     <option value="OMEGA">Omega (KROS)</option>
                     <option value="MONEY_S3">Money S3 (Seyfor)</option>
@@ -592,23 +626,24 @@
                 </div>
 
                 <div class="mapping-grid" id="mapping-grid">
-                  <div class="field"><label for="map-iban">IBAN</label><select id="map-iban"></select></div>
-                  <div class="field"><label for="map-amount">Suma</label><select id="map-amount"></select></div>
-                  <div class="field"><label for="map-name">Názov</label><select id="map-name"></select></div>
-                  <div class="field"><label for="map-vs">VS</label><select id="map-vs"></select></div>
-                  <div class="field"><label for="map-ss">ŠS</label><select id="map-ss"></select></div>
-                  <div class="field"><label for="map-ks">KS</label><select id="map-ks"></select></div>
-                  <div class="field"><label for="map-message">Správa</label><select id="map-message"></select></div>
-                  <div class="field"><label for="map-date">Dátum</label><select id="map-date"></select></div>
-                  <div class="field"><label for="map-bic">BIC</label><select id="map-bic"></select></div>
+                  <div class="field"><label for="map-iban" data-i18n="s2.map.iban">IBAN</label><select id="map-iban"></select></div>
+                  <div class="field"><label for="map-amount" data-i18n="s2.map.amount">Suma</label><select id="map-amount"></select></div>
+                  <div class="field"><label for="map-name" data-i18n="s2.map.name">Názov</label><select id="map-name"></select></div>
+                  <div class="field" data-profile-field="sk"><label for="map-vs" data-i18n="s2.map.vs">VS</label><select id="map-vs"></select></div>
+                  <div class="field" data-profile-field="sk"><label for="map-ss" data-i18n="s2.map.ss">ŠS</label><select id="map-ss"></select></div>
+                  <div class="field" data-profile-field="sk"><label for="map-ks" data-i18n="s2.map.ks">KS</label><select id="map-ks"></select></div>
+                  <div class="field"><label for="map-message" id="map-message-label" data-i18n="s2.map.message">Správa</label><select id="map-message"></select></div>
+                  <div class="field"><label for="map-date" data-i18n="s2.map.date">Dátum</label><select id="map-date"></select></div>
+                  <div class="field"><label for="map-bic" data-i18n="s2.map.bic">BIC</label><select id="map-bic"></select></div>
+                  <div class="field" data-profile-field="de" hidden><label for="map-endtoend" data-i18n="s2.map.endtoend">EndToEndId</label><select id="map-endtoend"></select></div>
                 </div>
 
                 <div class="pro-blocks">
-                  <div class="form-section-title">Ďalšie bloky platieb<span class="hint-inline">viac súborov naraz <a class="pro-badge" href="#pro">PRO</a></span></div>
+                  <div class="form-section-title"><span data-i18n="s2.blocks.title">Ďalšie bloky platieb</span><span class="hint-inline"><span data-i18n="s2.blocks.hint">viac súborov naraz</span> <a class="pro-badge" href="#pro" data-i18n="s2.pro.badge">PRO</a></span></div>
                   <div class="pro-blocks-list" id="pro-blocks-list"></div>
                   <div class="pro-blocks-actions">
-                    <button class="icon-btn" id="pro-block-add-btn" type="button" disabled>+ pridať blok platieb</button>
-                    <label class="pro-merge-toggle"><input type="checkbox" id="pro-merge-checkbox" disabled /> zlúčiť všetky bloky do jedného XML (inak samostatný súbor na blok)</label>
+                    <button class="icon-btn" id="pro-block-add-btn" type="button" disabled data-i18n="s2.blocks.add.btn">+ pridať blok platieb</button>
+                    <label class="pro-merge-toggle"><input type="checkbox" id="pro-merge-checkbox" disabled /> <span data-i18n="s2.blocks.merge.label">zlúčiť všetky bloky do jedného XML (inak samostatný súbor na blok)</span></label>
                   </div>
                 </div>
               </div>
@@ -622,29 +657,29 @@
 
           <div class="pane">
             <div class="pane-head">
-              <div class="pane-title">Výsledok · <span id="response-meta">idle</span></div>
+              <div class="pane-title"><span data-i18n="s2.output.label">Výsledok</span> · <span id="response-meta" data-i18n="js.status.idle">idle</span></div>
               <div class="pane-actions">
-                <button class="icon-btn" id="pro-history-btn" type="button" disabled>história</button><a class="pro-badge" href="#pro">PRO</a>
-                <button class="icon-btn" id="copy-report-btn" type="button" disabled>kopírovať report</button>
+                <button class="icon-btn" id="pro-history-btn" type="button" disabled data-i18n="s2.history.btn">história</button><a class="pro-badge" href="#pro" data-i18n="s2.pro.badge">PRO</a>
+                <button class="icon-btn" id="copy-report-btn" type="button" disabled data-i18n="s2.copyreport.btn">kopírovať report</button>
               </div>
             </div>
             <div class="pro-history-panel" id="pro-history-panel" hidden></div>
             <div class="output" id="output">
-              <div class="placeholder">
+              <div class="placeholder" data-i18n-html="s2.output.placeholder.full">
                 vyplňte platiteľa a platby, stlačte <span class="kbd">Generovať</span> alebo <span class="kbd">⌘↵</span><span class="blink"></span>
               </div>
             </div>
             <div class="status-strip">
-              <div>status</div>
-              <div id="status-pill" class="status-pill">idle</div>
+              <div data-i18n="s2.status.label">status</div>
+              <div id="status-pill" class="status-pill" data-i18n="js.status.idle">idle</div>
               <div class="spacer"></div>
-              <div id="timing">čaká</div>
+              <div id="timing" data-i18n="js.timing.waiting">čaká</div>
             </div>
           </div>
         </div>
 
         <div class="permalink-row">
-          <p class="fineprint">Nastavenia (banka, dátum splatnosti, MsgId) sa po vygenerovaní uložia do odkazu na stránku. Platiteľ ani platby sa do odkazu neukladajú, takže výsledok cez URL zdieľať nemožno. Na zdieľanie výsledku použite tlačidlo „kopírovať report“ alebo stiahnutý XML súbor.</p>
+          <p class="fineprint" data-i18n="s2.permalink.note">Nastavenia (banka, dátum splatnosti, MsgId) sa po vygenerovaní uložia do odkazu na stránku. Platiteľ ani platby sa do odkazu neukladajú, takže výsledok cez URL zdieľať nemožno. Na zdieľanie výsledku použite tlačidlo „kopírovať report“ alebo stiahnutý XML súbor.</p>
         </div>
       </div>
     </div>
@@ -653,39 +688,40 @@
   <section id="endpoint">
     <div class="wrap">
       <p class="kicker">03</p>
-      <h2>Dve funkcie. Platby dnu, XML von, hneď skontrolované.</h2>
-      <p class="sub">Žiadny server, žiadny API kľúč, žiadna registrácia. <code>generator-pain001.js</code> je čistý JavaScript: prečítajte si ho, forknite, alebo ho spustite vo vlastnom kóde či CI.</p>
+      <h2 data-i18n="s3.h2">Dve funkcie. Platby dnu, XML von, hneď skontrolované.</h2>
+      <p class="sub" data-i18n-html="s3.sub">Žiadny server, žiadny API kľúč, žiadna registrácia. <code>generator-pain001.js</code> je čistý JavaScript: prečítajte si ho, forknite, alebo ho spustite vo vlastnom kóde či CI.</p>
 
       <div class="endpoint">
         <div class="codeblock">
           <div class="codeblock-head">
             <span>generator-pain001.js</span>
-            <span>0 závislostí</span>
+            <span data-i18n="s3.codeblock.label">0 závislostí</span>
           </div>
           <pre><span class="p">import</span> { parseRows, mapColumns, buildXml } <span class="p">from</span> <span class="s">'./generator-pain001.js'</span>;
 <span class="p">import</span> { diagnose } <span class="p">from</span> <span class="s">'./doctor-pain001.js'</span>;
-<span class="p">// alebo globálne: const { parseRows, mapColumns, buildXml, bicFromIban } = window.SepaGenerator;</span>
+<span class="p">// <span data-i18n="s3.code.comment1">alebo globálne: const { parseRows, mapColumns, buildXml, bicFromIban } = window.SepaGenerator;</span></span>
 
 <span class="p">const</span> rows = parseRows(textZExcelu);
-<span class="p">const</span> { payments } = mapColumns(rows);
+<span class="p">const</span> { payments } = mapColumns(rows, <span class="b">undefined</span>, profile);
 
 <span class="p">const</span> xml = buildXml({
   <span class="k">bank</span>:     <span class="s">'tatrabanka'</span> <span class="p">| 'slsp' | 'vub' | 'csob' | 'generic'</span>,
+  <span class="k">profile</span>:  <span class="s">'sk'</span> <span class="p">| 'de',  // 'de': Verwendungszweck namiesto VS/SS/KS</span>
   <span class="k">payer</span>:    { <span class="p">name, iban, bic</span> },
   <span class="k">execDate</span>: <span class="s">'2026-09-06'</span><span class="p">,  // default: zajtra</span>
   <span class="k">msgId</span>:    <span class="b">undefined</span><span class="p">,       // default: auto ARL-YYYYMMDD-HHMMSS</span>
-  payments<span class="p">,       // {iban, amount, name, vs, ss, ks, message, bic, dateIso}[]</span>
+  payments<span class="p">,       // {iban, amount, name, vs, ss, ks, message, bic, endToEndId, dateIso}[]</span>
 });
 
-<span class="p">// súbor sa hneď kontroluje rovnakým engine ako SEPA pain.001 Doctor:</span>
+<span class="p">// <span data-i18n="s3.code.comment2">súbor sa hneď kontroluje rovnakým engine ako SEPA pain.001 Doctor:</span></span>
 <span class="p">const</span> report = diagnose({ xml, bank: <span class="s">'tatrabanka'</span> });</pre>
         </div>
 
         <div class="endpoint-copy">
-          <p>Parsovanie Excelu/CSV, mapovanie stĺpcov aj skladanie XML beží presne tak, ako ho volá formulár vyššie, vo vašom prehliadači. Neexistuje backend ani API kľúč, ktorý by obsah vašich platieb odniesol inam.</p>
-          <p>Poradie a povinnosť polí v XML vychádza priamo z technickej dokumentácie Tatra banky (<code>pain.001.001.03</code>, sekcie GroupHeader a PaymentInformation) a z tých istých pravidiel bánk, ktoré overuje SEPA pain.001 Doctor.</p>
-          <p class="fineprint">Zadarmo, otvorené, bez reklamy a bez sledovania nad rámec anonymných počtov použitia. Prípad, ktorý generátor spracuje zle, nahláste ako <a href="https://github.com/AndryRoby/sepa-pain001-generator/issues" target="_blank" rel="noopener">issue na GitHube</a>.</p>
-          <p class="fineprint">Nástroj nie je prepojený s Tatra bankou, Slovenskou sporiteľňou, VÚB ani ČSOB a nie je banka. Čistý výsledok kontroly nezaručuje, že banka platbu prijme.</p>
+          <p data-i18n-html="s3.copy.p1">Parsovanie Excelu/CSV, mapovanie stĺpcov aj skladanie XML beží presne tak, ako ho volá formulár vyššie, vo vašom prehliadači. Neexistuje backend ani API kľúč, ktorý by obsah vašich platieb odniesol inam.</p>
+          <p data-i18n-html="s3.copy.p2">Poradie a povinnosť polí v XML vychádza priamo z technickej dokumentácie Tatra banky (<code>pain.001.001.03</code>, sekcie GroupHeader a PaymentInformation) a z tých istých pravidiel bánk, ktoré overuje SEPA pain.001 Doctor.</p>
+          <p class="fineprint" data-i18n-html="s3.copy.p3">Zadarmo, otvorené, bez reklamy a bez sledovania nad rámec anonymných počtov použitia. Prípad, ktorý generátor spracuje zle, nahláste ako <a href="https://github.com/AndryRoby/sepa-pain001-generator/issues" target="_blank" rel="noopener">issue na GitHube</a>.</p>
+          <p class="fineprint" data-i18n="s3.copy.p4">Nástroj nie je prepojený s Tatra bankou, Slovenskou sporiteľňou, VÚB ani ČSOB a nie je banka. Čistý výsledok kontroly nezaručuje, že banka platbu prijme.</p>
         </div>
       </div>
     </div>
@@ -694,82 +730,82 @@
   <section id="pro">
     <div class="wrap">
       <p class="kicker">04</p>
-      <h2>Pro na 12 mesiacov. Pre účtovníka, ktorý to robí každý mesiac.</h2>
-      <p class="sub">Bezplatná verzia ostáva bez limitov navždy, na počet platieb, súborov aj stiahnutí. Pro je pohodlie pri opakovanom mesačnom spracovaní, nie odomknutá funkčnosť.</p>
+      <h2 data-i18n="s4.h2">Pro na 12 mesiacov. Pre účtovníka, ktorý to robí každý mesiac.</h2>
+      <p class="sub" data-i18n="s4.sub">Bezplatná verzia ostáva bez limitov navždy, na počet platieb, súborov aj stiahnutí. Pro je pohodlie pri opakovanom mesačnom spracovaní, nie odomknutá funkčnosť.</p>
 
       <ol class="rules">
         <li>
-          <b>Uložené profily platiteľov.</b>
-          <p>Názov firmy, IBAN, BIC aj banka na jeden klik z výberu, bez prepisovania pri každom hromadnom príkaze.</p>
+          <b data-i18n="s4.r1.title">Uložené profily platiteľov.</b>
+          <p data-i18n="s4.r1.body">Názov firmy, IBAN, BIC aj banka na jeden klik z výberu, bez prepisovania pri každom hromadnom príkaze.</p>
         </li>
         <li>
-          <b>Viac súborov naraz.</b>
-          <p>Pridajte viac blokov platieb (napríklad z troch hárkov) a vygenerujte buď samostatný XML pre každý blok, alebo jeden zlúčený súbor.</p>
+          <b data-i18n="s4.r2.title">Viac súborov naraz.</b>
+          <p data-i18n="s4.r2.body">Pridajte viac blokov platieb (napríklad z troch hárkov) a vygenerujte buď samostatný XML pre každý blok, alebo jeden zlúčený súbor.</p>
         </li>
         <li>
-          <b>Šablóny mapovania stĺpcov.</b>
-          <p>Predvolené názvy stĺpcov pre exporty z Pohody, Omegy (KROS), Money S3 alebo univerzálny Excel. Mapovanie sa dá aj tak vždy ručne skontrolovať a opraviť.</p>
+          <b data-i18n="s4.r3.title">Šablóny mapovania stĺpcov.</b>
+          <p data-i18n="s4.r3.body">Predvolené názvy stĺpcov pre exporty z Pohody, Omegy (KROS), Money S3 alebo univerzálny Excel. Mapovanie sa dá aj tak vždy ručne skontrolovať a opraviť.</p>
         </li>
         <li>
-          <b>História príkazov.</b>
-          <p>Posledných 50 vygenerovaných súborov s dátumom, počtom platieb a sumou, uložené len vo vašom prehliadači, vrátane opätovného stiahnutia XML.</p>
+          <b data-i18n="s4.r4.title">História príkazov.</b>
+          <p data-i18n="s4.r4.body">Posledných 50 vygenerovaných súborov s dátumom, počtom platieb a sumou, uložené len vo vašom prehliadači, vrátane opätovného stiahnutia XML.</p>
         </li>
         <li>
-          <b>Prednostná podpora e-mailom.</b>
-          <p>Otázka alebo prípad, ktorý si generátor pomýlil? Odpoveď prednostne, priamo od autora nástroja.</p>
+          <b data-i18n="s4.r5.title">Prednostná podpora e-mailom.</b>
+          <p data-i18n="s4.r5.body">Otázka alebo prípad, ktorý si generátor pomýlil? Odpoveď prednostne, priamo od autora nástroja.</p>
         </li>
       </ol>
 
       <div class="pro-purchase">
         <div class="pro-price">
-          <div class="pro-price-amount">39&nbsp;€ <span>/ 12 mesiacov, jednorazovo</span></div>
-          <a class="btn btn-solid" id="pro-buy-btn" href="https://buy.stripe.com/3cIaER9M63hNeFcg8B4ko00" data-umami-event="buy_click">Kúpiť Pro na 12 mesiacov, 39&nbsp;€</a>
-          <p class="fineprint">Platba cez Stripe. Po zaplatení sa stránka vráti sem a licenciu aktivuje sama, nič netreba kopírovať.</p>
+          <div class="pro-price-amount">39&nbsp;€ <span data-i18n="s4.price.amount.suffix">/ 12 mesiacov, jednorazovo</span></div>
+          <a class="btn btn-solid" id="pro-buy-btn" href="https://buy.stripe.com/3cIaER9M63hNeFcg8B4ko00" data-umami-event="buy_click" data-i18n="s4.buy.btn">Kúpiť Pro na 12 mesiacov, 39&nbsp;€</a>
+          <p class="fineprint" data-i18n="s4.buy.fineprint">Platba cez Stripe. Po zaplatení sa stránka vráti sem a licenciu aktivuje sama, nič netreba kopírovať.</p>
         </div>
         <div class="pro-licence-box">
           <div class="pro-licence-status">
-            <span class="status-pill" id="pro-licence-pill">bez licencie</span>
+            <span class="status-pill" id="pro-licence-pill" data-i18n="js.status.noLicence">bez licencie</span>
             <span id="pro-licence-detail"></span>
           </div>
           <div class="pro-licence-actions" id="pro-licence-actions-active" hidden>
-            <button class="icon-btn" id="pro-licence-remove-btn" type="button">Odstrániť licenciu</button>
+            <button class="icon-btn" id="pro-licence-remove-btn" type="button" data-i18n="s4.licence.remove.btn">Odstrániť licenciu</button>
           </div>
           <div class="pro-licence-manual">
-            <label for="pro-licence-input">Licenciu ste kúpili na inom počítači? Vložte licenčný kľúč sem.</label>
+            <label for="pro-licence-input" data-i18n="s4.licence.manual.label">Licenciu ste kúpili na inom počítači? Vložte licenčný kľúč sem.</label>
             <div class="pro-licence-manual-row">
-              <input type="text" id="pro-licence-input" placeholder="Licenčný kľúč (dlhý reťazec s bodkou uprostred)" spellcheck="false" autocomplete="off" />
-              <button class="icon-btn primary" id="pro-licence-activate-btn" type="button">Aktivovať</button>
+              <input type="text" id="pro-licence-input" placeholder="Licenčný kľúč (dlhý reťazec s bodkou uprostred)" spellcheck="false" autocomplete="off" data-i18n-placeholder="s4.licence.input.placeholder" />
+              <button class="icon-btn primary" id="pro-licence-activate-btn" type="button" data-i18n="s4.licence.activate.btn">Aktivovať</button>
             </div>
             <p class="pro-licence-error" id="pro-licence-error"></p>
           </div>
         </div>
       </div>
-      <p class="fineprint" style="margin-top:14px;">Používate aj camt.053 do Excelu alebo Párovač platieb? Balík <a href="https://arling.sk/bankove-nastroje/">Bankové nástroje pre účtovníkov</a> (od 9&nbsp;€/mesiac) dá jednu licenciu do všetkých štyroch naraz; kľúč z balíka funguje aj tu.</p>
+      <p class="fineprint" style="margin-top:14px;" data-i18n-html="s4.bundle.fineprint">Používate aj camt.053 do Excelu alebo Párovač platieb? Balík <a href="https://arling.sk/bankove-nastroje/">Bankové nástroje pre účtovníkov</a> (od 9&nbsp;€/mesiac) dá jednu licenciu do všetkých štyroch naraz; kľúč z balíka funguje aj tu.</p>
     </div>
   </section>
 
   <section id="pricing">
     <div class="wrap">
       <p class="kicker">05</p>
-      <h2>Zadarmo. Bez limitov, natrvalo.</h2>
-      <p class="sub">Vznikol z vlastnej potreby: previesť zoznam platieb z Excelu na hromadný príkaz bez ručného skladania XML. Bez účtu, bez platby, bez limitu na počet platieb, súborov ani stiahnutí.</p>
+      <h2 data-i18n="s5.h2">Zadarmo. Bez limitov, natrvalo.</h2>
+      <p class="sub" data-i18n="s5.sub">Vznikol z vlastnej potreby: previesť zoznam platieb z Excelu na hromadný príkaz bez ručného skladania XML. Bez účtu, bez platby, bez limitu na počet platieb, súborov ani stiahnutí.</p>
       <div class="ask">
-        <p>Ak vám ušetrí popoludnie, napíšte, čo generátor spracoval zle. <a href="https://github.com/AndryRoby/sepa-pain001-generator/issues" target="_blank" rel="noopener">Otvorte issue na GitHube</a>.</p>
+        <p data-i18n-html="s5.ask.p">Ak vám ušetrí popoludnie, napíšte, čo generátor spracoval zle. <a href="https://github.com/AndryRoby/sepa-pain001-generator/issues" target="_blank" rel="noopener">Otvorte issue na GitHube</a>.</p>
       </div>
       <div class="ask subscribe-ask" id="subscribe">
-        <p><b>Dajte mi vedieť o novom nástroji.</b> Len nové nástroje. Žiadny newsletter, žiadne zdieľanie. Odhlásenie odpoveďou na mail.</p>
+        <p data-i18n-html="s5.subscribe.p"><b>Dajte mi vedieť o novom nástroji.</b> Len nové nástroje. Žiadny newsletter, žiadne zdieľanie. Odhlásenie odpoveďou na mail.</p>
         <form id="subscribe-form" class="subscribe-form" data-subscribe data-source="sepa-pain001-generator" data-lang="sk" data-thanks="subscribe-thanks" data-error="subscribe-error" novalidate>
           <div class="hp" aria-hidden="true"><input type="text" name="website" id="subscribe-website" tabindex="-1" autocomplete="off"></div>
-          <input type="email" id="subscribe-email" name="email" required autocomplete="email" inputmode="email" placeholder="vas@email.sk" aria-label="E-mailová adresa">
-          <button class="btn btn-solid" type="submit">Dať vedieť</button>
+          <input type="email" id="subscribe-email" name="email" required autocomplete="email" inputmode="email" placeholder="vas@email.sk" aria-label="E-mailová adresa" data-i18n-placeholder="s5.subscribe.email.placeholder" data-i18n-aria-label="s5.subscribe.email.aria">
+          <button class="btn btn-solid" type="submit" data-i18n="s5.subscribe.btn">Dať vedieť</button>
         </form>
-        <p id="subscribe-thanks" hidden>Ďakujeme. Ozveme sa len vtedy, keď bude niečo nové.</p>
-        <p id="subscribe-error" hidden>Nepodarilo sa uložiť. Napíšte na <a href="mailto:andrej@arling.sk">andrej@arling.sk</a>.</p>
-        <p class="fineprint subscribe-privacy"><a href="https://arling.sk/privacy/">Súkromie</a></p>
+        <p id="subscribe-thanks" hidden data-i18n="s5.subscribe.thanks">Ďakujeme. Ozveme sa len vtedy, keď bude niečo nové.</p>
+        <p id="subscribe-error" hidden data-i18n-html="s5.subscribe.error">Nepodarilo sa uložiť. Napíšte na <a href="mailto:andrej@arling.sk">andrej@arling.sk</a>.</p>
+        <p class="fineprint subscribe-privacy"><a href="https://arling.sk/privacy/" data-i18n="s5.subscribe.privacy">Súkromie</a></p>
       </div>
       <div class="ask business-ask" id="business">
-        <p><b>Potrebujete to pre firmu?</b> Hromadné spracovanie, API pre účtovný systém, podpora. Napíšte, čo potrebujete, a odpovieme do 24 hodín.</p>
-        <a class="btn btn-line" href="mailto:andrej@arling.sk?subject=SEPA%20pain.001%20Gener%C3%A1tor%20pre%20firmu" data-umami-event="business_interest">Napísať, čo potrebujem</a>
+        <p data-i18n-html="s5.business.p"><b>Potrebujete to pre firmu?</b> Hromadné spracovanie, API pre účtovný systém, podpora. Napíšte, čo potrebujete, a odpovieme do 24 hodín.</p>
+        <a class="btn btn-line" id="business-link" href="mailto:andrej@arling.sk?subject=SEPA%20pain.001%20Gener%C3%A1tor%20pre%20firmu" data-umami-event="business_interest" data-i18n="s5.business.btn">Napísať, čo potrebujem</a>
       </div>
     </div>
   </section>
@@ -777,52 +813,56 @@
   <section id="faq">
     <div class="wrap">
       <p class="kicker">06</p>
-      <h2>Otázky, ktoré ľudia naozaj hľadajú.</h2>
-      <p class="sub">Priame odpovede na otázky o generovaní SEPA pain.001 z Excelu.</p>
+      <h2 data-i18n="s6.h2">Otázky, ktoré ľudia naozaj hľadajú.</h2>
+      <p class="sub" data-i18n="s6.sub">Priame odpovede na otázky o generovaní SEPA pain.001 z Excelu.</p>
 
       <details>
-        <summary>Ako pripraviť Excel, aby ho generátor prečítal?</summary>
-        <p>Označte stĺpce IBAN, suma a názov príjemcu (ideálne aj s hlavičkou v prvom riadku) a skopírujte bunky priamo do textového poľa (Ctrl+C, Ctrl+V): Excel ich prilepí oddelené tabulátormi a generátor to rozpozná automaticky. Rovnako funguje export do CSV oddeleného bodkočiarkou alebo čiarkou, alebo priame nahratie <code>.csv</code>/<code>.txt</code>/<code>.tsv</code> súboru. Ak automatické rozpoznanie stĺpcov netrafí správne pole, opravte ho ručne vo výberoch nad náhľadom platieb.</p>
+        <summary data-i18n="faq.q1">Ako pripraviť Excel, aby ho generátor prečítal?</summary>
+        <p data-i18n-html="faq.a1">Označte stĺpce IBAN, suma a názov príjemcu (ideálne aj s hlavičkou v prvom riadku) a skopírujte bunky priamo do textového poľa (Ctrl+C, Ctrl+V): Excel ich prilepí oddelené tabulátormi a generátor to rozpozná automaticky. Rovnako funguje export do CSV oddeleného bodkočiarkou alebo čiarkou, alebo priame nahratie <code>.csv</code>/<code>.txt</code>/<code>.tsv</code> súboru. Ak automatické rozpoznanie stĺpcov netrafí správne pole, opravte ho ručne vo výberoch nad náhľadom platieb.</p>
       </details>
       <details>
-        <summary>Kam sa zapíše variabilný symbol v SEPA XML?</summary>
-        <p><code>pain.001.001.03</code> nemá samostatné pole pre variabilný, špecifický ani konštantný symbol. Generátor ich zapíše do <code>PmtId/EndToEndId</code> v poradí <code>/VS.../SS.../KS...</code>, presne podľa konvencie Národnej banky Slovenska: rovnakej, akú kontroluje aj sesterský nástroj <a href="https://arling.sk/sepa-pain001-doctor/">SEPA pain.001 Doctor</a>.</p>
+        <summary data-i18n="faq.q2">Kam sa zapíše variabilný symbol v SEPA XML?</summary>
+        <p data-i18n-html="faq.a2"><code>pain.001.001.03</code> nemá samostatné pole pre variabilný, špecifický ani konštantný symbol. Generátor ich zapíše do <code>PmtId/EndToEndId</code> v poradí <code>/VS.../SS.../KS...</code>, presne podľa konvencie Národnej banky Slovenska: rovnakej, akú kontroluje aj sesterský nástroj <a href="https://arling.sk/sepa-pain001-doctor/">SEPA pain.001 Doctor</a>.</p>
       </details>
       <details>
-        <summary>Ako naimportujem XML do Tatra banky, SLSP, VÚB a ČSOB?</summary>
-        <p>Stiahnutý <code>.xml</code> súbor nahrajte v internet bankingu do formulára pre hromadný alebo dávkový príkaz (zvyčajne v sekcii Platby → Hromadné platby → Import súboru). Presné umiestnenie sa medzi bankami líši. Ak import zlyhá, skontrolujte najprv hlásenie, ktoré sa zobrazí hneď po vygenerovaní: ukáže presný element, ktorý banka odmietne.</p>
+        <summary data-i18n="faq.q3">Ako naimportujem XML do Tatra banky, SLSP, VÚB a ČSOB?</summary>
+        <p data-i18n-html="faq.a3">Stiahnutý <code>.xml</code> súbor nahrajte v internet bankingu do formulára pre hromadný alebo dávkový príkaz (zvyčajne v sekcii Platby → Hromadné platby → Import súboru). Presné umiestnenie sa medzi bankami líši. Ak import zlyhá, skontrolujte najprv hlásenie, ktoré sa zobrazí hneď po vygenerovaní: ukáže presný element, ktorý banka odmietne.</p>
       </details>
       <details>
-        <summary>Odosielajú sa moje platby niekam?</summary>
-        <p>Nie. Parsovanie Excelu aj generovanie XML beží celé vo vašom prehliadači. IBAN, sumy ani mená sa nikam neposielajú, nástroj nemá backend. Jedinou sieťovou aktivitou je načítanie statických súborov stránky a anonymné počítadlo použitia (Umami), ktoré zaznamená len to, že prebehlo generovanie a aký bol výsledok kontroly, nikdy obsah platieb.</p>
+        <summary data-i18n="faq.q4">Odosielajú sa moje platby niekam?</summary>
+        <p data-i18n-html="faq.a4">Nie. Parsovanie Excelu aj generovanie XML beží celé vo vašom prehliadači. IBAN, sumy ani mená sa nikam neposielajú, nástroj nemá backend. Jedinou sieťovou aktivitou je načítanie statických súborov stránky a anonymné počítadlo použitia (Umami), ktoré zaznamená len to, že prebehlo generovanie a aký bol výsledok kontroly, nikdy obsah platieb.</p>
       </details>
       <details>
-        <summary>Koľko platieb môže byť v jednom súbore?</summary>
-        <p>Generátor spracuje najviac 5000 platieb naraz. Ak majú platby rôzny dátum splatnosti, generátor ich automaticky rozdelí do samostatných blokov <code>PmtInf</code> podľa dátumu; Tatra banka aj tak obmedzuje jeden takýto blok na 500 transakcií, na čo kontrola po vygenerovaní upozorní.</p>
+        <summary data-i18n="faq.q5">Koľko platieb môže byť v jednom súbore?</summary>
+        <p data-i18n-html="faq.a5">Generátor spracuje najviac 5000 platieb naraz. Ak majú platby rôzny dátum splatnosti, generátor ich automaticky rozdelí do samostatných blokov <code>PmtInf</code> podľa dátumu; Tatra banka aj tak obmedzuje jeden takýto blok na 500 transakcií, na čo kontrola po vygenerovaní upozorní.</p>
       </details>
       <details>
-        <summary>Prečo banka odmietla súbor aj po kontrole?</summary>
-        <p>Kontrola po vygenerovaní overuje formátové a bankové pravidlá, ktoré sú verejne zdokumentované, nie stav vášho účtu, existenciu účtu príjemcu ani interné limity banky (napríklad denný limit prevodov). Čistý výsledok preto nie je zárukou prijatia. Ak banka súbor aj tak odmietne, overte v prvom rade presné znenie chyby v internet bankingu.</p>
+        <summary data-i18n="faq.q6">Prečo banka odmietla súbor aj po kontrole?</summary>
+        <p data-i18n-html="faq.a6">Kontrola po vygenerovaní overuje formátové a bankové pravidlá, ktoré sú verejne zdokumentované, nie stav vášho účtu, existenciu účtu príjemcu ani interné limity banky (napríklad denný limit prevodov). Čistý výsledok preto nie je zárukou prijatia. Ak banka súbor aj tak odmietne, overte v prvom rade presné znenie chyby v internet bankingu.</p>
       </details>
       <details>
-        <summary>Čo dostanem v Pro?</summary>
-        <p>Uložené profily platiteľov (IBAN, BIC, banka na jeden klik), generovanie viacerých súborov platieb naraz, predvolené šablóny mapovania stĺpcov pre Pohodu, Omegu (KROS) a Money S3, históriu posledných 50 vygenerovaných príkazov so spätným stiahnutím a prednostnú e-mailovú podporu. Samotné generovanie a kontrola XML sú aj naďalej úplne zadarmo, bez zmeny. Pozrite si <a href="#pro">sekciu Pro</a>.</p>
+        <summary data-i18n="faq.q7">Čo dostanem v Pro?</summary>
+        <p data-i18n-html="faq.a7">Uložené profily platiteľov (IBAN, BIC, banka na jeden klik), generovanie viacerých súborov platieb naraz, predvolené šablóny mapovania stĺpcov pre Pohodu, Omegu (KROS) a Money S3, históriu posledných 50 vygenerovaných príkazov so spätným stiahnutím a prednostnú e-mailovú podporu. Samotné generovanie a kontrola XML sú aj naďalej úplne zadarmo, bez zmeny. Pozrite si <a href="#pro">sekciu Pro</a>.</p>
       </details>
       <details>
-        <summary>Musím platiť, aby som vygeneroval XML?</summary>
-        <p>Nie. Generovanie aj kontrola súboru sú a zostávajú zadarmo, bez limitu na počet platieb, súborov ani stiahnutí. Pro je len pohodlie navyše pre toho, kto hromadné príkazy pripravuje opakovane.</p>
+        <summary data-i18n="faq.q8">Musím platiť, aby som vygeneroval XML?</summary>
+        <p data-i18n-html="faq.a8">Nie. Generovanie aj kontrola súboru sú a zostávajú zadarmo, bez limitu na počet platieb, súborov ani stiahnutí. Pro je len pohodlie navyše pre toho, kto hromadné príkazy pripravuje opakovane.</p>
       </details>
       <details>
-        <summary>Ako dostanem faktúru?</summary>
-        <p>Faktúru vystaví a pošle na váš e-mail Stripe hneď po zaplatení. Pri tomto predaji je ARLing s. r. o. predajcom cez Stripe Managed Payments: DPH aj vystavenie dokladu rieši priamo Stripe.</p>
+        <summary data-i18n="faq.q9">Ako dostanem faktúru?</summary>
+        <p data-i18n-html="faq.a9">Faktúru vystaví a pošle na váš e-mail Stripe hneď po zaplatení. Pri tomto predaji je ARLing s. r. o. predajcom cez Stripe Managed Payments: DPH aj vystavenie dokladu rieši priamo Stripe.</p>
       </details>
       <details>
-        <summary>Čo ak zmením počítač?</summary>
-        <p>Licenčný kľúč nie je viazaný na jedno zariadenie. Nájdete ho v e-maile od Stripe po zaplatení; na novom počítači ho stačí vložiť ručne do poľa pre licenčný kľúč v <a href="#pro">sekcii Pro</a> a Pro sa aktivuje aj tam.</p>
+        <summary data-i18n="faq.q10">Čo ak zmením počítač?</summary>
+        <p data-i18n-html="faq.a10">Licenčný kľúč nie je viazaný na jedno zariadenie. Nájdete ho v e-maile od Stripe po zaplatení; na novom počítači ho stačí vložiť ručne do poľa pre licenčný kľúč v <a href="#pro">sekcii Pro</a> a Pro sa aktivuje aj tam.</p>
       </details>
       <details>
-        <summary>Čo ak Pro nechcem, môžem dostať peniaze naspäť?</summary>
-        <p>Áno. Ak vám Pro nesadne, napíšte do 14 dní od kúpy na <a href="mailto:andrej@arling.sk?subject=Vr%C3%A1tenie%20Pro%20licencie">andrej@arling.sk</a> a peniaze vrátime bez zbytočných otázok.</p>
+        <summary data-i18n="faq.q11">Čo ak Pro nechcem, môžem dostať peniaze naspäť?</summary>
+        <p data-i18n-html="faq.a11">Áno. Ak vám Pro nesadne, napíšte do 14 dní od kúpy na <a href="mailto:andrej@arling.sk?subject=Vr%C3%A1tenie%20Pro%20licencie">andrej@arling.sk</a> a peniaze vrátime bez zbytočných otázok.</p>
+      </details>
+      <details>
+        <summary data-i18n="faq.q12">Čím sa líši profil „Nemecko (DK)“ od „Slovensko“?</summary>
+        <p data-i18n-html="faq.a12">Profil „Nemecko (DK)“ (Deutsche Kreditwirtschaft, pravidlá pre pain.001.001.03 platné v nemeckom bankovníctve) skryje stĺpce VS/ŠS/KS a namiesto nich ponúkne jeden voľný text Verwendungszweck (max. 140 znakov, znaková sada SEPA) a voliteľný stĺpec EndToEndId. Zoznam bánk sa zjednoduší na jednu všeobecnú predlohu „Bank nach DK-Regelwerk (pain.001.001.03)“ namiesto štyroch slovenských bánk, keďže per-bankové pravidlá Tatra banky, SLSP, VÚB a ČSOB sa naň nevzťahujú. BIC zostáva nepovinný, ako pri každom IBAN z krajiny EHP/SEPA.</p>
       </details>
     </div>
   </section>
@@ -832,12 +872,9 @@
   <div class="wrap cols">
     <div><b>ARLing s. r. o.</b><br>Ivanská cesta 32E<br>821 04 Bratislava, Slovensko</div>
     <div>IČO 56583486<br>IČ DPH SK2122352100<br><a href="mailto:andrej@arling.sk">andrej@arling.sk</a></div>
-    <div>Ďalšie nástroje: <a href="https://arling.sk/sepa-pain001-doctor/">SEPA pain.001 Doctor</a> · <a href="https://arling.sk/supabase-redirect-doctor/" target="_blank" rel="noopener">Supabase Redirect Doctor</a> · <a href="https://arling.sk/flutter-supabase-doctor/" target="_blank" rel="noopener">Flutter Supabase Doctor</a><br><a href="https://arling.sk/">Všetky nástroje ARLing</a> · <a href="llms.txt">llms.txt</a> · <a href="https://github.com/AndryRoby/sepa-pain001-generator" target="_blank" rel="noopener">GitHub</a> · <a href="https://arling.sk/privacy/">Súkromie</a></div>
+    <div><span data-i18n="footer.sisters.label">Ďalšie nástroje:</span> <a href="https://arling.sk/sepa-pain001-doctor/">SEPA pain.001 Doctor</a> · <a href="https://arling.sk/supabase-redirect-doctor/" target="_blank" rel="noopener">Supabase Redirect Doctor</a> · <a href="https://arling.sk/flutter-supabase-doctor/" target="_blank" rel="noopener">Flutter Supabase Doctor</a><br><a href="https://arling.sk/" data-i18n="footer.all.tools">Všetky nástroje ARLing</a> · <a href="llms.txt">llms.txt</a> · <a href="https://github.com/AndryRoby/sepa-pain001-generator" target="_blank" rel="noopener">GitHub</a> · <a href="https://arling.sk/privacy/" data-i18n="footer.privacy">Súkromie</a></div>
   </div>
-  <p class="wrap footer-note">Nič neopúšťa váš prehliadač okrem anonymných počtov použitia cez self-hosted Umami (a e-mailu, ak sa prihlásite na odber nižšie).</p>
-  <div class="wrap">
-    <p class="footer-en" lang="en"><b>In English:</b> SEPA pain.001 Generátor is a free, client-side tool that builds a SEPA <code>pain.001.001.03</code> XML batch payment file from payments pasted or uploaded from Excel/CSV, for Tatra banka, Slovenská sporiteľňa (SLSP), VÚB, and ČSOB. Every generated file is checked automatically by the same engine as the sibling tool, SEPA pain.001 Doctor. Nothing you paste is sent anywhere. See <a href="llms.txt">llms.txt</a> or the <a href="https://github.com/AndryRoby/sepa-pain001-generator" target="_blank" rel="noopener">source on GitHub</a>.</p>
-  </div>
+  <p class="wrap footer-note" data-i18n="footer.note">Nič neopúšťa váš prehliadač okrem anonymných počtov použitia cez self-hosted Umami (a e-mailu, ak sa prihlásite na odber nižšie).</p>
 </footer>
 
 <!-- Scripts -->
@@ -846,12 +883,29 @@
   import { diagnose } from './doctor-pain001.js';
   import { isValid as licenceIsValid, load as licenceLoad, save as licenceSave, clear as licenceClear, claim as licenceClaim } from './licence.js';
   import { applyTemplate, loadProfiles, addProfile, removeProfile, mergeBlockPayments, blockTotals, loadHistory, addHistoryEntry } from './pro.js';
+  import { t, tf, getLang, localeTagForLang, formatAmountForLang, formatDateForLang } from './i18n.js';
 
   const $ = (id) => document.getElementById(id);
 
-  const MAPPING_FIELDS = ['iban', 'amount', 'name', 'vs', 'ss', 'ks', 'message', 'date', 'bic'];
+  // "endToEndId" is only ever mapped/used when the "de" country profile is
+  // active (see currentProfile()/applyCountryProfileUI() below); it is
+  // always part of MAPPING_FIELDS so refreshMapping()'s auto-detect pass
+  // always considers it, matching generator-pain001.js's own FIELD_LIST.
+  const MAPPING_FIELDS = ['iban', 'amount', 'name', 'vs', 'ss', 'ks', 'message', 'date', 'bic', 'endToEndId'];
   const BANK_OPTIONS = ['tatrabanka', 'slsp', 'vub', 'csob', 'generic'];
-  const BANK_LABELS = { tatrabanka: 'Tatra banka', slsp: 'Slovenská sporiteľňa (SLSP)', vub: 'VÚB', csob: 'ČSOB', generic: 'iná / neuvedená banka' };
+  const COUNTRY_PROFILES = ['sk', 'de'];
+
+  function bankLabel(key) {
+    return t('bank.' + key);
+  }
+
+  // generator-pain001.js's mapping field key is "endToEndId" (matches its
+  // FIELD_LIST), but the mapping-grid <select> for it is id="map-endtoend"
+  // (see index.html markup) to keep every element id lowercase like its
+  // siblings; this is the one place that distinction is bridged.
+  function mapSelectId(field) {
+    return 'map-' + (field === 'endToEndId' ? 'endtoend' : field);
+  }
 
   // Sample data: 3 rows, one with a deliberately invalid IBAN (bad MOD-97
   // checksum) so pressing "Generovať" immediately shows a real problem.
@@ -877,11 +931,23 @@
   const timing = $('timing');
   const fileInput = $('f-file');
   const paymentsInput = $('f-payments');
+  const countryProfileSelect = $('f-countryprofile');
 
   let lastXml = '';
   let lastResult = null;
   let lastResults = [];
   const touchedFields = new Set();
+
+  // Country profile ('sk' default behaviour, 'de' Verwendungszweck instead
+  // of VS/ŠS/KS): follows the page language until the visitor picks one
+  // explicitly (profileTouched), exactly like touchedFields above tracks
+  // manual column-mapping overrides. See applyCountryProfileUI() below for
+  // what changes in the DOM when it flips.
+  let profileTouched = false;
+
+  function currentProfile() {
+    return COUNTRY_PROFILES.includes(countryProfileSelect.value) ? countryProfileSelect.value : 'sk';
+  }
 
   // Pro state: licenceState is the last isValid() result (never trust a
   // stale value across a page load: it's re-checked on init), extraBlocks
@@ -909,15 +975,47 @@
     return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
+  // ── country profile ("sk" VS/ŠS/KS vs. "de" Verwendungszweck) ───────────
+  // Toggles which mapping-grid fields are shown (VS/ŠS/KS vs. EndToEndId),
+  // relabels the "Správa"/"Verwendungszweck" field, and collapses the bank
+  // select to the single generic DK preset for "de" (the four Slovak-bank
+  // presets don't apply there — see FAQ faq.q12).
+  function applyCountryProfileUI() {
+    const profile = currentProfile();
+    document.querySelectorAll('[data-profile-field="sk"]').forEach((el) => { el.hidden = profile !== 'sk'; });
+    document.querySelectorAll('[data-profile-field="de"]').forEach((el) => { el.hidden = profile !== 'de'; });
+    $('map-message-label').textContent = profile === 'de' ? t('s2.map.message.de') : t('s2.map.message');
+
+    const bankSel = $('f-bank');
+    const prevBank = bankSel.value;
+    if (profile === 'de') {
+      bankSel.innerHTML = `<option value="generic">${esc(t('bank.genericDe'))}</option>`;
+      bankSel.value = 'generic';
+      bankSel.disabled = true;
+    } else {
+      bankSel.disabled = false;
+      bankSel.innerHTML = BANK_OPTIONS.map((k) => `<option value="${k}">${esc(bankLabel(k))}</option>`).join('');
+      bankSel.value = BANK_OPTIONS.includes(prevBank) ? prevBank : 'tatrabanka';
+    }
+    refreshMapping(false);
+  }
+
+  countryProfileSelect.addEventListener('change', () => {
+    profileTouched = true;
+    applyCountryProfileUI();
+  });
+
   // ── column-mapping selects ──────────────────────────────────────────
   function refreshMapping(resetTouched) {
     const rows = parseRows(paymentsInput.value);
-    const auto = mapColumns(rows);
+    const profile = currentProfile();
+    const auto = mapColumns(rows, undefined, profile);
     const columnCount = auto.columnCount;
     MAPPING_FIELDS.forEach((field) => {
-      const sel = $('map-' + field);
+      const sel = $(mapSelectId(field));
+      if (!sel) return;
       const prevValue = sel.value;
-      const options = ['<option value="">(žiadny)</option>'];
+      const options = [`<option value="">${esc(t('s2.map.none'))}</option>`];
       for (let i = 0; i < columnCount; i++) options.push(`<option value="${i}">${esc(auto.headerLabels[i])}</option>`);
       sel.innerHTML = options.join('');
       const autoVal = auto.mapping[field] === null || auto.mapping[field] === undefined ? '' : String(auto.mapping[field]);
@@ -932,7 +1030,8 @@
   }
 
   MAPPING_FIELDS.forEach((field) => {
-    $('map-' + field).addEventListener('change', () => touchedFields.add(field));
+    const sel = $(mapSelectId(field));
+    if (sel) sel.addEventListener('change', () => touchedFields.add(field));
   });
 
   paymentsInput.addEventListener('input', () => refreshMapping(false));
@@ -951,7 +1050,7 @@
   function currentMappingOverrides() {
     const m = {};
     MAPPING_FIELDS.forEach((field) => {
-      const v = $('map-' + field).value;
+      const v = $(mapSelectId(field)).value;
       m[field] = v === '' ? null : Number(v);
     });
     return m;
@@ -962,7 +1061,7 @@
     MAPPING_FIELDS.forEach((field) => {
       if (Object.prototype.hasOwnProperty.call(mapping, field)) {
         const v = mapping[field];
-        $('map-' + field).value = (v === null || v === undefined) ? '' : String(v);
+        $(mapSelectId(field)).value = (v === null || v === undefined) ? '' : String(v);
         touchedFields.add(field);
       }
     });
@@ -975,6 +1074,7 @@
       payerIban: $('f-payer-iban').value,
       payerBic: $('f-payer-bic').value,
       bank: $('f-bank').value,
+      profile: currentProfile(),
       execDate: $('f-execdate').value,
       msgId: $('f-msgid').value,
       paymentsText: paymentsInput.value,
@@ -988,7 +1088,9 @@
     $('f-payer-name').value = typeof payer.name === 'string' ? payer.name : (typeof cfg.payerName === 'string' ? cfg.payerName : '');
     $('f-payer-iban').value = typeof payer.iban === 'string' ? payer.iban : (typeof cfg.payerIban === 'string' ? cfg.payerIban : '');
     $('f-payer-bic').value = typeof payer.bic === 'string' ? payer.bic : (typeof cfg.payerBic === 'string' ? cfg.payerBic : '');
-    $('f-bank').value = BANK_OPTIONS.includes(cfg.bank) ? cfg.bank : 'tatrabanka';
+    if (COUNTRY_PROFILES.includes(cfg.profile)) { countryProfileSelect.value = cfg.profile; profileTouched = true; }
+    applyCountryProfileUI();
+    $('f-bank').value = (currentProfile() === 'sk' && BANK_OPTIONS.includes(cfg.bank)) ? cfg.bank : $('f-bank').value;
     $('f-execdate').value = typeof cfg.execDate === 'string' && cfg.execDate ? cfg.execDate : defaultExecDate();
     $('f-msgid').value = typeof cfg.msgId === 'string' ? cfg.msgId : '';
     paymentsInput.value = typeof cfg.paymentsText === 'string' ? cfg.paymentsText : '';
@@ -996,11 +1098,12 @@
     applyMappingOverrides(cfg.mapping);
   }
 
-  // Settings-only partial update (bank, execDate, msgId), used when
-  // restoring from the URL hash: never touches payer or payments.
+  // Settings-only partial update (bank, profile, execDate, msgId), used
+  // when restoring from the URL hash: never touches payer or payments.
   function applySettings(settings) {
     if (!settings || typeof settings !== 'object') return;
-    if (BANK_OPTIONS.includes(settings.bank)) $('f-bank').value = settings.bank;
+    if (COUNTRY_PROFILES.includes(settings.profile)) { countryProfileSelect.value = settings.profile; profileTouched = true; applyCountryProfileUI(); }
+    if (currentProfile() === 'sk' && BANK_OPTIONS.includes(settings.bank)) $('f-bank').value = settings.bank;
     if (typeof settings.execDate === 'string' && settings.execDate) $('f-execdate').value = settings.execDate;
     if (typeof settings.msgId === 'string') $('f-msgid').value = settings.msgId;
   }
@@ -1011,6 +1114,7 @@
     return {
       payer: { name: cfg.payerName, iban: cfg.payerIban, bic: cfg.payerBic },
       bank: cfg.bank,
+      profile: cfg.profile,
       execDate: cfg.execDate,
       msgId: cfg.msgId,
       paymentsText: cfg.paymentsText,
@@ -1039,7 +1143,7 @@
       jsonPane.hidden = true;
     } catch (e) {
       jsonError.hidden = false;
-      jsonError.textContent = 'Nedá sa prepnúť na Formulár: JSON nie je platný: ' + e.message;
+      jsonError.textContent = tf('js.error.jsonSwitchFail', { msg: e.message });
       tabFormBtn.classList.remove('active');
       tabJsonBtn.classList.add('active');
       formPane.hidden = true;
@@ -1059,6 +1163,7 @@
         payerIban: payer.iban || parsed.payerIban || '',
         payerBic: payer.bic || parsed.payerBic || '',
         bank: parsed.bank,
+        profile: COUNTRY_PROFILES.includes(parsed.profile) ? parsed.profile : currentProfile(),
         execDate: parsed.execDate,
         msgId: parsed.msgId,
         paymentsText: parsed.paymentsText || '',
@@ -1075,9 +1180,10 @@
   }
 
   function renderPaymentsTable(payments) {
+    const lang = getLang();
     const rows = payments.map((p) => {
-      const symbols = [p.vs && 'VS' + p.vs, p.ss && 'ŠS' + p.ss, p.ks && 'KS' + p.ks].filter(Boolean).join(' ');
-      const amountText = p.amount === null ? (p.amountRaw || '') : p.amount.toFixed(2);
+      const symbols = [p.vs && 'VS' + p.vs, p.ss && 'ŠS' + p.ss, p.ks && 'KS' + p.ks, p.endToEndId && 'E2E:' + p.endToEndId].filter(Boolean).join(' ');
+      const amountText = p.amount === null ? (p.amountRaw || '') : formatAmountForLang(p.amount, lang);
       return `<tr class="${p.hasError ? 'row-err' : ''}">
         <td>${p.row}</td>
         <td>${esc(p.iban || p.ibanRaw || '')}</td>
@@ -1089,7 +1195,7 @@
       </tr>`;
     }).join('');
     return `<div class="table-scroll"><table class="pay-table">
-      <thead><tr><th>#</th><th>IBAN</th><th>Suma</th><th>Názov</th><th>Symboly</th><th>Správa</th><th>Chyby</th></tr></thead>
+      <thead><tr><th>${esc(t('js.table.row'))}</th><th>${esc(t('js.table.iban'))}</th><th>${esc(t('js.table.amount'))}</th><th>${esc(t('js.table.name'))}</th><th>${esc(t('js.table.symbols'))}</th><th>${esc(t('js.table.message'))}</th><th>${esc(t('js.table.errors'))}</th></tr></thead>
       <tbody>${rows}</tbody>
     </table></div>`;
   }
@@ -1097,14 +1203,14 @@
   function renderDoctorResult(r, blockIdx) {
     const bi = blockIdx || 0;
     const rows =
-      expectedRow('Banka', r.expected.bankLabel || BANK_LABELS[r.bank] || r.bank) +
-      expectedRow('Očakávaný BIC platiteľa', r.expected.bankBic) +
-      expectedRow('Menný priestor schémy (xmlns)', r.expected.schemaNamespace) +
-      expectedRow('Max. dní dopredu pre ReqdExctnDt', r.expected.execWindowDays != null ? r.expected.execWindowDays + ' dní' : 'nezdokumentované pre túto banku') +
-      expectedRow('Počet transakcií (NbOfTxs)', r.stats.txCount) +
-      expectedRow('Súčet súm (CtrlSum)', r.stats.sum + (r.stats.currencies.length ? ' ' + r.stats.currencies.join('/') : '')) +
-      expectedRow('Bloky PmtInf', r.stats.pmtInfCount) +
-      expectedRow('Banky rozpoznané z IBAN', r.stats.banksDetected.join(', '));
+      expectedRow(t('js.doctor.bank'), bankLabel(r.bank) || r.expected.bankLabel || r.bank) +
+      expectedRow(t('js.doctor.expectedBic'), r.expected.bankBic) +
+      expectedRow(t('js.doctor.namespace'), r.expected.schemaNamespace) +
+      expectedRow(t('js.doctor.execwindow'), r.expected.execWindowDays != null ? tf('js.doctor.execwindow.days', { n: r.expected.execWindowDays }) : t('js.doctor.execwindow.undocumented')) +
+      expectedRow(t('js.doctor.txcount'), r.stats.txCount) +
+      expectedRow(t('js.doctor.ctrlsum'), r.stats.sum + (r.stats.currencies.length ? ' ' + r.stats.currencies.join('/') : '')) +
+      expectedRow(t('js.doctor.pmtinfcount'), r.stats.pmtInfCount) +
+      expectedRow(t('js.doctor.banksdetected'), r.stats.banksDetected.join(', '));
 
     const problemsHtml = r.problems.map((p) => `<div class="problem-item ${esc(p.severity)}">
         <div><span class="sev-tag">${esc(p.severity)}</span>${esc(p.message)}</div>
@@ -1116,24 +1222,24 @@
           <div class="fix-title">${esc(f.title)}${f.where ? ` <span class="where">· ${esc(f.where)}</span>` : ''}</div>
           <pre class="fix-value">${esc(f.value)}</pre>
         </div>
-        <button class="icon-btn copy-fix-btn" type="button" data-block-idx="${bi}" data-fix-index="${i}">kopírovať</button>
+        <button class="icon-btn copy-fix-btn" type="button" data-block-idx="${bi}" data-fix-index="${i}">${esc(t('js.copy.fix'))}</button>
       </div>`).join('');
 
     const checklistHtml = r.checklist.map((c) => `<li>${esc(c)}</li>`).join('');
 
     return `<div>
-        <div class="form-section-title">Kontrola (SEPA pain.001 Doctor engine)</div>
+        <div class="form-section-title">${esc(t('js.doctor.title'))}</div>
         <span class="big-pill ${esc(r.status)}" style="margin-top:10px">${esc(r.status)}</span>
         <p class="result-summary">${esc(r.summary)}</p>
       </div>
       <div>
-        <div class="form-section-title">Očakávané hodnoty a štatistika</div>
+        <div class="form-section-title">${esc(t('js.doctor.expectedvalues.title'))}</div>
         <table class="exp-table"><tbody>${rows}</tbody></table>
       </div>
-      ${r.problems.length ? `<div><div class="form-section-title">Problémy (${r.problems.length})</div>${problemsHtml}</div>` : ''}
-      ${r.fixes.length ? `<div><div class="form-section-title">Opravy</div>${fixesHtml}</div>` : ''}
+      ${r.problems.length ? `<div><div class="form-section-title">${esc(tf('js.doctor.problems.title', { n: r.problems.length }))}</div>${problemsHtml}</div>` : ''}
+      ${r.fixes.length ? `<div><div class="form-section-title">${esc(t('js.doctor.fixes.title'))}</div>${fixesHtml}</div>` : ''}
       <div>
-        <div class="form-section-title">Checklist</div>
+        <div class="form-section-title">${esc(t('js.doctor.checklist.title'))}</div>
         <ul class="checklist">${checklistHtml}</ul>
       </div>
       <div style="font-size:11px; color:var(--muted); line-height:1.6;">${esc(r.disclaimer)}</div>`;
@@ -1166,9 +1272,11 @@
 
     let banner = '';
     if (errCount > 0) {
-      banner = `<div class="warn-banner">${errCount} ${errCount === 1 ? 'riadok má' : 'riadkov má'} chybu v náhľade nižšie (napr. neplatný IBAN alebo neplatná suma). Súbor sa napriek tomu vygeneroval so zadanými hodnotami tak, ako sú: stiahnutie je aktívne, ale opravte dáta pred nahratím do banky.</div>`;
+      const word = t(errCount === 1 ? 'js.banner.rowError.word.one' : 'js.banner.rowError.word.other');
+      banner = `<div class="warn-banner">${esc(tf('js.banner.rowError', { n: errCount, word }))}</div>`;
     } else if (highCount > 0) {
-      banner = `<div class="warn-banner">Kontrola nižšie našla ${highCount} blokujúc${highCount === 1 ? 'u chybu' : highCount < 5 ? 'e chyby' : 'ich chýb'}, ktoré banka pri importe pravdepodobne odmietne. Stiahnutie ostáva aktívne, odporúčame ale najprv opraviť problémy nižšie.</div>`;
+      const wordKey = highCount === 1 ? 'js.banner.doctorBlocking.word.one' : highCount < 5 ? 'js.banner.doctorBlocking.word.few' : 'js.banner.doctorBlocking.word.many';
+      banner = `<div class="warn-banner">${esc(tf('js.banner.doctorBlocking', { n: highCount, word: t(wordKey) }))}</div>`;
     }
 
     return `<div class="result">
@@ -1177,15 +1285,15 @@
         <div class="xml-box-head">
           <span class="pane-title">${esc(filename)}</span>
           <div class="pane-actions">
-            <button class="icon-btn" data-copy-xml="${blockIdx}" type="button">kopírovať XML</button>
-            <button class="icon-btn primary" data-download-xml="${blockIdx}" type="button">Stiahnuť XML</button>
+            <button class="icon-btn" data-copy-xml="${blockIdx}" type="button">${esc(t('js.copy.xml'))}</button>
+            <button class="icon-btn primary" data-download-xml="${blockIdx}" type="button">${esc(t('js.download.xml'))}</button>
           </div>
         </div>
         <pre>${esc(xml)}</pre>
       </div>
       ${banner}
       <div>
-        <div class="form-section-title">Náhľad platieb (${mapped.payments.length})</div>
+        <div class="form-section-title">${esc(tf('js.preview.title', { n: mapped.payments.length }))}</div>
         ${renderPaymentsTable(mapped.payments)}
       </div>
       ${renderDoctorResult(doctorResult, blockIdx)}
@@ -1195,7 +1303,7 @@
   function renderResults(entries, bank) {
     const multi = entries.length > 1;
     const allBtnHtml = multi
-      ? `<div style="display:flex; justify-content:flex-end;"><button class="icon-btn primary" id="download-all-btn" type="button">Stiahnuť všetky (${entries.length})</button></div>`
+      ? `<div style="display:flex; justify-content:flex-end;"><button class="icon-btn primary" id="download-all-btn" type="button">${esc(tf('js.download.all', { n: entries.length }))}</button></div>`
       : '';
     output.innerHTML = allBtnHtml + entries
       .map((e, i) => buildEntryHtml(e, i))
@@ -1211,12 +1319,12 @@
       cpBtn.addEventListener('click', async () => {
         try {
           await navigator.clipboard.writeText(e.xml);
-          cpBtn.textContent = 'skopírované ✓';
+          cpBtn.textContent = t('js.copy.done');
           track('copy_xml', { bank });
         } catch (err) {
-          cpBtn.textContent = 'zlyhalo';
+          cpBtn.textContent = t('js.copy.failed');
         }
-        setTimeout(() => { cpBtn.textContent = 'kopírovať XML'; }, 1200);
+        setTimeout(() => { cpBtn.textContent = t('js.copy.xml'); }, 1200);
       });
     });
 
@@ -1227,11 +1335,11 @@
         const val = entries[bi].doctorResult.fixes[fi].value;
         try {
           await navigator.clipboard.writeText(val);
-          btn.textContent = 'skopírované ✓';
+          btn.textContent = t('js.copy.done');
         } catch (e) {
-          btn.textContent = 'zlyhalo';
+          btn.textContent = t('js.copy.failed');
         }
-        setTimeout(() => { btn.textContent = 'kopírovať'; }, 1100);
+        setTimeout(() => { btn.textContent = t('js.copy.fix'); }, 1100);
       });
     });
 
@@ -1249,15 +1357,19 @@
   function renderError(message) {
     output.innerHTML = `<p class="err-text">${esc(message)}</p>`;
     setStatusPill('idle');
-    meta.textContent = 'chyba';
+    meta.textContent = t('js.status.error');
     timing.textContent = '-';
     copyReportBtn.disabled = true;
   }
 
+  const STATUS_LABEL_KEY = { pass: 'js.status.pass', warn: 'js.status.warn', fail: 'js.status.fail', idle: 'js.status.idle' };
+
   function setStatusPill(status) {
-    statusPill.className = 'status-pill ' + (status === 'fail' || status === 'warn' || status === 'pass' ? status : '');
-    statusPill.textContent = status;
-    meta.textContent = status;
+    const known = status === 'fail' || status === 'warn' || status === 'pass';
+    statusPill.className = 'status-pill ' + (known ? status : '');
+    statusPill.dataset.status = known ? status : 'idle';
+    statusPill.textContent = t(STATUS_LABEL_KEY[known ? status : 'idle']);
+    meta.textContent = statusPill.textContent;
   }
 
   // ── run ──────────────────────────────────────────────────────────────
@@ -1272,23 +1384,24 @@
   function generate() {
     const cfg = currentConfig();
     if (cfg === null) {
-      renderError('Neplatný JSON: opravte syntax a skúste znova.');
+      renderError(t('js.error.invalidJson'));
       return;
     }
     if (!cfg.paymentsText || !cfg.paymentsText.trim()) {
-      renderError('Vložte aspoň jeden riadok s platbou (skopírovaný z Excelu, alebo nahrajte súbor).');
+      renderError(t('js.error.noPayments'));
       return;
     }
 
     const t0 = performance.now();
     const payerBic = (cfg.payerBic || '').trim().toUpperCase() || bicFromIban(cfg.payerIban) || '';
     const payer = { name: cfg.payerName, iban: cfg.payerIban, bic: payerBic };
+    const profile = COUNTRY_PROFILES.includes(cfg.profile) ? cfg.profile : 'sk';
 
-    const mainMapped = mapColumns(parseRows(cfg.paymentsText), cfg.mapping);
+    const mainMapped = mapColumns(parseRows(cfg.paymentsText), cfg.mapping, profile);
     const proBlocksActive = licenceState.valid && extraBlocks.length > 0;
     const extraMapped = proBlocksActive
       ? extraBlocks
-        .map((b) => mapColumns(parseRows(b.text), cfg.mapping))
+        .map((b) => mapColumns(parseRows(b.text), cfg.mapping, profile))
         .filter((m) => m.payments.length > 0)
       : [];
 
@@ -1296,19 +1409,19 @@
     try {
       if (proBlocksActive && extraMapped.length > 0 && $('pro-merge-checkbox').checked) {
         const merged = mergeBlockPayments([{ payments: mainMapped.payments }, ...extraMapped.map((m) => ({ payments: m.payments }))]);
-        const xml = buildXml({ bank: cfg.bank, payer, execDate: cfg.execDate, msgId: cfg.msgId, payments: merged });
-        entries = [{ xml, mapped: { payments: merged }, doctorResult: diagnose({ xml, bank: cfg.bank }), filename: downloadFilename(), label: `Zlúčený súbor (${1 + extraMapped.length} bloky)` }];
+        const xml = buildXml({ bank: cfg.bank, profile, payer, execDate: cfg.execDate, msgId: cfg.msgId, payments: merged });
+        entries = [{ xml, mapped: { payments: merged }, doctorResult: diagnose({ xml, bank: cfg.bank }), filename: downloadFilename(), label: tf('js.mergedfile.label', { n: 1 + extraMapped.length }) }];
         track('pro_feature', { name: 'multi_block_merge', blocks: 1 + extraMapped.length });
       } else if (proBlocksActive && extraMapped.length > 0) {
         const blocks = [mainMapped, ...extraMapped];
         const baseMsgId = (cfg.msgId && cfg.msgId.trim()) || autoMsgId();
         entries = blocks.map((m, i) => {
-          const xml = buildXml({ bank: cfg.bank, payer, execDate: cfg.execDate, msgId: `${baseMsgId}-B${i + 1}`, payments: m.payments });
-          return { xml, mapped: m, doctorResult: diagnose({ xml, bank: cfg.bank }), filename: downloadFilename('-blok' + (i + 1)), label: `Blok ${i + 1} z ${blocks.length}` };
+          const xml = buildXml({ bank: cfg.bank, profile, payer, execDate: cfg.execDate, msgId: `${baseMsgId}-B${i + 1}`, payments: m.payments });
+          return { xml, mapped: m, doctorResult: diagnose({ xml, bank: cfg.bank }), filename: downloadFilename('-blok' + (i + 1)), label: tf('js.blockfile.label', { i: i + 1, n: blocks.length }) };
         });
         track('pro_feature', { name: 'multi_block_separate', blocks: blocks.length });
       } else {
-        const xml = buildXml({ bank: cfg.bank, payer, execDate: cfg.execDate, msgId: cfg.msgId, payments: mainMapped.payments });
+        const xml = buildXml({ bank: cfg.bank, profile, payer, execDate: cfg.execDate, msgId: cfg.msgId, payments: mainMapped.payments });
         entries = [{ xml, mapped: mainMapped, doctorResult: diagnose({ xml, bank: cfg.bank }), filename: downloadFilename() }];
       }
     } catch (e) {
@@ -1325,7 +1438,7 @@
     const worst = entries.some((e) => e.doctorResult.status === 'fail') ? 'fail' : entries.some((e) => e.doctorResult.status === 'warn') ? 'warn' : 'pass';
     setStatusPill(worst);
     const totalTx = entries.reduce((n, e) => n + e.mapped.payments.length, 0);
-    timing.textContent = dt.toFixed(2) + ' ms · klientská strana, 0 requestov' + (entries.length > 1 ? ` · ${entries.length} súborov` : '');
+    timing.textContent = dt.toFixed(2) + ' ms · ' + t('js.timing.clientSide') + (entries.length > 1 ? ` · ${tf('js.timing.files', { n: entries.length })}` : '');
 
     track('generate', { bank: cfg.bank, txBucket: txBucket(totalTx) });
 
@@ -1336,23 +1449,23 @@
       refreshHistoryPanelIfOpen();
     }
 
-    updatePermalink({ bank: cfg.bank, execDate: cfg.execDate, msgId: cfg.msgId });
+    updatePermalink({ bank: cfg.bank, profile: cfg.profile, execDate: cfg.execDate, msgId: cfg.msgId });
   }
   generateBtn.addEventListener('click', generate);
 
   sampleBtn.addEventListener('click', () => {
-    configToForm({ payer: SAMPLE_PAYER, bank: 'tatrabanka', execDate: defaultExecDate(), msgId: '', paymentsText: SAMPLE_PAYMENTS_TEXT, mapping: {} });
+    configToForm({ payer: SAMPLE_PAYER, bank: 'tatrabanka', profile: 'sk', execDate: defaultExecDate(), msgId: '', paymentsText: SAMPLE_PAYMENTS_TEXT, mapping: {} });
     if (jsonPane && !jsonPane.hidden) jsonInput.value = JSON.stringify(formConfigAsJsonObj(), null, 2);
     lastXml = ''; lastResult = null; lastResults = [];
     extraBlocks = [];
     renderBlocks();
     $('pro-template-select').value = '';
     $('pro-template-note').hidden = true;
-    output.innerHTML = '<div class="placeholder">vyplňte platiteľa a platby, stlačte <span class="kbd">Generovať</span> alebo <span class="kbd">⌘↵</span><span class="blink"></span></div>';
+    output.innerHTML = `<div class="placeholder">${t('s2.output.placeholder.full')}</div>`;
     statusPill.className = 'status-pill';
-    statusPill.textContent = 'idle';
-    meta.textContent = 'idle';
-    timing.textContent = 'čaká';
+    statusPill.textContent = t('js.status.idle');
+    meta.textContent = t('js.status.idle');
+    timing.textContent = t('js.timing.waiting');
     copyReportBtn.disabled = true;
   });
 
@@ -1362,12 +1475,12 @@
     try {
       await navigator.clipboard.writeText(text);
       const old = copyReportBtn.textContent;
-      copyReportBtn.textContent = 'skopírované ✓';
+      copyReportBtn.textContent = t('js.copy.done');
       track('copy_report');
       setTimeout(() => { copyReportBtn.textContent = old; }, 1200);
     } catch (e) {
-      copyReportBtn.textContent = 'zlyhalo';
-      setTimeout(() => { copyReportBtn.textContent = 'kopírovať report'; }, 1200);
+      copyReportBtn.textContent = t('js.copy.failed');
+      setTimeout(() => { copyReportBtn.textContent = t('s2.copyreport.btn'); }, 1200);
     }
   });
 
@@ -1393,7 +1506,7 @@
   }
   function updatePermalink(settings) {
     try {
-      const payload = JSON.stringify({ bank: settings.bank, execDate: settings.execDate, msgId: settings.msgId });
+      const payload = JSON.stringify({ bank: settings.bank, profile: settings.profile, execDate: settings.execDate, msgId: settings.msgId });
       if (payload.length > 2000) return;
       history.replaceState(null, '', '#c=' + toBase64Url(payload));
     } catch (e) {}
@@ -1412,24 +1525,14 @@
   // ── Pro: licencia ────────────────────────────────────────────────────
   const PRO_CONTROL_IDS = ['pro-profile-select', 'pro-profile-save-btn', 'pro-profile-delete-btn', 'pro-template-select', 'pro-block-add-btn', 'pro-merge-checkbox', 'pro-history-btn'];
 
-  function formatSkDate(iso) {
-    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
-    return m ? `${m[3]}.${m[2]}.${m[1]}` : (iso || '');
-  }
-
   function licenceReasonLabel(reason) {
-    return {
-      expired: 'licencia vypršala', signature: 'neplatný kľúč', plan: 'kľúč pre iný produkt',
-      malformed: 'neplatný kľúč', unsupported: 'prehliadač nepodporovaný',
-    }[reason] || 'neplatná licencia';
+    const key = { expired: 'js.licence.reason.expired', signature: 'js.licence.reason.signature', plan: 'js.licence.reason.plan', malformed: 'js.licence.reason.malformed', unsupported: 'js.licence.reason.unsupported' }[reason];
+    return t(key || 'js.licence.reason.default');
   }
 
   function licenceReasonDetail(reason) {
-    if (reason === 'unsupported') return 'Pro vyžaduje aktuálny prehliadač s podporou WebCrypto Ed25519 (Chrome, Firefox alebo Safari 17+). Aktualizujte prehliadač a skúste znova.';
-    if (reason === 'expired') return 'Táto licencia už vypršala. Kúpou novej licencie získate ďalších 12 mesiacov.';
-    if (reason === 'plan') return 'Tento kľúč platí pre iný produkt ARLing, nie pre SEPA pain.001 Generátor ani balík Bankové nástroje.';
-    if (reason === 'malformed') return 'Kľúč sa nepodarilo prečítať, skontrolujte, či ste ho skopírovali celý.';
-    return 'Kľúč sa nepodarilo overiť.';
+    const key = { unsupported: 'js.licence.detail.unsupported', expired: 'js.licence.detail.expired', plan: 'js.licence.detail.plan', malformed: 'js.licence.detail.malformed' }[reason];
+    return t(key || 'js.licence.detail.default');
   }
 
   async function refreshLicenceUI() {
@@ -1441,12 +1544,12 @@
     const activeActions = $('pro-licence-actions-active');
     if (licenceState.valid) {
       pill.className = 'status-pill pass';
-      pill.textContent = 'Pro aktívne';
-      detail.textContent = `Licencia platná do ${formatSkDate(licenceState.payload.e)}.`;
+      pill.textContent = t('js.status.proActive');
+      detail.textContent = tf('js.licence.validUntil', { date: formatDateForLang(licenceState.payload.e, getLang()) });
       activeActions.hidden = false;
     } else {
       pill.className = 'status-pill' + (stored ? ' fail' : '');
-      pill.textContent = stored ? licenceReasonLabel(licenceState.reason) : 'bez licencie';
+      pill.textContent = stored ? licenceReasonLabel(licenceState.reason) : t('js.status.noLicence');
       detail.textContent = stored ? licenceReasonDetail(licenceState.reason) : '';
       activeActions.hidden = !stored;
     }
@@ -1475,7 +1578,7 @@
     history.replaceState(null, '', url.pathname + url.search + url.hash);
 
     $('pro-licence-pill').className = 'status-pill';
-    $('pro-licence-pill').textContent = 'aktivujem…';
+    $('pro-licence-pill').textContent = t('js.status.activating');
     const res = await licenceClaim(sid);
     if (res && res.ok && res.licence) {
       licenceSave(res.licence);
@@ -1483,7 +1586,7 @@
       track('licence_activated', { plan: res.plan || '' });
     } else {
       await refreshLicenceUI();
-      $('pro-licence-detail').textContent = 'Aktivácia zlyhala. Skúste vložiť kľúč ručne nižšie, alebo napíšte na andrej@arling.sk.';
+      $('pro-licence-detail').textContent = t('js.licence.activationFailed');
     }
     const proSection = document.getElementById('pro');
     if (proSection) proSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1494,7 +1597,7 @@
     const err = $('pro-licence-error');
     const key = (input.value || '').trim();
     err.textContent = '';
-    if (!key) { err.textContent = 'Vložte licenčný kľúč.'; return; }
+    if (!key) { err.textContent = t('js.licence.keyMissing'); return; }
     const r = await licenceIsValid(key);
     if (!r.valid) { err.textContent = licenceReasonDetail(r.reason); return; }
     licenceSave(key);
@@ -1504,7 +1607,7 @@
   });
 
   $('pro-licence-remove-btn').addEventListener('click', () => {
-    if (!window.confirm('Odstrániť licenciu z tohto prehliadača?')) return;
+    if (!window.confirm(t('js.licence.removeConfirm'))) return;
     licenceClear();
     refreshLicenceUI();
   });
@@ -1514,7 +1617,7 @@
     const sel = $('pro-profile-select');
     const profiles = loadProfiles();
     const prev = sel.value;
-    sel.innerHTML = '<option value="">(vybrať uložený profil)</option>' + profiles.map((p) => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
+    sel.innerHTML = `<option value="">${esc(t('s2.profile.select.placeholder'))}</option>` + profiles.map((p) => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
     sel.value = profiles.some((p) => p.id === prev) ? prev : '';
   }
 
@@ -1534,8 +1637,8 @@
     if (!licenceState.valid) return;
     const name = ($('f-payer-name').value || '').trim();
     const iban = ($('f-payer-iban').value || '').trim();
-    if (!name || !iban) { window.alert('Vyplňte názov firmy a IBAN platiteľa pred uložením profilu.'); return; }
-    const label = window.prompt('Názov profilu (napr. názov firmy):', name);
+    if (!name || !iban) { window.alert(t('js.profile.save.missing')); return; }
+    const label = window.prompt(t('js.profile.save.prompt'), name);
     if (label === null) return;
     const r = addProfile({ name: label.trim() || name, iban, bic: $('f-payer-bic').value || '', bank: $('f-bank').value || '' });
     if (r.ok) {
@@ -1548,7 +1651,7 @@
   $('pro-profile-delete-btn').addEventListener('click', () => {
     const id = $('pro-profile-select').value;
     if (!id) return;
-    if (!window.confirm('Zmazať vybraný profil?')) return;
+    if (!window.confirm(t('js.profile.delete.confirm'))) return;
     removeProfile(id);
     refreshProfileSelect();
     track('pro_feature', { name: 'profile_delete' });
@@ -1564,9 +1667,9 @@
     if (!template) return;
     applyMappingOverrides(mapped.mapping);
     note.hidden = false;
-    note.textContent = template.note + (matchedFields.length
-      ? ` Rozpoznané stĺpce podľa hlavičky: ${matchedFields.join(', ')}.`
-      : ' Žiadny stĺpec sa nepodarilo rozpoznať podľa presného názvu hlavičky, použilo sa bežné automatické rozpoznanie.');
+    note.textContent = matchedFields.length
+      ? tf('js.template.note.matched', { note: template.note, fields: matchedFields.join(', ') })
+      : tf('js.template.note.none', { note: template.note });
     track('pro_feature', { name: 'mapping_template', template: key });
   });
 
@@ -1575,8 +1678,8 @@
     const list = $('pro-blocks-list');
     list.innerHTML = extraBlocks.map((b, i) => `
       <div class="pro-block">
-        <div class="pro-block-head"><span>blok ${i + 2}</span><button class="icon-btn" type="button" data-remove-block="${esc(b.id)}">odstrániť</button></div>
-        <textarea data-block-text="${esc(b.id)}" placeholder="Ďalší blok platieb (rovnaké mapovanie stĺpcov ako vyššie)." spellcheck="false" wrap="off">${esc(b.text)}</textarea>
+        <div class="pro-block-head"><span>${esc(tf('js.block.label', { n: i + 2 }))}</span><button class="icon-btn" type="button" data-remove-block="${esc(b.id)}">${esc(t('js.block.remove.btn'))}</button></div>
+        <textarea data-block-text="${esc(b.id)}" placeholder="${esc(t('js.block.placeholder'))}" spellcheck="false" wrap="off">${esc(b.text)}</textarea>
       </div>`).join('');
     list.querySelectorAll('[data-block-text]').forEach((ta) => {
       ta.addEventListener('input', () => {
@@ -1603,13 +1706,14 @@
   function renderHistoryPanel() {
     const panel = $('pro-history-panel');
     const items = loadHistory();
+    const lang = getLang();
     if (items.length === 0) {
-      panel.innerHTML = '<p class="pro-history-empty">Zatiaľ žiadna história. Vygenerujte prvý súbor.</p>';
+      panel.innerHTML = `<p class="pro-history-empty">${esc(t('js.history.empty'))}</p>`;
       return;
     }
     panel.innerHTML = items.map((h, i) => `<div class="pro-history-item">
-        <span class="pro-history-meta"><b>${esc(h.filename || '(bez názvu)')}</b> · ${esc(new Date(h.date).toLocaleString('sk-SK'))} · ${h.count} platieb · ${h.sum.toFixed(2)} € · ${esc(BANK_LABELS[h.bank] || h.bank || '')}</span>
-        <button class="icon-btn" data-history-redownload="${i}" type="button" ${h.xml ? '' : 'disabled'}>${h.xml ? 'stiahnuť znova' : 'XML neuložené'}</button>
+        <span class="pro-history-meta"><b>${esc(h.filename || t('js.history.noname'))}</b> · ${esc(new Date(h.date).toLocaleString(localeTagForLang(lang)))} · ${h.count} ${esc(t('js.history.payments'))} · ${esc(formatAmountForLang(h.sum, lang))} € · ${esc(bankLabel(h.bank) || h.bank || '')}</span>
+        <button class="icon-btn" data-history-redownload="${i}" type="button" ${h.xml ? '' : 'disabled'}>${h.xml ? esc(t('js.history.redownload')) : esc(t('js.history.noxml'))}</button>
       </div>`).join('');
     panel.querySelectorAll('[data-history-redownload]').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -1637,10 +1741,30 @@
     }
   });
 
+  // ── language change: re-render everything driven from JS rather than
+  // data-i18n (mapping-grid/bank-select labels via applyCountryProfileUI,
+  // the profile dropdown placeholder, licence status text, an open
+  // history panel) — i18n.js's applyI18n() already re-ran the data-i18n*
+  // DOM pass by the time this event fires ─────────────────────────────
+  document.addEventListener('arling:langchange', () => {
+    if (!profileTouched) countryProfileSelect.value = getLang() === 'de' ? 'de' : 'sk';
+    applyCountryProfileUI();
+    refreshProfileSelect();
+    refreshLicenceUI();
+    refreshHistoryPanelIfOpen();
+  });
+
   // ── init ─────────────────────────────────────────────────────────────
-  configToForm({ payer: SAMPLE_PAYER, bank: 'tatrabanka', execDate: defaultExecDate(), msgId: '', paymentsText: SAMPLE_PAYMENTS_TEXT, mapping: {} });
+  // i18n.js's own import already ran its detectLang()/setLang() bootstrap
+  // by this point (ES module imports evaluate before the importing
+  // module's own body), so getLang() below already reflects the visitor's
+  // detected language even though our 'arling:langchange' listener above
+  // was registered too late to catch that very first dispatch.
+  const initialProfile = getLang() === 'de' ? 'de' : 'sk';
+  configToForm({ payer: SAMPLE_PAYER, bank: 'tatrabanka', profile: initialProfile, execDate: defaultExecDate(), msgId: '', paymentsText: SAMPLE_PAYMENTS_TEXT, mapping: {} });
+  profileTouched = false; // initial profile above was only a language-based default, not a visitor's own choice — see the 'arling:langchange' listener
   jsonInput.value = JSON.stringify(formConfigAsJsonObj(), null, 2);
-  loadSettingsFromHash(); // only overrides bank / execDate / msgId, never payer or payments
+  loadSettingsFromHash(); // only overrides bank / profile / execDate / msgId, never payer or payments
   renderBlocks();
   refreshLicenceUI().then(handleSessionIdFromUrl);
 

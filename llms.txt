@@ -1,5 +1,7 @@
 # SEPA pain.001 Generátor: hromadné príkazy pre slovenské banky
 
+> Free, client-side tool that builds a SEPA pain.001 XML batch payment file from payments pasted or uploaded from Excel or CSV. Two country profiles: "sk" (Tatra banka/SLSP/VÚB/ČSOB, variabilný/špecifický/konštantný symbol in EndToEndId) and "de" (Deutsche Kreditwirtschaft, Verwendungszweck instead of VS/SS/KS, optional EndToEndId column, generic DK bank preset). Available in Slovak, English and German (a language switcher in the header, `?lang=sk|en|de`); the "de" profile follows the page language automatically and is selectable in English or Slovak too.
+
 > Free, client-side tool that builds a SEPA pain.001 XML batch payment file (hromadný príkaz na úhradu) directly from payments pasted or uploaded from Excel or CSV, ready for import into Tatra banka, Slovenská sporiteľňa (SLSP), VÚB, or ČSOB internet banking.
 
 Paste rows copied from Excel (tab-separated) or a CSV/TSV file, fill in the payer's IBAN once, and download a `pain.001.001.03` file: no account, no backend, nothing you enter leaves your browser except an optional email if you join the mailing list.
@@ -7,16 +9,16 @@ Paste rows copied from Excel (tab-separated) or a CSV/TSV file, fill in the paye
 ## What it does
 
 - Parses a pasted TSV/CSV block or an uploaded `.csv`/`.txt`/`.tsv` file (read client-side with `FileReader`) into a payment list.
-- Auto-detects columns by header name: IBAN, amount (`suma`/`amount`/`čiastka`), recipient name (`názov`/`meno`/`príjemca`/`name`), variabilný/špecifický/konštantný symbol, message (`správa`/`poznámka`/`message`/`info`), date, and BIC, with manual dropdowns to fix any column the auto-detection gets wrong.
-- Derives the payer's BIC from the bank code in their IBAN (Tatra banka `TATRSKBX`, SLSP `GIBASKBX`, VÚB `SUBASKBX`, ČSOB `CEKOSKBX`, and others), with a manual field for unrecognized codes.
-- Writes the fixed values every Slovak bank requires for a SEPA batch credit transfer: `PmtMtd = TRF`, `PmtTpInf/SvcLvl/Cd = SEPA`, `ChrgBr = SLEV`, currency `EUR`.
-- Packs variabilný/špecifický/konštantný symbol into the end-to-end reference as `/VS.../SS.../KS...`, the National Bank of Slovakia convention, since `pain.001.001.03` has no dedicated fields for them.
+- Auto-detects columns by header name, in Slovak, English or German: IBAN, amount (`suma`/`amount`/`čiastka`/`betrag`), recipient name (`názov`/`meno`/`príjemca`/`name`/`empfänger`/`beneficiary`), variabilný/špecifický/konštantný symbol (`vs`/`ss`/`ks`, "sk" profile only), message/Verwendungszweck (`správa`/`poznámka`/`message`/`info`/`verwendungszweck`/`reference`), date (`dátum`/`date`/`ausführungsdatum`), BIC, and EndToEndId (`endtoend`/`e2e`, "de" profile only), with manual dropdowns to fix any column the auto-detection gets wrong.
+- Derives the payer's BIC from the bank code in their IBAN (Tatra banka `TATRSKBX`, SLSP `GIBASKBX`, VÚB `SUBASKBX`, ČSOB `CEKOSKBX`, and others), with a manual field for unrecognized codes; BIC stays optional for any IBAN from an EEA/SEPA country.
+- Writes the fixed values every SEPA batch credit transfer requires: `PmtMtd = TRF`, `PmtTpInf/SvcLvl/Cd = SEPA`, `ChrgBr = SLEV`, currency `EUR`.
+- **"sk" country profile** (default): packs variabilný/špecifický/konštantný symbol into the end-to-end reference as `/VS.../SS.../KS...`, the National Bank of Slovakia convention, since `pain.001.001.03` has no dedicated fields for them.
+- **"de" country profile**: no VS/SS/KS columns; the message column is Verwendungszweck instead, written unstructured into `RmtInf/Ustrd` (max. 140 characters, checked against the SEPA character set); `PmtId/EndToEndId` is read from its own optional column, defaulting to `NOTPROVIDED`; the bank selector collapses to one generic "Bank nach DK-Regelwerk (pain.001.001.03)" preset.
 - Generates `MsgId` automatically as `ARL-YYYYMMDD-HHMMSS` and defaults the requested execution date to tomorrow.
-- Lets you pick a target-bank profile (Tatra banka, SLSP, VÚB, ČSOB, or a generic SEPA profile) and downloads the finished XML.
 
 ## Who it's for
 
-Slovak accountants, company directors, and e-shop owners who keep a list of payments (payroll, supplier invoices, refunds) in a spreadsheet rather than accounting software with a built-in SEPA export, and need a `pain.001` file a bank's internet banking will accept.
+Slovak accountants, company directors, and e-shop owners who keep a list of payments (payroll, supplier invoices, refunds) in a spreadsheet rather than accounting software with a built-in SEPA export, and need a `pain.001` file a bank's internet banking will accept, as well as an English- or German-speaking user who needs a generic German (Deutsche Kreditwirtschaft) `pain.001` batch payment file.
 
 ## How it works
 
