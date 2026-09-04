@@ -1,0 +1,184 @@
+# SEPA pain.001 Generátor: hromadné príkazy pre slovenské banky
+
+> Free, client-side tool that turns a list of payments pasted from Excel or uploaded as CSV/TSV into a SEPA pain.001.001.03 XML batch payment file (hromadný príkaz na úhradu), ready for import into Tatra banka, Slovenská sporiteľňa (SLSP), VÚB, or ČSOB internet banking.
+
+No account, no backend, no upload of your payment data: everything from parsing the pasted rows to building the final XML runs in your browser.
+
+## Why this exists
+
+Accounting software with a built-in SEPA export solves this for its users, but plenty of payment runs never go through one: a director approving a one-off list of supplier invoices, a freelance bookkeeper doing payroll for a small client in a spreadsheet, an e-shop paying out a batch of refunds from an order-export CSV. All of these end up as rows in Excel with no direct path to a `pain.001` file a bank's internet banking will import, short of hand-writing XML. This tool is that path.
+
+## Input format
+
+### 1. Payments
+
+Paste cells copied straight out of Excel (tab-separated) into the textarea, paste CSV text (`;` or `,` delimited), or upload a `.csv`, `.txt`, or `.tsv` file with the file picker. An uploaded file is read with the browser's own `FileReader` API; it is never sent anywhere.
+
+Column headers are auto-detected by name, Slovak or English:
+
+| Field | Recognized header names |
+|---|---|
+| IBAN | `iban` |
+| Amount | `suma`, `amount`, `čiastka` |
+| Recipient name | `názov`, `meno`, `príjemca`, `name` |
+| Variabilný symbol | `vs`, `variabilný` |
+| Špecifický symbol | `ss`, `špecifický` |
+| Konštantný symbol | `ks`, `konštantný` |
+| Message / remittance text | `správa`, `poznámka`, `message`, `info` |
+| Date | `dátum`, `date` |
+| BIC | `bic` |
+
+Every column also has a manual dropdown, so a header that doesn't match any of the above (or a wrong auto-detected guess) can be remapped by hand before generating the file.
+
+### 2. Payer (platiteľ)
+
+- Company name (written to `Dbtr/Nm`).
+- Debtor IBAN, checked with the standard MOD-97 IBAN checksum.
+- BIC, derived automatically from the 4-digit bank code embedded in the IBAN:
+
+| Bank code | BIC |
+|---|---|
+| 1100 | TATRSKBX (Tatra banka) |
+| 0900 | GIBASKBX (Slovenská sporiteľňa) |
+| 0200 | SUBASKBX (VÚB) |
+| 7500 | CEKOSKBX (ČSOB) |
+| 8330 | FIOZSKBA (Fio banka) |
+| 0720 | NBSBSKBX (Národná banka Slovenska) |
+| 5600 | KOMASK2X |
+| 6500 | POBNSKBA |
+| 8130 | CITISKBA |
+| 1111 | UNCRSKBX |
+| 3100 | LUBASKBX |
+| 8180 | SPSRSKBA |
+| 8120 | BSLOSK22 |
+
+If the bank code isn't in this table, a manual BIC field takes over instead of blocking the file.
+
+### 3. Settings
+
+- Target bank profile: `tatrabanka`, `slsp`, `vub`, `csob`, or a `generic` SEPA profile.
+- Requested execution date (`ReqdExctnDt`), defaults to tomorrow.
+- `MsgId`, generated automatically as `ARL-YYYYMMDD-HHMMSS`.
+- `ChrgBr` fixed to `SLEV` and currency fixed to `EUR`: required for every SEPA credit-transfer batch in Slovakia, not a per-bank choice.
+
+## What gets written into the XML
+
+- Namespace `urn:iso:std:iso:20022:tech:xsd:pain.001.001.03`, the version all four target banks' documented import formats process.
+- `PmtMtd = TRF`, `PmtTpInf/SvcLvl/Cd = SEPA`, `ChrgBr = SLEV`: fixed values every one of the four banks requires for a domestic/SEPA batch credit transfer.
+- One `CdtTrfTxInf` block per payment row, with the recipient's IBAN, name, amount, and (if supplied) BIC.
+- Variabilný, špecifický, and konštantný symbol packed into `PmtId/EndToEndId` as `/VS.../SS.../KS...`, in that exact order. `pain.001.001.03` has no dedicated fields for these Slovak payment-reference symbols; this is the National Bank of Slovakia convention, the same one ČSOB's own SEPA guide documents.
+- The message text column into `RmtInf/Ustrd`, unstructured remittance info, one instance per transaction.
+
+## Worked example
+
+Input, pasted from Excel (columns: IBAN, Suma, Príjemca, VS, Správa):
+
+```
+IBAN                        Suma      Príjemca            VS    Správa
+SK6807200002891987426353    450.00    Jozef Stastny       123   Faktura 2026-0912
+SK3102000000001234567890    1280.50   Dodavatel s.r.o.    456   Faktura 2026-0913
+```
+
+Payer: `Firma s.r.o.`, IBAN `SK8911000000002619174231` (bank code `1100`, BIC derived as `TATRSKBX`). Target bank: Tatra banka. Execution date left at the default (tomorrow). MsgId generated as `ARL-20260905-091500`.
+
+Output:
+
+```xml
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
+  <CstmrCdtTrfInitn>
+    <GrpHdr>
+      <MsgId>ARL-20260905-091500</MsgId>
+      <CreDtTm>2026-09-05T09:15:00</CreDtTm>
+      <NbOfTxs>2</NbOfTxs>
+      <CtrlSum>1730.50</CtrlSum>
+      <InitgPty><Nm>Firma s.r.o.</Nm></InitgPty>
+    </GrpHdr>
+    <PmtInf>
+      <PmtInfId>ARL-20260905-091500-1</PmtInfId>
+      <PmtMtd>TRF</PmtMtd>
+      <NbOfTxs>2</NbOfTxs>
+      <CtrlSum>1730.50</CtrlSum>
+      <PmtTpInf><SvcLvl><Cd>SEPA</Cd></SvcLvl></PmtTpInf>
+      <ReqdExctnDt>2026-09-06</ReqdExctnDt>
+      <Dbtr><Nm>Firma s.r.o.</Nm></Dbtr>
+      <DbtrAcct><Id><IBAN>SK8911000000002619174231</IBAN></Id></DbtrAcct>
+      <DbtrAgt><FinInstnId><BIC>TATRSKBX</BIC></FinInstnId></DbtrAgt>
+      <ChrgBr>SLEV</ChrgBr>
+      <CdtTrfTxInf>
+        <PmtId><EndToEndId>/VS123</EndToEndId></PmtId>
+        <Amt><InstdAmt Ccy="EUR">450.00</InstdAmt></Amt>
+        <CdtrAgt><FinInstnId><BIC>GIBASKBX</BIC></FinInstnId></CdtrAgt>
+        <Cdtr><Nm>Jozef Stastny</Nm></Cdtr>
+        <CdtrAcct><Id><IBAN>SK6807200002891987426353</IBAN></Id></CdtrAcct>
+        <RmtInf><Ustrd>Faktura 2026-0912</Ustrd></RmtInf>
+      </CdtTrfTxInf>
+      <CdtTrfTxInf>
+        <PmtId><EndToEndId>/VS456</EndToEndId></PmtId>
+        <Amt><InstdAmt Ccy="EUR">1280.50</InstdAmt></Amt>
+        <CdtrAgt><FinInstnId><BIC>SUBASKBX</BIC></FinInstnId></CdtrAgt>
+        <Cdtr><Nm>Dodavatel s.r.o.</Nm></Cdtr>
+        <CdtrAcct><Id><IBAN>SK3102000000001234567890</IBAN></Id></CdtrAcct>
+        <RmtInf><Ustrd>Faktura 2026-0913</Ustrd></RmtInf>
+      </CdtTrfTxInf>
+    </PmtInf>
+  </CstmrCdtTrfInitn>
+</Document>
+```
+
+Both creditor BICs above were derived from each IBAN's own bank code (`0900` and `0200`), the same lookup used for the payer.
+
+## Before importing the file
+
+Getting the shared schema and fixed values right is necessary but not sufficient: each bank layers its own extra rules on top. Tatra banka rejects an execution date more than 31 days out and caps a file at 500 transactions; VÚB's own window is 30 days and it marks creditor BIC mandatory; ČSOB documents that any diacritics anywhere in the XML block the import outright. This generator writes what you give it (aside from the fixed schema fields above); it doesn't strip diacritics or warn about a bank's own date window or transaction cap. The sibling tool, **SEPA pain.001 Doctor**, checks a finished file against exactly those bank-specific rules, with citations to each bank's own documentation: https://arling.sk/sepa-pain001-doctor/
+
+## Who it's for
+
+Slovak accountants, company directors, and e-shop owners whose payment list (payroll, supplier invoices, refunds) lives in a spreadsheet rather than accounting software with a built-in SEPA export, and who need a `pain.001` file that Tatra banka, SLSP, VÚB, or ČSOB internet banking will accept.
+
+## How it works
+
+Static HTML plus one dependency-free JavaScript engine. All parsing and XML generation happens in your browser against the rows you paste or upload. There is no backend, no upload, and no request that carries your payment data anywhere: read `index.html` and the engine script directly to verify.
+
+## FAQ
+
+**Why do I need to pick a target bank if pain.001 is supposed to be a standard?**
+`pain.001` names the XML schema, not any one bank's full acceptance rules. Tatra banka, SLSP, VÚB, and ČSOB each require the same fixed core values (`PmtMtd`, `SvcLvl/Cd`, `ChrgBr`) but layer their own execution-date window, transaction cap, and character-set rules on top. Picking a target bank lets the generator use the right BIC-lookup and profile for the bank you're actually going to import into.
+
+**My Excel columns don't match any of the listed header names. What happens?**
+Nothing breaks: every detected column has a manual dropdown next to it, so you remap IBAN/amount/name/symbols/message/date/BIC by hand before generating the file.
+
+**My IBAN's bank code isn't in the BIC table. What do I do?**
+A manual BIC field appears in its place; the file still generates normally once you fill it in.
+
+**Where do variabilný, špecifický, and konštantný symbol end up in the XML?**
+Packed into `PmtId/EndToEndId` as `/VS.../SS.../KS...`, in that order, following the National Bank of Slovakia convention. This is the only place `pain.001.001.03` has room for them, since the schema has no dedicated Slovak payment-symbol fields.
+
+**Does it check the file against each bank's own rules (execution-date window, transaction cap, diacritics) before I download it?**
+No. This tool's job is turning your payment list into a structurally correct `pain.001` file; checking a finished file against bank-specific rules is what the sibling tool, SEPA pain.001 Doctor, does. Running a freshly generated file through it before the first import to a given bank is a good habit.
+
+**Is there a limit on how many rows I can paste in?**
+Not in this tool. Tatra banka's own spec, however, caps a single file at 500 transactions; a longer list generated for Tatra banka should be split before import.
+
+**Does anything get uploaded when I use the file picker instead of pasting?**
+No. The file is read locally with the browser's `FileReader` API; it's parsed the same way pasted text would be, and never leaves the page.
+
+**Can I reuse the same generated file at a different bank than the one I selected?**
+Only if the two banks share every rule this tool applies (they don't, in general: BIC requirements and profile-specific values differ). Regenerate with the correct target bank selected rather than reusing a file across banks.
+
+## Privacy
+
+No account, no login, no cookies for the tool itself, no server-side processing of your payment data. The only analytics are anonymous usage counts (event name + count, never IBANs, names, or amounts) sent to a self-hosted Umami instance. The only exception is the optional mailing-list form: if you type an email address into it, that address is sent to the subscribe endpoint and nothing else.
+
+## Links
+
+- Tool: https://arling.sk/sepa-pain001-generator/
+- Short reference: https://arling.sk/sepa-pain001-generator/llms.txt
+- Source code: https://github.com/AndryRoby/sepa-pain001-generator
+- Sibling tool (checks a finished pain.001 file against bank rules): https://arling.sk/sepa-pain001-doctor/
+- Sibling tool (Supabase Auth redirects, web): https://arling.sk/supabase-redirect-doctor/
+- Sibling tool (Supabase Auth redirects, Flutter): https://arling.sk/flutter-supabase-doctor/
+- Hub (more ARLing tools): https://arling.sk/
+
+## Contact
+
+Built by ARLing s. r. o. (Bratislava, Slovakia). andrej@arling.sk
