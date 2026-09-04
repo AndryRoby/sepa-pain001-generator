@@ -138,6 +138,74 @@ what a slovenský bankový kód is.*
 6. **Open call.** If a bank code isn't recognized, or a column layout the tool should detect
    isn't, here's how to report it (link the README's "reporting a missing case" section).
 
+## 5) Fakty pre majiteľa: Pro (39 €/12 mesiacov)
+
+1. Pro je voliteľná platená vrstva len pre toho, kto hromadné príkazy generuje
+   opakovane (typicky mesačne): uložené profily platiteľa, viac súborov naraz,
+   šablóny mapovania stĺpcov pre Pohodu/Omegu (KROS)/Money S3, história
+   posledných 50 príkazov so spätným stiahnutím, prednostná e-mailová podpora.
+   Samotné generovanie a kontrola XML ostávajú bez zmeny úplne zadarmo, bez
+   limitu na počet platieb, súborov ani stiahnutí.
+2. Cena je 39 € jednorazovo na 12 mesiacov, DPH v cene. Predaj beží cez
+   Stripe Checkout / Managed Payments (Stripe je merchant of record, rieši
+   DPH aj faktúru na e-mail; ARLing s. r. o. je predávajúci): platobný odkaz
+   https://buy.stripe.com/3cIaER9M63hNeFcg8B4ko00. Vrátenie peňazí do 14 dní
+   bez otázok.
+3. Licencia je podpísaný Ed25519 kľúč (payload s plánom a dátumom expirácie),
+   overovaný priamo v prehliadači cez WebCrypto; po aktivácii nie je potrebné
+   žiadne ďalšie serverové volanie a kľúč sa dá ručne preniesť na iný
+   počítač. Vydáva ho homelab endpoint `/licence/api/claim` po overení
+   zaplatenej Stripe Checkout Session.
+
+### Kde osloviť SK účtovníka bez Facebooku a bez cold e-mailu
+
+**Vyhľadávanie (SEO, do title/h1/FAQ oboch nástrojov).** Toto je najlacnejší a
+najškálovateľnejší kanál: účtovník, ktorý má konkrétny problém, si ho vygoogli
+po slovensky. Kľúčové frázy, ktoré sa oplatí mať doslovne v title, h1 alebo vo
+FAQ otázke (nie len rozhádzané v texte):
+- „hromadný príkaz XML“
+- „pain.001 generátor“
+- „import platieb do internet bankingu z Excelu“
+- „SEPA XML z Excelu“
+
+Toto je pasívny kanál (žiadny cold e-mail, žiadny cold DM), funguje ale len po
+týždňoch, keď stránku Google zaindexuje a vyhodnotí ako relevantnú, nie hneď.
+
+**porada.sk.** Overené priamym vyhľadávaním: existuje konkrétne, tematicky
+presné vlákno *„Pohoda a import príkazov na úhradu VÚB“*
+(https://www.porada.sk/t238735-pohoda-a-import-prikazov-na-uhradu-vub.html),
+teda porada.sk je reálny, aktívny priestor, kde sa táto presná téma (import
+platobného príkazu z účtovného softvéru do internet bankingu VÚB) rieši.
+Priamy fetch stránky (aj tohto konkrétneho vlákna) ale vracia HTTP 403
+automatizovaným požiadavkám, rovnako ako pri predchádzajúcom výskume pre
+tento launch: dátum vlákna, stav (otvorené/zatvorené) a to, či by odpoveď
+dnes ešte dávala zmysel, sa nedá overiť bez ručného otvorenia v prehliadači.
+Odporúčanie: Andrej si vlákno otvorí ručne (prihlásený účet, nie Claude) a
+posúdi, či je aktuálne dosť živé na odpoveď; ak áno, je to presne cieľová
+skupina pre tento nástroj aj pre Pro.
+
+**„ekonomickeforum“.** Doména `ekonomickeforum.sk` sa pri overení ukázala byť
+Oravské ekonomické fórum, teda konferencia/podujatie, nie diskusné fórum pre
+účtovníkov. Najbližšia reálne overená náhrada je **BizFórum**
+(https://www.bizforum.sk/diskusia/uctovnictvo/): skutočná diskusná sekcia pre
+slovenské účtovníctvo (vlákna o jednoduchom/podvojnom účtovníctve, odpisoch,
+čistej mzde), ale najnovšie viditeľné vlákna sú z rokov 2018 – 2020, takže
+aktivita pôsobí utlmene. Zaradiť ako sekundárny, nie primárny kanál: skúsiť,
+ale nečakať rovnaký zásah ako od SEO alebo porada.sk.
+
+**GitHub issues účtovných knižníc.** Pokrýva už časť 1 vyššie (Standing
+watch): `php-sepa-xml/php-sepa-xml` a `raphaelm/python-sepaxml` sú jediné
+relevantné, aktívne udržiavané open-source SEPA/pain.001 knižnice, ktoré
+výskum našiel; žiadna slovenská účtovná knižnica na GitHube (Pohoda/Omega/
+Money S3 sú uzavretý komerčný softvér bez verejného issue trackera). Nechať
+bežať uložené vyhľadávania z časti 1, odpovedať len na prvé skutočne
+zodpovedajúce vlákno (nie na keyword match).
+
+**YouTube: nie.** Vynechať ako kanál. Účtovník s problémom „mám platby v
+Exceli, potrebujem XML pre banku“ hľadá text a rýchlu odpoveď (Google,
+fórum), nie video; výskum ani v tomto, ani v predchádzajúcom kole nenašiel
+žiadny YouTube kanál ani komentár, ktorý by bol na tento problém naviazaný.
+
 ## Files referenced
 
 - README's "reporting a missing case / wrong output" section: `../README.md`

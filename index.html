@@ -29,11 +29,21 @@
   "description": "Free, client-side tool that builds a SEPA pain.001.001.03 XML batch payment file (hromadný príkaz na úhradu) from payments pasted or uploaded from Excel or CSV, ready for import into Tatra banka, Slovenská sporiteľňa (SLSP), VÚB, or ČSOB internet banking. Runs the sibling SEPA pain.001 Doctor engine on every generated file automatically.",
   "applicationCategory": "FinanceApplication",
   "operatingSystem": "Any (web browser)",
-  "offers": {
-    "@type": "Offer",
-    "price": "0",
-    "priceCurrency": "EUR"
-  },
+  "offers": [
+    {
+      "@type": "Offer",
+      "name": "Zadarmo",
+      "price": "0",
+      "priceCurrency": "EUR"
+    },
+    {
+      "@type": "Offer",
+      "name": "Pro (12 mesiacov)",
+      "price": "39",
+      "priceCurrency": "EUR",
+      "url": "https://arling.sk/sepa-pain001-generator/#pro"
+    }
+  ],
   "author": {
     "@type": "Organization",
     "name": "ARLing s. r. o.",
@@ -102,6 +112,46 @@
       "acceptedAnswer": {
         "@type": "Answer",
         "text": "SEPA pain.001 Doctor kontroluje formátové a bankové pravidlá, ktoré sú verejne zdokumentované, nie stav vášho účtu, existenciu účtu príjemcu ani interné limity banky (napríklad denný limit prevodov). Čistý výsledok kontroly preto nie je zárukou prijatia. Ak banka súbor aj tak odmietne, overte v prvom rade presné znenie chyby v internet bankingu."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Čo dostanem v Pro?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Uložené profily platiteľov (IBAN, BIC, banka na jeden klik), generovanie viacerých súborov platieb naraz, predvolené šablóny mapovania stĺpcov pre Pohodu, Omegu (KROS) a Money S3, históriu posledných 50 vygenerovaných príkazov so spätným stiahnutím a prednostnú e-mailovú podporu. Samotné generovanie a kontrola XML sú aj naďalej úplne zadarmo, bez zmeny."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Musím platiť, aby som vygeneroval XML?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Nie. Generovanie aj kontrola súboru sú a zostávajú zadarmo, bez limitu na počet platieb, súborov ani stiahnutí. Pro je len pohodlie navyše pre toho, kto hromadné príkazy pripravuje opakovane."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Ako dostanem faktúru?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Faktúru vystaví a pošle na váš e-mail Stripe hneď po zaplatení. Pri tomto predaji je ARLing s. r. o. predajcom cez Stripe Managed Payments: DPH aj vystavenie dokladu rieši priamo Stripe."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Čo ak zmením počítač?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Licenčný kľúč nie je viazaný na jedno zariadenie. Nájdete ho v e-maile od Stripe po zaplatení; na novom počítači ho stačí vložiť ručne do poľa pre licenčný kľúč a Pro sa aktivuje aj tam."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Čo ak Pro nechcem, môžem dostať peniaze naspäť?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Áno. Ak vám Pro nesadne, napíšte do 14 dní od kúpy na andrej@arling.sk a peniaze vrátime bez zbytočných otázok."
       }
     }
   ]
@@ -218,6 +268,7 @@
   }
   .field input[type="file"] { font-family:var(--sans); font-size:12.5px; padding:7px 9px; }
   .field input:focus, .field select:focus, .field textarea:focus { border-color:var(--accent); }
+  .field select:disabled, .field input:disabled { opacity:.55; cursor:default; }
   .field textarea { resize:vertical; min-height:56px; line-height:1.5; }
   .field .hint { font-size:11px; color:var(--muted); font-family:var(--sans); }
   #f-payments { min-height:150px; }
@@ -326,6 +377,46 @@
   .subscribe-privacy { flex-basis:100%; margin:0; }
   @media (max-width:480px) { .subscribe-form input[type="email"], .subscribe-form button { width:100%; } }
 
+  /* Pro */
+  .pro-purchase { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:28px; align-items:start; }
+  @media (max-width:820px) { .pro-purchase { grid-template-columns:minmax(0,1fr); } }
+  .pro-price { border:1px solid var(--line); background:var(--paper-2); padding:24px; }
+  .pro-price-amount { font:400 36px/1 var(--serif); margin:0 0 16px; }
+  .pro-price-amount span { font:14px/1 var(--sans); color:var(--muted); }
+  .pro-price .btn { display:block; text-align:center; margin:0 0 12px; }
+  .pro-price .fineprint { margin:0; }
+  .pro-licence-box { border:1px solid var(--line); background:var(--paper); padding:20px 22px; display:flex; flex-direction:column; gap:16px; min-width:0; }
+  .pro-licence-status { display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:13.5px; color:var(--ink-2); }
+  .pro-licence-actions { display:flex; gap:8px; flex-wrap:wrap; }
+  .pro-licence-manual { border-top:1px solid var(--line); padding-top:14px; }
+  .pro-licence-manual label { font-size:12px; color:var(--muted); display:block; margin-bottom:8px; }
+  .pro-licence-manual-row { display:flex; gap:8px; flex-wrap:wrap; }
+  .pro-licence-manual-row input { flex:1 1 220px; min-width:0; background:var(--paper-2); border:1px solid var(--line); border-radius:4px; padding:9px 10px; font:12.5px/1.4 var(--mono); color:var(--ink); }
+  .pro-licence-manual-row input:focus { border-color:var(--accent); outline:none; }
+  .pro-licence-error { color:var(--accent); font-size:12px; margin:8px 0 0; }
+  .pro-licence-error:empty { display:none; }
+
+  .pro-badge { display:inline-flex; align-items:center; font:700 10px/1 var(--sans); letter-spacing:.04em; color:var(--accent); border:1px solid var(--accent); border-radius:3px; padding:3px 6px; text-decoration:none; margin-left:6px; vertical-align:1px; }
+  .pro-badge:hover { background:var(--accent); color:#fff; }
+  .pro-inline-hint { display:block; font-size:11px; color:var(--muted); font-family:var(--sans); margin-top:5px; }
+  .pro-profile-row .pro-profile-controls { display:flex; gap:8px; flex-wrap:wrap; }
+  .pro-profile-controls select { flex:1 1 200px; min-width:0; }
+
+  .pro-blocks { margin-top:4px; display:flex; flex-direction:column; gap:10px; }
+  .pro-blocks-list { display:flex; flex-direction:column; gap:10px; }
+  .pro-block { border:1px solid var(--line); background:var(--paper-2); padding:10px; display:flex; flex-direction:column; gap:8px; }
+  .pro-block-head { display:flex; justify-content:space-between; align-items:center; font:11.5px/1 var(--mono); color:var(--muted); }
+  .pro-block textarea { width:100%; min-height:88px; background:var(--paper); color:var(--ink); border:1px solid var(--line); border-radius:4px; padding:8px; font:12.5px/1.5 var(--mono); resize:vertical; }
+  .pro-blocks-actions { display:flex; gap:14px; flex-wrap:wrap; align-items:center; }
+  .pro-merge-toggle { display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--ink-2); }
+
+  .pro-history-panel { border:1px solid var(--line); border-top:none; background:var(--paper-2); padding:10px 14px; display:flex; flex-direction:column; gap:8px; max-height:260px; overflow:auto; }
+  .pro-history-item { display:flex; justify-content:space-between; align-items:center; gap:10px; font-size:12px; border-bottom:1px solid var(--line); padding-bottom:8px; }
+  .pro-history-item:last-child { border-bottom:none; padding-bottom:0; }
+  .pro-history-meta { color:var(--ink-2); overflow-wrap:anywhere; }
+  .pro-history-meta b { color:var(--ink); }
+  .pro-history-empty { color:var(--muted); font-size:12.5px; }
+
   /* FAQ */
   details { border-top:1px solid var(--line); padding:14px 0; }
   details:last-of-type { border-bottom:1px solid var(--line); }
@@ -365,6 +456,7 @@
       <a href="#problem">Ako to funguje</a>
       <a href="#playground">Generátor</a>
       <a href="#endpoint">API</a>
+      <a href="#pro">Pro</a>
       <a href="#faq">Otázky</a>
     </nav>
   </div>
@@ -430,8 +522,16 @@
 
             <div id="form-pane">
               <div class="form-section">
-                <div class="form-section-title">Platiteľ</div>
+                <div class="form-section-title">Platiteľ<span class="hint-inline">uložené profily <a class="pro-badge" href="#pro">PRO</a></span></div>
                 <div class="field-grid">
+                  <div class="field full pro-profile-row">
+                    <label for="pro-profile-select">uložený profil platiteľa</label>
+                    <div class="pro-profile-controls">
+                      <select id="pro-profile-select" disabled><option value="">(vybrať uložený profil)</option></select>
+                      <button class="icon-btn" id="pro-profile-save-btn" type="button" disabled>Uložiť ako profil</button>
+                      <button class="icon-btn" id="pro-profile-delete-btn" type="button" disabled>Zmazať profil</button>
+                    </div>
+                  </div>
                   <div class="field full">
                     <label for="f-payer-name">názov firmy</label>
                     <input type="text" id="f-payer-name" placeholder="Moja firma s. r. o." />
@@ -478,6 +578,19 @@
                   <input type="file" id="f-file" accept=".csv,.txt,.tsv" />
                 </div>
                 <textarea id="f-payments" class="json-in" spellcheck="false" wrap="off" placeholder="Sem vložte platby skopírované z Excelu (IBAN, suma, názov, VS, správa…)."></textarea>
+
+                <div class="field">
+                  <label for="pro-template-select">šablóna mapovania stĺpcov <a class="pro-badge" href="#pro">PRO</a></label>
+                  <select id="pro-template-select" disabled>
+                    <option value="">(automatické rozpoznanie)</option>
+                    <option value="POHODA">Pohoda (Stormware)</option>
+                    <option value="OMEGA">Omega (KROS)</option>
+                    <option value="MONEY_S3">Money S3 (Seyfor)</option>
+                    <option value="EXCEL">Excel (univerzálny)</option>
+                  </select>
+                  <span class="hint pro-inline-hint" id="pro-template-note" hidden></span>
+                </div>
+
                 <div class="mapping-grid" id="mapping-grid">
                   <div class="field"><label for="map-iban">IBAN</label><select id="map-iban"></select></div>
                   <div class="field"><label for="map-amount">Suma</label><select id="map-amount"></select></div>
@@ -488,6 +601,15 @@
                   <div class="field"><label for="map-message">Správa</label><select id="map-message"></select></div>
                   <div class="field"><label for="map-date">Dátum</label><select id="map-date"></select></div>
                   <div class="field"><label for="map-bic">BIC</label><select id="map-bic"></select></div>
+                </div>
+
+                <div class="pro-blocks">
+                  <div class="form-section-title">Ďalšie bloky platieb<span class="hint-inline">viac súborov naraz <a class="pro-badge" href="#pro">PRO</a></span></div>
+                  <div class="pro-blocks-list" id="pro-blocks-list"></div>
+                  <div class="pro-blocks-actions">
+                    <button class="icon-btn" id="pro-block-add-btn" type="button" disabled>+ pridať blok platieb</button>
+                    <label class="pro-merge-toggle"><input type="checkbox" id="pro-merge-checkbox" disabled /> zlúčiť všetky bloky do jedného XML (inak samostatný súbor na blok)</label>
+                  </div>
                 </div>
               </div>
             </div>
@@ -502,9 +624,11 @@
             <div class="pane-head">
               <div class="pane-title">Výsledok · <span id="response-meta">idle</span></div>
               <div class="pane-actions">
+                <button class="icon-btn" id="pro-history-btn" type="button" disabled>história</button><a class="pro-badge" href="#pro">PRO</a>
                 <button class="icon-btn" id="copy-report-btn" type="button" disabled>kopírovať report</button>
               </div>
             </div>
+            <div class="pro-history-panel" id="pro-history-panel" hidden></div>
             <div class="output" id="output">
               <div class="placeholder">
                 vyplňte platiteľa a platby, stlačte <span class="kbd">Generovať</span> alebo <span class="kbd">⌘↵</span><span class="blink"></span>
@@ -567,11 +691,67 @@
     </div>
   </section>
 
-  <section id="pricing">
+  <section id="pro">
     <div class="wrap">
       <p class="kicker">04</p>
-      <h2>Zadarmo.</h2>
-      <p class="sub">Vznikol z vlastnej potreby: previesť zoznam platieb z Excelu na hromadný príkaz bez ručného skladania XML. Bez účtu, bez platby, bez limitu na počet súborov.</p>
+      <h2>Pro na 12 mesiacov. Pre účtovníka, ktorý to robí každý mesiac.</h2>
+      <p class="sub">Bezplatná verzia ostáva bez limitov navždy, na počet platieb, súborov aj stiahnutí. Pro je pohodlie pri opakovanom mesačnom spracovaní, nie odomknutá funkčnosť.</p>
+
+      <ol class="rules">
+        <li>
+          <b>Uložené profily platiteľov.</b>
+          <p>Názov firmy, IBAN, BIC aj banka na jeden klik z výberu, bez prepisovania pri každom hromadnom príkaze.</p>
+        </li>
+        <li>
+          <b>Viac súborov naraz.</b>
+          <p>Pridajte viac blokov platieb (napríklad z troch hárkov) a vygenerujte buď samostatný XML pre každý blok, alebo jeden zlúčený súbor.</p>
+        </li>
+        <li>
+          <b>Šablóny mapovania stĺpcov.</b>
+          <p>Predvolené názvy stĺpcov pre exporty z Pohody, Omegy (KROS), Money S3 alebo univerzálny Excel. Mapovanie sa dá aj tak vždy ručne skontrolovať a opraviť.</p>
+        </li>
+        <li>
+          <b>História príkazov.</b>
+          <p>Posledných 50 vygenerovaných súborov s dátumom, počtom platieb a sumou, uložené len vo vašom prehliadači, vrátane opätovného stiahnutia XML.</p>
+        </li>
+        <li>
+          <b>Prednostná podpora e-mailom.</b>
+          <p>Otázka alebo prípad, ktorý si generátor pomýlil? Odpoveď prednostne, priamo od autora nástroja.</p>
+        </li>
+      </ol>
+
+      <div class="pro-purchase">
+        <div class="pro-price">
+          <div class="pro-price-amount">39&nbsp;€ <span>/ 12 mesiacov, jednorazovo</span></div>
+          <a class="btn btn-solid" id="pro-buy-btn" href="https://buy.stripe.com/3cIaER9M63hNeFcg8B4ko00" data-umami-event="buy_click">Kúpiť Pro na 12 mesiacov, 39&nbsp;€</a>
+          <p class="fineprint">Platba cez Stripe. Po zaplatení sa stránka vráti sem a licenciu aktivuje sama, nič netreba kopírovať.</p>
+        </div>
+        <div class="pro-licence-box">
+          <div class="pro-licence-status">
+            <span class="status-pill" id="pro-licence-pill">bez licencie</span>
+            <span id="pro-licence-detail"></span>
+          </div>
+          <div class="pro-licence-actions" id="pro-licence-actions-active" hidden>
+            <button class="icon-btn" id="pro-licence-remove-btn" type="button">Odstrániť licenciu</button>
+          </div>
+          <div class="pro-licence-manual">
+            <label for="pro-licence-input">Licenciu ste kúpili na inom počítači? Vložte licenčný kľúč sem.</label>
+            <div class="pro-licence-manual-row">
+              <input type="text" id="pro-licence-input" placeholder="Licenčný kľúč (dlhý reťazec s bodkou uprostred)" spellcheck="false" autocomplete="off" />
+              <button class="icon-btn primary" id="pro-licence-activate-btn" type="button">Aktivovať</button>
+            </div>
+            <p class="pro-licence-error" id="pro-licence-error"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing">
+    <div class="wrap">
+      <p class="kicker">05</p>
+      <h2>Zadarmo. Bez limitov, natrvalo.</h2>
+      <p class="sub">Vznikol z vlastnej potreby: previesť zoznam platieb z Excelu na hromadný príkaz bez ručného skladania XML. Bez účtu, bez platby, bez limitu na počet platieb, súborov ani stiahnutí.</p>
       <div class="ask">
         <p>Ak vám ušetrí popoludnie, napíšte, čo generátor spracoval zle. <a href="https://github.com/AndryRoby/sepa-pain001-generator/issues" target="_blank" rel="noopener">Otvorte issue na GitHube</a>.</p>
       </div>
@@ -595,7 +775,7 @@
 
   <section id="faq">
     <div class="wrap">
-      <p class="kicker">05</p>
+      <p class="kicker">06</p>
       <h2>Otázky, ktoré ľudia naozaj hľadajú.</h2>
       <p class="sub">Priame odpovede na otázky o generovaní SEPA pain.001 z Excelu.</p>
 
@@ -623,6 +803,26 @@
         <summary>Prečo banka odmietla súbor aj po kontrole?</summary>
         <p>Kontrola po vygenerovaní overuje formátové a bankové pravidlá, ktoré sú verejne zdokumentované, nie stav vášho účtu, existenciu účtu príjemcu ani interné limity banky (napríklad denný limit prevodov). Čistý výsledok preto nie je zárukou prijatia. Ak banka súbor aj tak odmietne, overte v prvom rade presné znenie chyby v internet bankingu.</p>
       </details>
+      <details>
+        <summary>Čo dostanem v Pro?</summary>
+        <p>Uložené profily platiteľov (IBAN, BIC, banka na jeden klik), generovanie viacerých súborov platieb naraz, predvolené šablóny mapovania stĺpcov pre Pohodu, Omegu (KROS) a Money S3, históriu posledných 50 vygenerovaných príkazov so spätným stiahnutím a prednostnú e-mailovú podporu. Samotné generovanie a kontrola XML sú aj naďalej úplne zadarmo, bez zmeny. Pozrite si <a href="#pro">sekciu Pro</a>.</p>
+      </details>
+      <details>
+        <summary>Musím platiť, aby som vygeneroval XML?</summary>
+        <p>Nie. Generovanie aj kontrola súboru sú a zostávajú zadarmo, bez limitu na počet platieb, súborov ani stiahnutí. Pro je len pohodlie navyše pre toho, kto hromadné príkazy pripravuje opakovane.</p>
+      </details>
+      <details>
+        <summary>Ako dostanem faktúru?</summary>
+        <p>Faktúru vystaví a pošle na váš e-mail Stripe hneď po zaplatení. Pri tomto predaji je ARLing s. r. o. predajcom cez Stripe Managed Payments: DPH aj vystavenie dokladu rieši priamo Stripe.</p>
+      </details>
+      <details>
+        <summary>Čo ak zmením počítač?</summary>
+        <p>Licenčný kľúč nie je viazaný na jedno zariadenie. Nájdete ho v e-maile od Stripe po zaplatení; na novom počítači ho stačí vložiť ručne do poľa pre licenčný kľúč v <a href="#pro">sekcii Pro</a> a Pro sa aktivuje aj tam.</p>
+      </details>
+      <details>
+        <summary>Čo ak Pro nechcem, môžem dostať peniaze naspäť?</summary>
+        <p>Áno. Ak vám Pro nesadne, napíšte do 14 dní od kúpy na <a href="mailto:andrej@arling.sk?subject=Vr%C3%A1tenie%20Pro%20licencie">andrej@arling.sk</a> a peniaze vrátime bez zbytočných otázok.</p>
+      </details>
     </div>
   </section>
 </main>
@@ -643,6 +843,8 @@
 <script type="module">
   import { parseRows, mapColumns, buildXml, bicFromIban, defaultExecDate, autoMsgId } from './generator-pain001.js';
   import { diagnose } from './doctor-pain001.js';
+  import { isValid as licenceIsValid, load as licenceLoad, save as licenceSave, clear as licenceClear, claim as licenceClaim } from './licence.js';
+  import { applyTemplate, loadProfiles, addProfile, removeProfile, mergeBlockPayments, blockTotals, loadHistory, addHistoryEntry } from './pro.js';
 
   const $ = (id) => document.getElementById(id);
 
@@ -677,7 +879,15 @@
 
   let lastXml = '';
   let lastResult = null;
+  let lastResults = [];
   const touchedFields = new Set();
+
+  // Pro state: licenceState is the last isValid() result (never trust a
+  // stale value across a page load: it's re-checked on init), extraBlocks
+  // is the "viac súborov naraz" list (Pro-only; cleared whenever the
+  // licence is not valid, see applyProLockState).
+  let licenceState = { valid: false, reason: 'malformed', payload: null };
+  let extraBlocks = [];
 
   // ── safe umami wrapper ──────────────────────────────────────────────
   function track(name, data) {
@@ -883,7 +1093,8 @@
     </table></div>`;
   }
 
-  function renderDoctorResult(r) {
+  function renderDoctorResult(r, blockIdx) {
+    const bi = blockIdx || 0;
     const rows =
       expectedRow('Banka', r.expected.bankLabel || BANK_LABELS[r.bank] || r.bank) +
       expectedRow('Očakávaný BIC platiteľa', r.expected.bankBic) +
@@ -904,7 +1115,7 @@
           <div class="fix-title">${esc(f.title)}${f.where ? ` <span class="where">· ${esc(f.where)}</span>` : ''}</div>
           <pre class="fix-value">${esc(f.value)}</pre>
         </div>
-        <button class="icon-btn copy-fix-btn" type="button" data-fix-index="${i}">kopírovať</button>
+        <button class="icon-btn copy-fix-btn" type="button" data-block-idx="${bi}" data-fix-index="${i}">kopírovať</button>
       </div>`).join('');
 
     const checklistHtml = r.checklist.map((c) => `<li>${esc(c)}</li>`).join('');
@@ -927,13 +1138,28 @@
       <div style="font-size:11px; color:var(--muted); line-height:1.6;">${esc(r.disclaimer)}</div>`;
   }
 
-  function downloadFilename() {
+  function downloadFilename(suffix) {
     const d = new Date();
     const pad = (n) => String(n).padStart(2, '0');
-    return `hromadny-prikaz-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}.xml`;
+    return `hromadny-prikaz-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}${suffix || ''}.xml`;
   }
 
-  function renderOutput({ xml, mapped, doctorResult, bank }) {
+  function triggerXmlDownload(xml, filename) {
+    const blob = new Blob([xml], { type: 'application/xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  // One result "card": xml box + payments preview + Doctor report. Plain
+  // (non-Pro) generation always produces exactly one of these; Pro's
+  // "viac súborov naraz" in separate-files mode produces one per block
+  // (see generate()): blockIdx keeps each card's copy-fix buttons wired
+  // to the right entry when several are on screen at once.
+  function buildEntryHtml(entry, blockIdx) {
+    const { xml, mapped, doctorResult, filename, label } = entry;
     const errCount = mapped.payments.filter((p) => p.hasError).length;
     const highCount = doctorResult.problems.filter((p) => p.severity === 'high').length;
 
@@ -944,13 +1170,14 @@
       banner = `<div class="warn-banner">Kontrola nižšie našla ${highCount} blokujúc${highCount === 1 ? 'u chybu' : highCount < 5 ? 'e chyby' : 'ich chýb'}, ktoré banka pri importe pravdepodobne odmietne. Stiahnutie ostáva aktívne, odporúčame ale najprv opraviť problémy nižšie.</div>`;
     }
 
-    output.innerHTML = `<div class="result">
+    return `<div class="result">
+      ${label ? `<div class="form-section-title">${esc(label)}</div>` : ''}
       <div class="xml-box">
         <div class="xml-box-head">
-          <span class="pane-title">${esc(downloadFilename())}</span>
+          <span class="pane-title">${esc(filename)}</span>
           <div class="pane-actions">
-            <button class="icon-btn" id="copy-xml-btn" type="button">kopírovať XML</button>
-            <button class="icon-btn primary" id="download-xml-btn" type="button">Stiahnuť XML</button>
+            <button class="icon-btn" data-copy-xml="${blockIdx}" type="button">kopírovať XML</button>
+            <button class="icon-btn primary" data-download-xml="${blockIdx}" type="button">Stiahnuť XML</button>
           </div>
         </div>
         <pre>${esc(xml)}</pre>
@@ -960,35 +1187,43 @@
         <div class="form-section-title">Náhľad platieb (${mapped.payments.length})</div>
         ${renderPaymentsTable(mapped.payments)}
       </div>
-      ${renderDoctorResult(doctorResult)}
+      ${renderDoctorResult(doctorResult, blockIdx)}
     </div>`;
+  }
 
-    $('download-xml-btn').addEventListener('click', () => {
-      const blob = new Blob([xml], { type: 'application/xml' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = downloadFilename();
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-      track('download_xml', { bank, txBucket: txBucket(mapped.payments.length) });
-    });
+  function renderResults(entries, bank) {
+    const multi = entries.length > 1;
+    const allBtnHtml = multi
+      ? `<div style="display:flex; justify-content:flex-end;"><button class="icon-btn primary" id="download-all-btn" type="button">Stiahnuť všetky (${entries.length})</button></div>`
+      : '';
+    output.innerHTML = allBtnHtml + entries
+      .map((e, i) => buildEntryHtml(e, i))
+      .join('<div style="border-top:1px solid var(--line); margin:22px 0;"></div>');
 
-    $('copy-xml-btn').addEventListener('click', async (e) => {
-      const btn = e.currentTarget;
-      try {
-        await navigator.clipboard.writeText(xml);
-        btn.textContent = 'skopírované ✓';
-        track('copy_xml', { bank });
-      } catch (err) {
-        btn.textContent = 'zlyhalo';
-      }
-      setTimeout(() => { btn.textContent = 'kopírovať XML'; }, 1200);
+    entries.forEach((e, i) => {
+      const dlBtn = output.querySelector(`[data-download-xml="${i}"]`);
+      dlBtn.addEventListener('click', () => {
+        triggerXmlDownload(e.xml, e.filename);
+        track('download_xml', { bank, txBucket: txBucket(e.mapped.payments.length) });
+      });
+      const cpBtn = output.querySelector(`[data-copy-xml="${i}"]`);
+      cpBtn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(e.xml);
+          cpBtn.textContent = 'skopírované ✓';
+          track('copy_xml', { bank });
+        } catch (err) {
+          cpBtn.textContent = 'zlyhalo';
+        }
+        setTimeout(() => { cpBtn.textContent = 'kopírovať XML'; }, 1200);
+      });
     });
 
     output.querySelectorAll('.copy-fix-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
-        const idx = Number(btn.getAttribute('data-fix-index'));
-        const val = doctorResult.fixes[idx].value;
+        const bi = Number(btn.getAttribute('data-block-idx'));
+        const fi = Number(btn.getAttribute('data-fix-index'));
+        const val = entries[bi].doctorResult.fixes[fi].value;
         try {
           await navigator.clipboard.writeText(val);
           btn.textContent = 'skopírované ✓';
@@ -998,6 +1233,14 @@
         setTimeout(() => { btn.textContent = 'kopírovať'; }, 1100);
       });
     });
+
+    const allBtn = $('download-all-btn');
+    if (allBtn) {
+      allBtn.addEventListener('click', () => {
+        entries.forEach((e) => triggerXmlDownload(e.xml, e.filename));
+        track('pro_feature', { name: 'download_all', blocks: entries.length });
+      });
+    }
 
     copyReportBtn.disabled = false;
   }
@@ -1017,6 +1260,14 @@
   }
 
   // ── run ──────────────────────────────────────────────────────────────
+  // Builds one buildXml()+diagnose() "entry" per output file. Plain
+  // generation (no Pro, or Pro with no extra blocks) always produces
+  // exactly one entry: the shape every earlier version of this function
+  // produced. Pro's "viac súborov naraz" (see pro.js) adds two more
+  // shapes: merged (all blocks' payments combined into one buildXml()
+  // call, one PmtInf-grouped-by-date file) or separate (one buildXml()
+  // call per block, one file per block, MsgId suffixed "-B1"/"-B2"… so
+  // each stays unique).
   function generate() {
     const cfg = currentConfig();
     if (cfg === null) {
@@ -1029,37 +1280,60 @@
     }
 
     const t0 = performance.now();
-
-    const rows = parseRows(cfg.paymentsText);
-    const mapped = mapColumns(rows, cfg.mapping);
-
     const payerBic = (cfg.payerBic || '').trim().toUpperCase() || bicFromIban(cfg.payerIban) || '';
+    const payer = { name: cfg.payerName, iban: cfg.payerIban, bic: payerBic };
 
-    let xml;
+    const mainMapped = mapColumns(parseRows(cfg.paymentsText), cfg.mapping);
+    const proBlocksActive = licenceState.valid && extraBlocks.length > 0;
+    const extraMapped = proBlocksActive
+      ? extraBlocks
+        .map((b) => mapColumns(parseRows(b.text), cfg.mapping))
+        .filter((m) => m.payments.length > 0)
+      : [];
+
+    let entries;
     try {
-      xml = buildXml({
-        bank: cfg.bank,
-        payer: { name: cfg.payerName, iban: cfg.payerIban, bic: payerBic },
-        execDate: cfg.execDate,
-        msgId: cfg.msgId,
-        payments: mapped.payments,
-      });
+      if (proBlocksActive && extraMapped.length > 0 && $('pro-merge-checkbox').checked) {
+        const merged = mergeBlockPayments([{ payments: mainMapped.payments }, ...extraMapped.map((m) => ({ payments: m.payments }))]);
+        const xml = buildXml({ bank: cfg.bank, payer, execDate: cfg.execDate, msgId: cfg.msgId, payments: merged });
+        entries = [{ xml, mapped: { payments: merged }, doctorResult: diagnose({ xml, bank: cfg.bank }), filename: downloadFilename(), label: `Zlúčený súbor (${1 + extraMapped.length} bloky)` }];
+        track('pro_feature', { name: 'multi_block_merge', blocks: 1 + extraMapped.length });
+      } else if (proBlocksActive && extraMapped.length > 0) {
+        const blocks = [mainMapped, ...extraMapped];
+        const baseMsgId = (cfg.msgId && cfg.msgId.trim()) || autoMsgId();
+        entries = blocks.map((m, i) => {
+          const xml = buildXml({ bank: cfg.bank, payer, execDate: cfg.execDate, msgId: `${baseMsgId}-B${i + 1}`, payments: m.payments });
+          return { xml, mapped: m, doctorResult: diagnose({ xml, bank: cfg.bank }), filename: downloadFilename('-blok' + (i + 1)), label: `Blok ${i + 1} z ${blocks.length}` };
+        });
+        track('pro_feature', { name: 'multi_block_separate', blocks: blocks.length });
+      } else {
+        const xml = buildXml({ bank: cfg.bank, payer, execDate: cfg.execDate, msgId: cfg.msgId, payments: mainMapped.payments });
+        entries = [{ xml, mapped: mainMapped, doctorResult: diagnose({ xml, bank: cfg.bank }), filename: downloadFilename() }];
+      }
     } catch (e) {
       renderError(e.message);
       return;
     }
 
-    const doctorResult = diagnose({ xml, bank: cfg.bank });
     const dt = performance.now() - t0;
+    lastResults = entries;
+    lastXml = entries[0].xml;
+    lastResult = entries[0].doctorResult;
 
-    lastXml = xml;
-    lastResult = doctorResult;
+    renderResults(entries, cfg.bank);
+    const worst = entries.some((e) => e.doctorResult.status === 'fail') ? 'fail' : entries.some((e) => e.doctorResult.status === 'warn') ? 'warn' : 'pass';
+    setStatusPill(worst);
+    const totalTx = entries.reduce((n, e) => n + e.mapped.payments.length, 0);
+    timing.textContent = dt.toFixed(2) + ' ms · klientská strana, 0 requestov' + (entries.length > 1 ? ` · ${entries.length} súborov` : '');
 
-    renderOutput({ xml, mapped, doctorResult, bank: cfg.bank });
-    setStatusPill(doctorResult.status);
-    timing.textContent = dt.toFixed(2) + ' ms · klientská strana, 0 requestov';
+    track('generate', { bank: cfg.bank, txBucket: txBucket(totalTx) });
 
-    track('generate', { bank: cfg.bank, txBucket: txBucket(mapped.payments.length) });
+    if (licenceState.valid) {
+      entries.forEach((e) => {
+        addHistoryEntry({ count: e.mapped.payments.length, sum: blockTotals(e.mapped.payments).sum, bank: cfg.bank, filename: e.filename, xml: e.xml });
+      });
+      refreshHistoryPanelIfOpen();
+    }
 
     updatePermalink({ bank: cfg.bank, execDate: cfg.execDate, msgId: cfg.msgId });
   }
@@ -1068,7 +1342,11 @@
   sampleBtn.addEventListener('click', () => {
     configToForm({ payer: SAMPLE_PAYER, bank: 'tatrabanka', execDate: defaultExecDate(), msgId: '', paymentsText: SAMPLE_PAYMENTS_TEXT, mapping: {} });
     if (jsonPane && !jsonPane.hidden) jsonInput.value = JSON.stringify(formConfigAsJsonObj(), null, 2);
-    lastXml = ''; lastResult = null;
+    lastXml = ''; lastResult = null; lastResults = [];
+    extraBlocks = [];
+    renderBlocks();
+    $('pro-template-select').value = '';
+    $('pro-template-note').hidden = true;
     output.innerHTML = '<div class="placeholder">vyplňte platiteľa a platby, stlačte <span class="kbd">Generovať</span> alebo <span class="kbd">⌘↵</span><span class="blink"></span></div>';
     statusPill.className = 'status-pill';
     statusPill.textContent = 'idle';
@@ -1130,10 +1408,240 @@
     }
   }
 
+  // ── Pro: licencia ────────────────────────────────────────────────────
+  const PRO_CONTROL_IDS = ['pro-profile-select', 'pro-profile-save-btn', 'pro-profile-delete-btn', 'pro-template-select', 'pro-block-add-btn', 'pro-merge-checkbox', 'pro-history-btn'];
+
+  function formatSkDate(iso) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+    return m ? `${m[3]}.${m[2]}.${m[1]}` : (iso || '');
+  }
+
+  function licenceReasonLabel(reason) {
+    return {
+      expired: 'licencia vypršala', signature: 'neplatný kľúč', plan: 'kľúč pre iný produkt',
+      malformed: 'neplatný kľúč', unsupported: 'prehliadač nepodporovaný',
+    }[reason] || 'neplatná licencia';
+  }
+
+  function licenceReasonDetail(reason) {
+    if (reason === 'unsupported') return 'Pro vyžaduje aktuálny prehliadač s podporou WebCrypto Ed25519 (Chrome, Firefox alebo Safari 17+). Aktualizujte prehliadač a skúste znova.';
+    if (reason === 'expired') return 'Táto licencia už vypršala. Kúpou novej licencie získate ďalších 12 mesiacov.';
+    if (reason === 'plan') return 'Tento kľúč platí pre iný produkt ARLing, nie pre SEPA pain.001 Generátor.';
+    if (reason === 'malformed') return 'Kľúč sa nepodarilo prečítať, skontrolujte, či ste ho skopírovali celý.';
+    return 'Kľúč sa nepodarilo overiť.';
+  }
+
+  async function refreshLicenceUI() {
+    const stored = licenceLoad();
+    licenceState = stored ? await licenceIsValid(stored) : { valid: false, reason: 'malformed', payload: null };
+
+    const pill = $('pro-licence-pill');
+    const detail = $('pro-licence-detail');
+    const activeActions = $('pro-licence-actions-active');
+    if (licenceState.valid) {
+      pill.className = 'status-pill pass';
+      pill.textContent = 'Pro aktívne';
+      detail.textContent = `Licencia platná do ${formatSkDate(licenceState.payload.e)}.`;
+      activeActions.hidden = false;
+    } else {
+      pill.className = 'status-pill' + (stored ? ' fail' : '');
+      pill.textContent = stored ? licenceReasonLabel(licenceState.reason) : 'bez licencie';
+      detail.textContent = stored ? licenceReasonDetail(licenceState.reason) : '';
+      activeActions.hidden = !stored;
+    }
+    applyProLockState();
+  }
+
+  function applyProLockState() {
+    const unlocked = licenceState.valid;
+    PRO_CONTROL_IDS.forEach((id) => { $(id).disabled = !unlocked; });
+    if (!unlocked) {
+      extraBlocks = [];
+      renderBlocks();
+      $('pro-template-select').value = '';
+      $('pro-template-note').hidden = true;
+      $('pro-history-panel').hidden = true;
+    }
+    refreshProfileSelect();
+  }
+
+  async function handleSessionIdFromUrl() {
+    const params = new URLSearchParams(location.search);
+    const sid = params.get('session_id');
+    if (!sid) return;
+    const url = new URL(location.href);
+    url.searchParams.delete('session_id');
+    history.replaceState(null, '', url.pathname + url.search + url.hash);
+
+    $('pro-licence-pill').className = 'status-pill';
+    $('pro-licence-pill').textContent = 'aktivujem…';
+    const res = await licenceClaim(sid);
+    if (res && res.ok && res.licence) {
+      licenceSave(res.licence);
+      await refreshLicenceUI();
+      track('licence_activated', { plan: res.plan || '' });
+    } else {
+      await refreshLicenceUI();
+      $('pro-licence-detail').textContent = 'Aktivácia zlyhala. Skúste vložiť kľúč ručne nižšie, alebo napíšte na andrej@arling.sk.';
+    }
+    const proSection = document.getElementById('pro');
+    if (proSection) proSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  $('pro-licence-activate-btn').addEventListener('click', async () => {
+    const input = $('pro-licence-input');
+    const err = $('pro-licence-error');
+    const key = (input.value || '').trim();
+    err.textContent = '';
+    if (!key) { err.textContent = 'Vložte licenčný kľúč.'; return; }
+    const r = await licenceIsValid(key);
+    if (!r.valid) { err.textContent = licenceReasonDetail(r.reason); return; }
+    licenceSave(key);
+    input.value = '';
+    await refreshLicenceUI();
+    track('licence_activated', { plan: r.payload.p });
+  });
+
+  $('pro-licence-remove-btn').addEventListener('click', () => {
+    if (!window.confirm('Odstrániť licenciu z tohto prehliadača?')) return;
+    licenceClear();
+    refreshLicenceUI();
+  });
+
+  // ── Pro: profily platiteľov ─────────────────────────────────────────
+  function refreshProfileSelect() {
+    const sel = $('pro-profile-select');
+    const profiles = loadProfiles();
+    const prev = sel.value;
+    sel.innerHTML = '<option value="">(vybrať uložený profil)</option>' + profiles.map((p) => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
+    sel.value = profiles.some((p) => p.id === prev) ? prev : '';
+  }
+
+  $('pro-profile-select').addEventListener('change', () => {
+    const id = $('pro-profile-select').value;
+    if (!id) return;
+    const p = loadProfiles().find((x) => x.id === id);
+    if (!p) return;
+    $('f-payer-name').value = p.name;
+    $('f-payer-iban').value = p.iban;
+    $('f-payer-bic').value = p.bic || '';
+    if (p.bank && BANK_OPTIONS.includes(p.bank)) $('f-bank').value = p.bank;
+    track('pro_feature', { name: 'profile_select' });
+  });
+
+  $('pro-profile-save-btn').addEventListener('click', () => {
+    if (!licenceState.valid) return;
+    const name = ($('f-payer-name').value || '').trim();
+    const iban = ($('f-payer-iban').value || '').trim();
+    if (!name || !iban) { window.alert('Vyplňte názov firmy a IBAN platiteľa pred uložením profilu.'); return; }
+    const label = window.prompt('Názov profilu (napr. názov firmy):', name);
+    if (label === null) return;
+    const r = addProfile({ name: label.trim() || name, iban, bic: $('f-payer-bic').value || '', bank: $('f-bank').value || '' });
+    if (r.ok) {
+      refreshProfileSelect();
+      $('pro-profile-select').value = r.profile.id;
+      track('pro_feature', { name: 'profile_save' });
+    }
+  });
+
+  $('pro-profile-delete-btn').addEventListener('click', () => {
+    const id = $('pro-profile-select').value;
+    if (!id) return;
+    if (!window.confirm('Zmazať vybraný profil?')) return;
+    removeProfile(id);
+    refreshProfileSelect();
+    track('pro_feature', { name: 'profile_delete' });
+  });
+
+  // ── Pro: šablóny mapovania stĺpcov ──────────────────────────────────
+  $('pro-template-select').addEventListener('change', () => {
+    const key = $('pro-template-select').value;
+    const note = $('pro-template-note');
+    if (!key) { note.hidden = true; note.textContent = ''; return; }
+    const rows = parseRows(paymentsInput.value);
+    const { template, mapped, matchedFields } = applyTemplate(key, rows);
+    if (!template) return;
+    applyMappingOverrides(mapped.mapping);
+    note.hidden = false;
+    note.textContent = template.note + (matchedFields.length
+      ? ` Rozpoznané stĺpce podľa hlavičky: ${matchedFields.join(', ')}.`
+      : ' Žiadny stĺpec sa nepodarilo rozpoznať podľa presného názvu hlavičky, použilo sa bežné automatické rozpoznanie.');
+    track('pro_feature', { name: 'mapping_template', template: key });
+  });
+
+  // ── Pro: viac blokov platieb ─────────────────────────────────────────
+  function renderBlocks() {
+    const list = $('pro-blocks-list');
+    list.innerHTML = extraBlocks.map((b, i) => `
+      <div class="pro-block">
+        <div class="pro-block-head"><span>blok ${i + 2}</span><button class="icon-btn" type="button" data-remove-block="${esc(b.id)}">odstrániť</button></div>
+        <textarea data-block-text="${esc(b.id)}" placeholder="Ďalší blok platieb (rovnaké mapovanie stĺpcov ako vyššie)." spellcheck="false" wrap="off">${esc(b.text)}</textarea>
+      </div>`).join('');
+    list.querySelectorAll('[data-block-text]').forEach((ta) => {
+      ta.addEventListener('input', () => {
+        const b = extraBlocks.find((x) => x.id === ta.getAttribute('data-block-text'));
+        if (b) b.text = ta.value;
+      });
+    });
+    list.querySelectorAll('[data-remove-block]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        extraBlocks = extraBlocks.filter((b) => b.id !== btn.getAttribute('data-remove-block'));
+        renderBlocks();
+      });
+    });
+  }
+
+  $('pro-block-add-btn').addEventListener('click', () => {
+    if (!licenceState.valid) return;
+    extraBlocks.push({ id: 'blk-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), text: '' });
+    renderBlocks();
+    track('pro_feature', { name: 'multi_block_add' });
+  });
+
+  // ── Pro: história ────────────────────────────────────────────────────
+  function renderHistoryPanel() {
+    const panel = $('pro-history-panel');
+    const items = loadHistory();
+    if (items.length === 0) {
+      panel.innerHTML = '<p class="pro-history-empty">Zatiaľ žiadna história. Vygenerujte prvý súbor.</p>';
+      return;
+    }
+    panel.innerHTML = items.map((h, i) => `<div class="pro-history-item">
+        <span class="pro-history-meta"><b>${esc(h.filename || '(bez názvu)')}</b> · ${esc(new Date(h.date).toLocaleString('sk-SK'))} · ${h.count} platieb · ${h.sum.toFixed(2)} € · ${esc(BANK_LABELS[h.bank] || h.bank || '')}</span>
+        <button class="icon-btn" data-history-redownload="${i}" type="button" ${h.xml ? '' : 'disabled'}>${h.xml ? 'stiahnuť znova' : 'XML neuložené'}</button>
+      </div>`).join('');
+    panel.querySelectorAll('[data-history-redownload]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const item = items[Number(btn.getAttribute('data-history-redownload'))];
+        if (item && item.xml) {
+          triggerXmlDownload(item.xml, item.filename || downloadFilename());
+          track('pro_feature', { name: 'history_redownload' });
+        }
+      });
+    });
+  }
+
+  function refreshHistoryPanelIfOpen() {
+    const panel = $('pro-history-panel');
+    if (!panel.hidden) renderHistoryPanel();
+  }
+
+  $('pro-history-btn').addEventListener('click', () => {
+    if (!licenceState.valid) return;
+    const panel = $('pro-history-panel');
+    panel.hidden = !panel.hidden;
+    if (!panel.hidden) {
+      renderHistoryPanel();
+      track('pro_feature', { name: 'history_open' });
+    }
+  });
+
   // ── init ─────────────────────────────────────────────────────────────
   configToForm({ payer: SAMPLE_PAYER, bank: 'tatrabanka', execDate: defaultExecDate(), msgId: '', paymentsText: SAMPLE_PAYMENTS_TEXT, mapping: {} });
   jsonInput.value = JSON.stringify(formConfigAsJsonObj(), null, 2);
   loadSettingsFromHash(); // only overrides bank / execDate / msgId, never payer or payments
+  renderBlocks();
+  refreshLicenceUI().then(handleSessionIdFromUrl);
 
   // Smooth-scroll for in-page anchors
   document.querySelectorAll('a[href^="#"]').forEach((a) => {

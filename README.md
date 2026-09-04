@@ -118,6 +118,41 @@ against exactly those bank-specific rules before you import it: worth
 a quick run, especially the first time you generate a file for a new
 bank.
 
+## Pro: 39 EUR for 12 months (optional)
+
+The tool described above (paste/upload payments, generate and check a
+`pain.001` file) is, and stays, entirely free: no cap on the number of
+payments, files, or downloads. An optional **Pro** tier exists for
+someone who runs this every month, not for the one-off user, and adds:
+
+- **Saved payer profiles**: company name, IBAN, BIC, and bank, stored
+  in the browser (`localStorage`) and picked from a list instead of
+  retyped each time.
+- **Multiple files in one session**: add several payment batches and
+  either download one XML per batch, or merge them into a single
+  payment file.
+- **Column-mapping templates** for exports from Pohoda, Omega (KROS),
+  and Money S3, on top of the free-tier auto-detection and manual
+  dropdowns.
+- **Order history**: the last 50 generated commands (date, payment
+  count, total, target bank), with one-click re-download.
+- **Priority email support.**
+
+Pricing: 39 EUR, one-time, covering 12 months, VAT included. Checkout
+runs through Stripe (Stripe Checkout / Managed Payments); ARLing s.
+r. o. is the seller of record for the sale, with Stripe as merchant
+of record handling VAT and emailing the invoice after payment. 14-day
+money-back guarantee, no questions asked (andrej@arling.sk).
+
+Licence mechanics: after payment, the page fetches a signed licence
+(an Ed25519 signature over a small JSON payload carrying the plan and
+expiry) from ARLing's licence service and stores it in the browser's
+`localStorage`. Verification happens entirely client-side with the
+browser's WebCrypto API; there's no server call on ordinary use after
+that, and no account or login is involved. The same licence key can
+be pasted into the page on a different browser or computer to
+activate Pro there too.
+
 ## Privacy
 
 - No account, no login, no cookies for the tool itself.

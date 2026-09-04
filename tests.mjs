@@ -9,6 +9,26 @@ import {
   buildEndToEndId, checkIban, transliterate, autoMsgId, defaultExecDate, MAX_PAYMENTS,
 } from './generator-pain001.js';
 import { diagnose } from './doctor-pain001.js';
+import { parse as parseLicence, verify as verifyLicence, isValid as isValidLicence, load as loadLicence, save as saveLicence, clear as clearLicence, todayIso as licenceTodayIso, STORAGE_KEY as LICENCE_STORAGE_KEY, DEFAULT_PLAN } from './licence.js';
+import {
+  MAPPING_TEMPLATES, applyTemplate, loadProfiles, addProfile, removeProfile,
+  mergeBlockPayments, blockTotals, loadHistory, addHistoryEntry, clearHistory, HISTORY_MAX,
+} from './pro.js';
+
+// Minimal in-memory localStorage polyfill: Node has no Web Storage API by
+// default (only behind an experimental flag this repo's `node tests.mjs`
+// does not pass), and licence.js/pro.js are meant to degrade to a no-op
+// when it's absent — so tests that exercise the *storage* path need one
+// installed, exactly like a real browser tab would provide.
+if (typeof globalThis.localStorage === 'undefined') {
+  const store = new Map();
+  globalThis.localStorage = {
+    getItem: (k) => (store.has(k) ? store.get(k) : null),
+    setItem: (k, v) => { store.set(String(k), String(v)); },
+    removeItem: (k) => { store.delete(String(k)); },
+    clear: () => { store.clear(); },
+  };
+}
 
 let pass = 0;
 let fail = 0;
@@ -391,6 +411,239 @@ throws('buildXml: throws on zero payments', () => buildXml({ payer: { name: 'X',
   const xml = buildXml({ payer: { name: 'Firma', iban: IBAN_TATRA }, payments: parsed.payments });
   const result = diagnose({ xml, bank: 'generic' });
   ok('integration: Doctor also catches the same broken IBAN post-generation', result.problems.some((p) => p.code === 'cdtr_iban_invalid'));
+}
+
+// ═══════════════════════════ I. licence.js ══════════════════════════════
+// licence.js's real verify()/isValid() check every licence against the
+// ARLing service's actual public key baked into that file — and this
+// repo, correctly, does not hold the matching private key. So every test
+// below signs its own fixture licences with a throwaway Ed25519 keypair
+// generated right here (Node 20+'s globalThis.crypto.subtle — the exact
+// API licence.js itself uses — supports 'Ed25519' natively; confirmed by
+// running it, see licence.js's own header comment) and passes that test
+// key in as verify()/isValid()'s documented test-only override, so the
+// *mechanism* under test is licence.js's real code, not a reimplementation
+// of it.
+
+function b64u(bytes) {
+  let bin = '';
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return Buffer.from(bin, 'binary').toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+// Same "sorted keys, no separator whitespace" shape as the real licence
+// service (app.py: json.dumps(payload, separators=(",", ":"), sort_keys=True))
+// — not byte-identical to Python's encoder in general, but identical for
+// the plain-string-valued payloads used here and in production.
+function stableJson(obj) {
+  return '{' + Object.keys(obj).sort().map((k) => JSON.stringify(k) + ':' + JSON.stringify(obj[k])).join(',') + '}';
+}
+
+async function signLicence(payloadObj, privateKey) {
+  const payloadBytes = new TextEncoder().encode(stableJson(payloadObj));
+  const sig = new Uint8Array(await crypto.subtle.sign('Ed25519', privateKey, payloadBytes));
+  return b64u(payloadBytes) + '.' + b64u(sig);
+}
+
+function addDaysIso(iso, days) {
+  const [y, mo, d] = iso.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, mo - 1, d));
+  dt.setUTCDate(dt.getUTCDate() + days);
+  return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth() + 1).padStart(2, '0')}-${String(dt.getUTCDate()).padStart(2, '0')}`;
+}
+
+await (async () => {
+  const testKeyPair = await crypto.subtle.generateKey('Ed25519', true, ['sign', 'verify']);
+  const testPubRaw = new Uint8Array(await crypto.subtle.exportKey('raw', testKeyPair.publicKey));
+
+  const TODAY = licenceTodayIso();
+  const TOMORROW = addDaysIso(TODAY, 1);
+  const YESTERDAY = addDaysIso(TODAY, -1);
+  const basePayload = { p: DEFAULT_PLAN, e: TOMORROW, s: 'abcd1234', m: '0123456789abcdef' };
+  const validKey = await signLicence(basePayload, testKeyPair.privateKey);
+
+  // ── parse(): malformed input never throws, always returns null ────────
+  eq('licence parse: non-string input returns null', parseLicence(12345), null);
+  eq('licence parse: empty string returns null', parseLicence(''), null);
+  eq('licence parse: no "." separator returns null', parseLicence('nodothere'), null);
+  eq('licence parse: both parts empty returns null', parseLicence('.'), null);
+  eq('licence parse: invalid base64url payload returns null', parseLicence('not-base64!!!.AAAA'), null);
+  eq('licence parse: valid base64url but non-JSON payload returns null', parseLicence(b64u(new TextEncoder().encode('not json')) + '.AAAA'), null);
+  eq('licence parse: JSON missing required "p"/"e" fields returns null', parseLicence(b64u(new TextEncoder().encode(JSON.stringify({ foo: 'bar' }))) + '.AAAA'), null);
+
+  // ── parse(): a well-formed key decodes correctly ────────────────────────
+  {
+    const parsed = parseLicence(validKey);
+    ok('licence parse: well-formed key parses', parsed !== null);
+    eq('licence parse: plan field round-trips', parsed.payload.p, DEFAULT_PLAN);
+    eq('licence parse: expiry field round-trips', parsed.payload.e, TOMORROW);
+  }
+
+  // ── verify(): signature only, no plan/expiry check ──────────────────────
+  eq('licence verify: valid signature against the matching (test) pubkey', await verifyLicence(validKey, testPubRaw), true);
+  eq('licence verify: signature by a foreign keypair rejected by the real embedded ARLing pubkey', await verifyLicence(validKey), false);
+
+  // ── isValid(): full check (signature + plan + expiry) ───────────────────
+  {
+    const r = await isValidLicence(validKey, { pubKey: testPubRaw });
+    eq('isValid: valid licence -> valid true', r.valid, true);
+    eq('isValid: valid licence -> reason "ok"', r.reason, 'ok');
+  }
+  {
+    const key = await signLicence({ ...basePayload, e: YESTERDAY }, testKeyPair.privateKey);
+    const r = await isValidLicence(key, { pubKey: testPubRaw });
+    eq('isValid: expired licence -> valid false', r.valid, false);
+    eq('isValid: expired licence -> reason "expired"', r.reason, 'expired');
+  }
+  {
+    const key = await signLicence({ ...basePayload, e: TODAY }, testKeyPair.privateKey);
+    const r = await isValidLicence(key, { pubKey: testPubRaw });
+    eq('isValid: expiry == today is still valid (inclusive)', r.valid, true);
+  }
+  {
+    const key = await signLicence({ ...basePayload, p: 'some-other-plan' }, testKeyPair.privateKey);
+    const r = await isValidLicence(key, { pubKey: testPubRaw });
+    eq('isValid: licence for a different plan -> valid false', r.valid, false);
+    eq('isValid: licence for a different plan -> reason "plan"', r.reason, 'plan');
+  }
+  {
+    const [payloadPart, sigPart] = validKey.split('.');
+    const flipped = (sigPart[0] === 'A' ? 'B' : 'A') + sigPart.slice(1);
+    const r = await isValidLicence(payloadPart + '.' + flipped, { pubKey: testPubRaw });
+    eq('isValid: corrupted signature -> valid false', r.valid, false);
+    eq('isValid: corrupted signature -> reason "signature"', r.reason, 'signature');
+  }
+  {
+    const r = await isValidLicence('garbage.key', { pubKey: testPubRaw });
+    eq('isValid: malformed key -> valid false', r.valid, false);
+    eq('isValid: malformed key -> reason "malformed"', r.reason, 'malformed');
+  }
+
+  // ── unsupported WebCrypto (older Safari): simulated by making
+  // importKey fail, exactly the failure mode a browser without Ed25519
+  // in SubtleCrypto would produce ───────────────────────────────────────
+  {
+    const originalImportKey = crypto.subtle.importKey.bind(crypto.subtle);
+    crypto.subtle.importKey = async () => { throw new Error('simulated: no Ed25519 in this WebCrypto'); };
+    let threw = false;
+    try {
+      await verifyLicence(validKey, testPubRaw);
+    } catch (e) {
+      threw = true;
+      eq('verify: unsupported WebCrypto throws Error with code "unsupported"', e.code, 'unsupported');
+    }
+    ok('verify: unsupported WebCrypto does throw rather than silently pass', threw);
+    const r = await isValidLicence(validKey, { pubKey: testPubRaw });
+    eq('isValid: unsupported WebCrypto -> valid false (not an unhandled throw)', r.valid, false);
+    eq('isValid: unsupported WebCrypto -> reason "unsupported"', r.reason, 'unsupported');
+    crypto.subtle.importKey = originalImportKey;
+  }
+
+  // ── local storage round-trip ─────────────────────────────────────────
+  clearLicence();
+  eq('licence load: nothing stored returns null', loadLicence(), null);
+  eq('licence save: reports success', saveLicence(validKey), true);
+  eq('licence load: round-trips the exact stored string', loadLicence(), validKey);
+  eq('licence clear: reports success', clearLicence(), true);
+  eq('licence load: returns null again after clear', loadLicence(), null);
+  ok('licence STORAGE_KEY: is a non-empty string', typeof LICENCE_STORAGE_KEY === 'string' && LICENCE_STORAGE_KEY.length > 0);
+})();
+
+// ═══════════════════════════════ J. pro.js ═══════════════════════════════
+
+// ── mapping templates: each maps a realistic sample header row ─────────
+{
+  const rows = [
+    ['Účet příkazce', 'Částka', 'Název firmy', 'Variabilní symbol', 'Poznámka'],
+    ['SK1234567890', '450.00', 'Firma s.r.o.', '123', 'Faktúra'],
+  ];
+  const { matchedFields, mapped } = applyTemplate('POHODA', rows);
+  ok('applyTemplate(POHODA): matches iban/amount/name/vs/message headers', ['iban', 'amount', 'name', 'vs', 'message'].every((f) => matchedFields.includes(f)));
+  eq('applyTemplate(POHODA): iban mapped to its actual column', mapped.mapping.iban, 0);
+  eq('applyTemplate(POHODA): amount mapped to its actual column', mapped.mapping.amount, 1);
+}
+{
+  const rows = [
+    ['Číslo účtu príjemcu', 'Suma', 'Odberateľ', 'Variabilný symbol', 'Správa pre prijímateľa'],
+    ['SK1234567890', '10', 'X', '1', 'Y'],
+  ];
+  const { matchedFields, mapped } = applyTemplate('OMEGA', rows);
+  ok('applyTemplate(OMEGA): matches iban/amount/name/vs/message headers', ['iban', 'amount', 'name', 'vs', 'message'].every((f) => matchedFields.includes(f)));
+  eq('applyTemplate(OMEGA): name mapped to its actual column', mapped.mapping.name, 2);
+}
+{
+  const rows = [
+    ['Účet', 'Částka', 'Název partnera', 'Variabilní symbol', 'Popis'],
+    ['SK1234567890', '10', 'X', '1', 'Y'],
+  ];
+  const { matchedFields, mapped } = applyTemplate('MONEY_S3', rows);
+  ok('applyTemplate(MONEY_S3): matches iban/amount/name/vs/message headers', ['iban', 'amount', 'name', 'vs', 'message'].every((f) => matchedFields.includes(f)));
+  eq('applyTemplate(MONEY_S3): message mapped to its actual column', mapped.mapping.message, 4);
+}
+{
+  const rows = [
+    ['IBAN', 'Suma', 'Názov', 'VS', 'Správa'],
+    ['SK1234567890', '10', 'X', '1', 'Y'],
+  ];
+  const { matchedFields, mapped } = applyTemplate('EXCEL', rows);
+  ok('applyTemplate(EXCEL): matches all 5 common headers', ['iban', 'amount', 'name', 'vs', 'message'].every((f) => matchedFields.includes(f)));
+  eq('applyTemplate(EXCEL): vs mapped to its actual column', mapped.mapping.vs, 3);
+}
+{
+  const rows = [['IBAN', 'Suma', 'Nazov'], ['SK1', '1', 'X']];
+  const { template, matchedFields, mapped } = applyTemplate('NONEXISTENT', rows);
+  eq('applyTemplate: unknown template key -> template is null', template, null);
+  eq('applyTemplate: unknown template key -> no matched fields', matchedFields.length, 0);
+  eq('applyTemplate: unknown template key falls back to plain mapColumns()', JSON.stringify(mapped.mapping), JSON.stringify(mapColumns(rows).mapping));
+}
+eq('MAPPING_TEMPLATES: has exactly the 4 documented exporters', Object.keys(MAPPING_TEMPLATES).sort().join(','), 'EXCEL,MONEY_S3,OMEGA,POHODA');
+for (const key of Object.keys(MAPPING_TEMPLATES)) {
+  ok(`MAPPING_TEMPLATES.${key}: carries a non-empty "heuristic, not a spec" note`, typeof MAPPING_TEMPLATES[key].note === 'string' && MAPPING_TEMPLATES[key].note.length > 0);
+}
+
+// ── multi-block payments: merge + totals ────────────────────────────────
+{
+  const blockA = { payments: [{ amount: 10 }, { amount: 5, hasError: true }] };
+  const blockB = { payments: [{ amount: 20 }] };
+  const merged = mergeBlockPayments([blockA, blockB]);
+  eq('mergeBlockPayments: concatenates every block in order', merged.length, 3);
+  eq('mergeBlockPayments: first block\'s rows come first', merged[0].amount, 10);
+  eq('mergeBlockPayments: last block\'s rows come last', merged[2].amount, 20);
+  const totals = blockTotals(merged);
+  eq('blockTotals: sums the valid amounts', totals.sum, 35);
+  eq('blockTotals: counts every row, including errored ones', totals.count, 3);
+  eq('blockTotals: counts rows flagged hasError', totals.errCount, 1);
+}
+eq('mergeBlockPayments: invalid/empty input returns an empty array', mergeBlockPayments(null).length, 0);
+
+// ── payer profiles ───────────────────────────────────────────────────────
+{
+  for (const p of loadProfiles()) removeProfile(p.id);
+  eq('loadProfiles: starts empty after cleanup', loadProfiles().length, 0);
+  eq('addProfile: missing name/iban is rejected', addProfile({ name: '', iban: '' }).ok, false);
+  const r1 = addProfile({ name: 'Firma A', iban: 'SK1234567890', bic: 'TATRSKBX' });
+  ok('addProfile: valid profile is accepted', r1.ok === true);
+  eq('loadProfiles: stores the added profile', loadProfiles().length, 1);
+  addProfile({ id: r1.profile.id, name: 'Firma A (upravená)', iban: 'SK1234567890' });
+  eq('addProfile: same id overwrites in place rather than duplicating', loadProfiles().length, 1);
+  eq('addProfile: overwrite is reflected on reload', loadProfiles()[0].name, 'Firma A (upravená)');
+  eq('removeProfile: removes by id', removeProfile(r1.profile.id).length, 0);
+}
+
+// ── history ───────────────────────────────────────────────────────────────
+{
+  clearHistory();
+  eq('loadHistory: starts empty after clear', loadHistory().length, 0);
+  for (let i = 0; i < HISTORY_MAX + 5; i++) {
+    addHistoryEntry({ count: i, sum: i, bank: 'tatrabanka', filename: `f${i}.xml`, xml: '<xml/>' });
+  }
+  const hist = loadHistory();
+  eq(`addHistoryEntry: caps history length at HISTORY_MAX (${HISTORY_MAX})`, hist.length, HISTORY_MAX);
+  eq('addHistoryEntry: most recently added entry is first', hist[0].filename, `f${HISTORY_MAX + 4}.xml`);
+  const entry = addHistoryEntry({ count: 1, sum: 1, bank: 'vub', filename: 'big.xml', xml: 'x'.repeat(300 * 1024) });
+  eq('addHistoryEntry: XML over the 200 kB cap is not stored inline', entry.xml, null);
+  eq('addHistoryEntry: metadata is still recorded for an oversized XML', loadHistory()[0].count, 1);
+  clearHistory();
 }
 
 // ═══════════════════════════ small extras ══════════════════════════════

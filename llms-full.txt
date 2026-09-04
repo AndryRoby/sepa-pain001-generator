@@ -131,6 +131,22 @@ Both creditor BICs above were derived from each IBAN's own bank code (`0900` and
 
 Getting the shared schema and fixed values right is necessary but not sufficient: each bank layers its own extra rules on top. Tatra banka rejects an execution date more than 31 days out and caps a file at 500 transactions; VÚB's own window is 30 days and it marks creditor BIC mandatory; ČSOB documents that any diacritics anywhere in the XML block the import outright. This generator writes what you give it (aside from the fixed schema fields above); it doesn't strip diacritics or warn about a bank's own date window or transaction cap. The sibling tool, **SEPA pain.001 Doctor**, checks a finished file against exactly those bank-specific rules, with citations to each bank's own documentation: https://arling.sk/sepa-pain001-doctor/
 
+## Pro: 39 EUR for 12 months (optional)
+
+Generating and checking a `pain.001` file is, and stays, entirely free: no cap on the number of payments, files, or downloads, no feature held back behind a paywall in the core flow. Pro is an optional paid tier aimed specifically at someone who runs this tool every month (a bookkeeper with a recurring payroll or supplier run), not at the one-off user.
+
+What Pro adds:
+
+- **Saved payer profiles.** Company name, IBAN, BIC, and bank, stored in the browser (`localStorage`) and picked from a list instead of retyped every time; profiles can be added or deleted.
+- **Multiple files in one session.** Add several payment batches (e.g. three spreadsheet exports) in one sitting and either download one XML per batch, or merge them into a single payment file, by choice.
+- **Column-mapping templates.** Preset column-name guesses for exports from Pohoda, Omega (KROS), and Money S3, on top of the existing free-tier auto-detection and manual dropdowns, so a recurring export from one of those three programs needs less remapping each month.
+- **Order history.** The last 50 generated commands (date, payment count, total amount, target bank), stored locally, with one-click re-download of any past file.
+- **Priority email support.**
+
+Pricing and purchase: 39 EUR, one-time, covering 12 months, VAT included in the price. Checkout runs through Stripe (Stripe Checkout / Managed Payments); ARLing s. r. o. is the seller of record, with Stripe acting as merchant of record for VAT, and the invoice is emailed automatically by Stripe after payment. A 14-day, no-questions money-back guarantee applies (andrej@arling.sk).
+
+How the licence works: after payment, the page requests a signed licence (Ed25519 signature over a small JSON payload carrying the plan and expiry) from ARLing's licence service and stores it in the browser's `localStorage`. The signature is verified entirely client-side with the browser's WebCrypto API; no server call happens on ordinary use after that. The same licence key can be copied and pasted into the page on a different browser or computer to activate Pro there too; no account or login is involved on either machine.
+
 ## Who it's for
 
 Slovak accountants, company directors, and e-shop owners whose payment list (payroll, supplier invoices, refunds) lives in a spreadsheet rather than accounting software with a built-in SEPA export, and who need a `pain.001` file that Tatra banka, SLSP, VÚB, or ČSOB internet banking will accept.
@@ -164,6 +180,9 @@ No. The file is read locally with the browser's `FileReader` API; it's parsed th
 
 **Can I reuse the same generated file at a different bank than the one I selected?**
 Only if the two banks share every rule this tool applies (they don't, in general: BIC requirements and profile-specific values differ). Regenerate with the correct target bank selected rather than reusing a file across banks.
+
+**Do I need Pro to generate a file?**
+No. Generating and checking a `pain.001` file is free, with no cap on payments, files, or downloads, with or without Pro. Pro adds saved payer profiles, multi-file batches, column-mapping templates for Pohoda/Omega/Money S3, order history, and priority support: convenience for repeat monthly use, not a requirement for the core tool.
 
 ## Privacy
 
