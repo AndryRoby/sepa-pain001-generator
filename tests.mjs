@@ -9,7 +9,7 @@ import {
   buildEndToEndId, checkIban, transliterate, autoMsgId, defaultExecDate, MAX_PAYMENTS,
 } from './generator-pain001.js';
 import { diagnose } from './doctor-pain001.js';
-import { parse as parseLicence, verify as verifyLicence, isValid as isValidLicence, load as loadLicence, save as saveLicence, clear as clearLicence, todayIso as licenceTodayIso, STORAGE_KEY as LICENCE_STORAGE_KEY, DEFAULT_PLAN } from './licence.js';
+import { parse as parseLicence, verify as verifyLicence, isValid as isValidLicence, load as loadLicence, save as saveLicence, clear as clearLicence, todayIso as licenceTodayIso, STORAGE_KEY as LICENCE_STORAGE_KEY, DEFAULT_PLAN, BUNDLE_PLAN, BUNDLE_STORAGE_KEY, ACCEPTED_PLANS, STORAGE_KEYS as LICENCE_STORAGE_KEYS } from './licence.js';
 import {
   MAPPING_TEMPLATES, applyTemplate, loadProfiles, addProfile, removeProfile,
   mergeBlockPayments, blockTotals, loadHistory, addHistoryEntry, clearHistory, HISTORY_MAX,
@@ -547,6 +547,36 @@ await (async () => {
   eq('licence clear: reports success', clearLicence(), true);
   eq('licence load: returns null again after clear', loadLicence(), null);
   ok('licence STORAGE_KEY: is a non-empty string', typeof LICENCE_STORAGE_KEY === 'string' && LICENCE_STORAGE_KEY.length > 0);
+
+  // ── dual-plan acceptance: "sepa-generator-pro" (this tool's own,
+  // historical plan) and "sepa-pro" (the shared bundle plan sold on
+  // https://arling.sk/bankove-nastroje/) must both unlock Pro here, each
+  // stored under its own localStorage key, so neither purchase path
+  // clobbers the other and a bundle key activated on any ARLing tool
+  // page (shared arling.sk origin) is picked up automatically ─────────
+  ok('ACCEPTED_PLANS: includes this tool\'s own historical plan', ACCEPTED_PLANS.includes(DEFAULT_PLAN));
+  ok('ACCEPTED_PLANS: includes the shared bundle plan "sepa-pro"', ACCEPTED_PLANS.includes(BUNDLE_PLAN));
+  eq('BUNDLE_PLAN: is exactly "sepa-pro"', BUNDLE_PLAN, 'sepa-pro');
+  ok('STORAGE_KEYS: includes both this tool\'s key and the bundle key', LICENCE_STORAGE_KEYS.includes(LICENCE_STORAGE_KEY) && LICENCE_STORAGE_KEYS.includes(BUNDLE_STORAGE_KEY));
+
+  const bundleKey = await signLicence({ ...basePayload, p: BUNDLE_PLAN }, testKeyPair.privateKey);
+  {
+    const r = await isValidLicence(bundleKey, { pubKey: testPubRaw });
+    eq('isValid: a "sepa-pro" bundle licence is accepted under the default (no plan given) check', r.valid, true);
+    eq('isValid: a "sepa-pro" bundle licence -> reason "ok"', r.reason, 'ok');
+  }
+
+  clearLicence();
+  eq('save: a bundle-plan licence is stored under BUNDLE_STORAGE_KEY, not the legacy key', (() => {
+    saveLicence(bundleKey);
+    return localStorage.getItem(BUNDLE_STORAGE_KEY) === bundleKey && localStorage.getItem(LICENCE_STORAGE_KEY) === null;
+  })(), true);
+  eq('load: finds the bundle licence when only the bundle key holds a value', loadLicence(), bundleKey);
+  eq('clear: removes the bundle key too (not just the legacy key)', (() => {
+    clearLicence();
+    return localStorage.getItem(BUNDLE_STORAGE_KEY) === null && localStorage.getItem(LICENCE_STORAGE_KEY) === null;
+  })(), true);
+  eq('load: returns null once both plan keys are cleared', loadLicence(), null);
 })();
 
 // ═══════════════════════════════ J. pro.js ═══════════════════════════════

@@ -744,6 +744,7 @@
           </div>
         </div>
       </div>
+      <p class="fineprint" style="margin-top:14px;">Používate aj camt.053 do Excelu alebo Párovač platieb? Balík <a href="https://arling.sk/bankove-nastroje/">Bankové nástroje pre účtovníkov</a> (od 9&nbsp;€/mesiac) dá jednu licenciu do všetkých štyroch naraz; kľúč z balíka funguje aj tu.</p>
     </div>
   </section>
 
@@ -1426,7 +1427,7 @@
   function licenceReasonDetail(reason) {
     if (reason === 'unsupported') return 'Pro vyžaduje aktuálny prehliadač s podporou WebCrypto Ed25519 (Chrome, Firefox alebo Safari 17+). Aktualizujte prehliadač a skúste znova.';
     if (reason === 'expired') return 'Táto licencia už vypršala. Kúpou novej licencie získate ďalších 12 mesiacov.';
-    if (reason === 'plan') return 'Tento kľúč platí pre iný produkt ARLing, nie pre SEPA pain.001 Generátor.';
+    if (reason === 'plan') return 'Tento kľúč platí pre iný produkt ARLing, nie pre SEPA pain.001 Generátor ani balík Bankové nástroje.';
     if (reason === 'malformed') return 'Kľúč sa nepodarilo prečítať, skontrolujte, či ste ho skopírovali celý.';
     return 'Kľúč sa nepodarilo overiť.';
   }

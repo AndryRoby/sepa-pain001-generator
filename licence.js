@@ -1,5 +1,15 @@
 // licence.js: ARLing licence verification for SEPA pain.001 Generátor Pro.
 //
+// Accepts two plans: this tool's own historical "sepa-generator-pro"
+// (customers who bought Pro on this tool alone, before the bundle
+// existed) and "sepa-pro", the shared plan sold on the bundle page
+// https://arling.sk/bankove-nastroje/ that also unlocks camt.053 do
+// Excelu and Párovač platieb. Both keep working side by side: nobody who
+// already paid for this tool loses access, and a bundle key activated on
+// any ARLing tool page (they all share the arling.sk origin, hence
+// localStorage) also unlocks Pro here automatically. See ACCEPTED_PLANS
+// and STORAGE_KEYS below.
+//
 // A licence key is base64url(payload_json) + "." + base64url(ed25519_sig),
 // where payload_json is the *exact* bytes the licence service signed —
 // {"e":"YYYY-MM-DD","m":"<sha256(email)[:16]>","p":"<plan>","s":"<session
@@ -33,6 +43,17 @@ const PUBKEY_B64URL = 'xcMFelDwaZ1DC7ObQTKi8zXPvMlrTAlgZySNpfuYbC8';
 export const CLAIM_URL = 'https://homelab.tailbf8f27.ts.net/licence/api/claim';
 export const DEFAULT_PLAN = 'sepa-generator-pro';
 export const STORAGE_KEY = 'arling_licence_sepa-generator-pro';
+
+// Every plan this tool's Pro gate accepts, and the localStorage key each
+// one is saved under. Order matters only for load(): the first key that
+// holds a non-null value wins (see load() below); it does not matter for
+// isValid(), which checks membership regardless of order.
+export const BUNDLE_PLAN = 'sepa-pro';
+export const BUNDLE_STORAGE_KEY = 'arling_licence_sepa-pro';
+export const ACCEPTED_PLANS = [DEFAULT_PLAN, BUNDLE_PLAN];
+export const STORAGE_KEYS = [STORAGE_KEY, BUNDLE_STORAGE_KEY];
+
+const PLAN_STORAGE_KEYS = { [DEFAULT_PLAN]: STORAGE_KEY, [BUNDLE_PLAN]: BUNDLE_STORAGE_KEY };
 
 // ─────────────────────────── base64url helpers ────────────────────────────
 // atob/btoa are global in both browsers and Node 20+; TextEncoder/
@@ -162,15 +183,19 @@ export async function verify(licenceKeyOrParsed, pubKeyBytes) {
 /**
  * Full check: signature + plan + expiry (>= today, inclusive).
  * @param {string|Object} licenceKeyOrParsed
- * @param {{plan?:string, today?:string, pubKey?:Uint8Array}} [opts] `pubKey`
- *   is the same test-only override as verify()'s second argument.
+ * @param {{plan?:string|string[], today?:string, pubKey?:Uint8Array}} [opts]
+ *   `plan`, when given, restricts which plan(s) are accepted: a single
+ *   plan string, or an array of them. Omitted (the normal case for every
+ *   real caller in index.html), it defaults to ACCEPTED_PLANS, i.e. both
+ *   this tool's own plan and the shared bundle plan. `pubKey` is the same
+ *   test-only override as verify()'s second argument.
  * @returns {Promise<{valid:boolean, reason:string, payload:Object|null}>}
  *   reason is one of: 'ok', 'malformed', 'unsupported', 'signature',
  *   'plan', 'expired'.
  */
 export async function isValid(licenceKeyOrParsed, opts) {
   const options = opts && typeof opts === 'object' ? opts : {};
-  const plan = typeof options.plan === 'string' ? options.plan : DEFAULT_PLAN;
+  const plans = Array.isArray(options.plan) ? options.plan : (typeof options.plan === 'string' ? [options.plan] : ACCEPTED_PLANS);
   const today = typeof options.today === 'string' ? options.today : todayIso();
 
   const parsed = typeof licenceKeyOrParsed === 'string' ? parse(licenceKeyOrParsed) : licenceKeyOrParsed;
@@ -183,7 +208,7 @@ export async function isValid(licenceKeyOrParsed, opts) {
     return { valid: false, reason: 'unsupported', payload: parsed.payload };
   }
   if (!sigOk) return { valid: false, reason: 'signature', payload: parsed.payload };
-  if (parsed.payload.p !== plan) return { valid: false, reason: 'plan', payload: parsed.payload };
+  if (!plans.includes(parsed.payload.p)) return { valid: false, reason: 'plan', payload: parsed.payload };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(parsed.payload.e) || parsed.payload.e < today) {
     return { valid: false, reason: 'expired', payload: parsed.payload };
   }
@@ -202,32 +227,49 @@ function hasLocalStorage() {
   }
 }
 
-/** @returns {string|null} the stored licence key, or null if there is none. */
+/**
+ * @returns {string|null} the stored licence key, or null if there is
+ *   none. Checks STORAGE_KEYS in order (this tool's own key first, then
+ *   the shared bundle key) and returns the first one that holds a value,
+ *   so a bundle licence activated on another ARLing tool page (same
+ *   arling.sk origin, shared localStorage) is found here too.
+ */
 export function load() {
   if (!hasLocalStorage()) return null;
   try {
-    return localStorage.getItem(STORAGE_KEY);
+    for (const key of STORAGE_KEYS) {
+      const v = localStorage.getItem(key);
+      if (v) return v;
+    }
+    return null;
   } catch (e) {
     return null;
   }
 }
 
-/** @returns {boolean} true if the key was written. */
+/**
+ * @returns {boolean} true if the key was written. Saved under whichever
+ *   STORAGE_KEYS entry matches the licence's own plan field (falls back
+ *   to STORAGE_KEY for an unparsed/unrecognized plan), so a bundle
+ *   licence and this tool's own licence never overwrite each other.
+ */
 export function save(licenceKey) {
   if (!hasLocalStorage()) return false;
   try {
-    localStorage.setItem(STORAGE_KEY, String(licenceKey));
+    const parsed = parse(licenceKey);
+    const key = (parsed && PLAN_STORAGE_KEYS[parsed.payload.p]) || STORAGE_KEY;
+    localStorage.setItem(key, String(licenceKey));
     return true;
   } catch (e) {
     return false;
   }
 }
 
-/** @returns {boolean} true if a stored key was removed (or none was set). */
+/** @returns {boolean} true if any stored key was removed (or none was set). */
 export function clear() {
   if (!hasLocalStorage()) return false;
   try {
-    localStorage.removeItem(STORAGE_KEY);
+    STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
     return true;
   } catch (e) {
     return false;
@@ -257,5 +299,5 @@ export async function claim(sessionId) {
 
 // Also expose as a plain browser global when loaded via <script type="module">.
 if (typeof window !== 'undefined') {
-  window.ArlingLicence = { parse, verify, isValid, load, save, clear, claim, ed25519Supported, todayIso, DEFAULT_PLAN, STORAGE_KEY, CLAIM_URL };
+  window.ArlingLicence = { parse, verify, isValid, load, save, clear, claim, ed25519Supported, todayIso, DEFAULT_PLAN, STORAGE_KEY, BUNDLE_PLAN, BUNDLE_STORAGE_KEY, ACCEPTED_PLANS, STORAGE_KEYS, CLAIM_URL };
 }
