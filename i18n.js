@@ -230,14 +230,24 @@ export const DICT = {
     en: '<b>One licence for four tools.</b> Pro for SEPA pain.001 Generator is activated by the same licence as SEPA pain.001 Doctor, camt.053 to Excel and Payment matcher: €9/month or €79/year for all four tools, VAT included, Stripe sends the invoice.',
     de: '<b>Eine Lizenz für vier Tools.</b> Pro für den SEPA-pain.001-Generator wird mit derselben Lizenz aktiviert wie SEPA pain.001 Doctor, camt.053 nach Excel und Zahlungsabgleich: 9&nbsp;€/Monat oder 79&nbsp;€/Jahr für alle vier Tools, inkl. MwSt., die Rechnung stellt Stripe.',
   },
-  's4.cta.btn': { sk: 'Kúpiť Pro balík', en: 'Get the Pro bundle', de: 'Pro-Paket kaufen' },
-  's4.sticky.text': { sk: 'Pro pre všetky štyri nástroje: 9 €/mesiac alebo 79 €/rok.', en: 'Pro for all four tools: €9/month or €79/year.', de: 'Pro für alle vier Tools: 9 €/Monat oder 79 €/Jahr.' },
-  's4.sticky.btn': { sk: 'Kúpiť Pro balík', en: 'Get the Pro bundle', de: 'Pro-Paket kaufen' },
+  's4.buy.year.btn': { sk: 'Kúpiť Pro, 79 €/rok', en: 'Buy Pro, €79/year', de: 'Pro kaufen, 79 €/Jahr' },
+  's4.buy.month.btn': { sk: 'alebo 9 €/mesiac', en: 'or €9/month', de: 'oder 9 €/Monat' },
+  's4.buy.fineprint': {
+    sk: 'Platba cez Stripe, DPH v cene, zrušiť môžete kedykoľvek. Licenčný kľúč dostanete hneď po zaplatení na potvrdzovacej stránke.',
+    en: 'Payment via Stripe, VAT included, cancel anytime. You get the licence key on the confirmation page right after payment.',
+    de: 'Zahlung über Stripe, inkl. MwSt., jederzeit kündbar. Den Lizenzschlüssel erhalten Sie direkt nach der Zahlung auf der Bestätigungsseite.',
+  },
+  's4.bundle.link': { sk: 'Čo všetko je v balíku', en: 'What is in the bundle', de: 'Was im Paket enthalten ist' },
+  's4.sticky.text': { sk: 'Licencia Pro pre všetky štyri nástroje, zrušiť kedykoľvek.', en: 'Pro licence for all four tools, cancel anytime.', de: 'Pro-Lizenz für alle vier Tools, jederzeit kündbar.' },
   's4.r4.title': { sk: 'História príkazov.', en: 'Order history.', de: 'Auftragsverlauf.' },
   's4.r4.body': { sk: 'Posledných 50 vygenerovaných súborov s dátumom, počtom platieb a sumou, uložené len vo vašom prehliadači, vrátane opätovného stiahnutia XML.', en: 'The last 50 generated files with date, payment count and total, stored only in your browser, including re-downloading the XML.', de: 'Die letzten 50 erstellten Dateien mit Datum, Zahlungsanzahl und Summe, nur in Ihrem Browser gespeichert, inklusive erneutem Herunterladen der XML.' },
   's4.r5.title': { sk: 'Prednostná podpora e-mailom.', en: 'Priority email support.', de: 'Bevorzugter E-Mail-Support.' },
   's4.r5.body': { sk: 'Otázka alebo prípad, ktorý si generátor pomýlil? Odpoveď prednostne, priamo od autora nástroja.', en: 'A question, or a case the generator got wrong? A priority reply, directly from the tool’s author.', de: 'Eine Frage oder ein Fall, den der Generator falsch verarbeitet hat? Bevorzugte Antwort, direkt vom Autor des Tools.' },
-  's4.licence.manual.label': { sk: 'Licenciu ste kúpili na inom počítači? Vložte licenčný kľúč sem.', en: 'Bought the licence on another computer? Paste the licence key here.', de: 'Lizenz auf einem anderen Computer gekauft? Lizenzschlüssel hier einfügen.' },
+  's4.licence.manual.label': {
+    sk: 'Licenčný kľúč nájdete na potvrdzovacej stránke hneď po zaplatení. Kúpili ste ho na inom počítači alebo v inom nástroji? Vložte ho sem.',
+    en: 'The licence key is on the confirmation page right after payment. Bought it on another computer or in another tool? Paste it here.',
+    de: 'Den Lizenzschlüssel finden Sie direkt nach der Zahlung auf der Bestätigungsseite. Auf einem anderen Computer oder in einem anderen Tool gekauft? Hier einfügen.',
+  },
   's4.licence.input.placeholder': { sk: 'Licenčný kľúč (dlhý reťazec s bodkou uprostred)', en: 'Licence key (a long string with a dot in the middle)', de: 'Lizenzschlüssel (langer Text mit Punkt in der Mitte)' },
   's4.licence.activate.btn': { sk: 'Aktivovať', en: 'Activate', de: 'Aktivieren' },
   's4.licence.remove.btn': { sk: 'Odstrániť licenciu', en: 'Remove licence', de: 'Lizenz entfernen' },
@@ -694,12 +704,10 @@ export function applyI18n(lang) {
     businessLink.href = 'mailto:andrej@arling.sk?subject=' + encodeURIComponent(t('s5.business.subject', l));
   }
 
-  // The Pro-section and sticky-bar bundle links send visitors to the
+  // The Pro-section "what is in the bundle" link sends visitors to the
   // bankove-nastroje bundle page in the language they are already reading.
-  ['pro-bundle-link', 'sticky-bundle-link'].forEach((id) => {
-    const el = document.getElementById(id);
-    if (el) el.href = 'https://arling.sk/bankove-nastroje/?lang=' + l;
-  });
+  const bundleLink = document.getElementById('pro-bundle-link');
+  if (bundleLink) bundleLink.href = 'https://arling.sk/bankove-nastroje/?lang=' + l;
 
   try { document.dispatchEvent(new CustomEvent('arling:langchange', { detail: { lang: l } })); } catch (e) {}
 }
