@@ -663,6 +663,9 @@ function setMetaByProperty(prop, value) {
 function updateUrlLang(lang) {
   try {
     if (typeof history === 'undefined' || typeof location === 'undefined') return;
+    // The prerendered en/ and de/ folders (build-i18n.mjs) carry the language
+    // in their path already; keep those URLs clean.
+    if (document.documentElement.hasAttribute('data-lang-static')) return;
     const url = new URL(location.href);
     url.searchParams.set('lang', lang);
     history.replaceState(null, '', url.pathname + '?' + url.searchParams.toString() + url.hash);
@@ -693,7 +696,13 @@ export function applyI18n(lang) {
 
   document.querySelectorAll('[data-set-lang]').forEach((btn) => {
     const active = btn.getAttribute('data-set-lang') === l;
-    btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    if (btn.tagName === 'A') {
+      // Links to the static language folders (./, en/, de/): aria-current
+      // marks the one the visitor is reading.
+      if (active) btn.setAttribute('aria-current', 'true'); else btn.removeAttribute('aria-current');
+    } else {
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    }
     btn.classList.toggle('lang-active', active);
   });
 
@@ -723,7 +732,18 @@ export function setLang(lang) {
 
 function wireLangSwitch() {
   document.querySelectorAll('[data-set-lang]').forEach((btn) => {
-    btn.addEventListener('click', () => setLang(btn.getAttribute('data-set-lang')));
+    btn.addEventListener('click', () => {
+      const lang = btn.getAttribute('data-set-lang');
+      if (btn.tagName === 'A' && btn.getAttribute('href')) {
+        // The switcher is a link to the language's own URL (./ for Slovak,
+        // en/ and de/ for the prerendered folders): remember the choice so
+        // the page the browser is about to load agrees, then let it navigate.
+        if (!LANGS.includes(lang)) return;
+        try { if (typeof localStorage !== 'undefined' && localStorage) localStorage.setItem(STORAGE_KEY, lang); } catch (e) {}
+        return;
+      }
+      setLang(lang);
+    });
   });
 }
 

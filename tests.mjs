@@ -953,6 +953,86 @@ eq('ogLocaleForLang: en -> en_US', ogLocaleForLang('en'), 'en_US');
   ok('i18n dictionary: no em dash in any sk/en/de value', offenders.length === 0, offenders.join(', '));
 }
 
+// ═══════════════ static language folders (build-i18n.mjs) ═════════════════
+// en/index.html and de/index.html are prerendered from index.html + DICT so
+// Google indexes one URL per language. The committed files must match the
+// build output (run `node build-i18n.mjs` after editing index.html/i18n.js).
+{
+  const { build, verify, buildAll, outputPath, hreflangBlock, langUrl, ROOT_URL, STATIC_LANGS, TOOL } = await import('./build-i18n.mjs');
+  const { readFileSync, existsSync } = await import('node:fs');
+  const norm = (s) => String(s).replace(/\r\n/g, '\n');
+  const rootHtml = norm(readFileSync(new URL('./index.html', import.meta.url), 'utf8'));
+  const expectedHreflang = hreflangBlock();
+
+  deepEq('static i18n: languages built', STATIC_LANGS, ['en', 'de']);
+  eq('static i18n: root URL', ROOT_URL, `https://arling.sk/${TOOL}/`);
+  eq('static i18n: Slovak lives at the root URL', langUrl('sk'), ROOT_URL);
+  eq('static i18n: German folder URL', langUrl('de'), ROOT_URL + 'de/');
+  includes('static i18n: root index.html carries the folder hreflang set', rootHtml, expectedHreflang);
+  eq('static i18n: root index.html no longer advertises ?lang= alternates', /hreflang="[a-z-]+" href="[^"]*\?lang=/.test(rootHtml), false);
+  includes('static i18n: root canonical stays the root URL', rootHtml, `<link rel="canonical" href="${ROOT_URL}" />`);
+  includes('static i18n: root switcher links to ./ for Slovak', rootHtml, '<a href="./" class="lang-active" aria-current="true" data-set-lang="sk"');
+  includes('static i18n: root switcher links to en/', rootHtml, '<a href="en/" data-set-lang="en"');
+  includes('static i18n: root switcher links to de/', rootHtml, '<a href="de/" data-set-lang="de"');
+  eq('static i18n: root page is not marked static (keeps ?lang= runtime)', rootHtml.includes('data-lang-static'), false);
+
+  const built = buildAll(false);
+  for (const lang of STATIC_LANGS) {
+    const html = built[lang];
+    const url = langUrl(lang);
+    const problems = verify(html, lang);
+    ok(`static i18n ${lang}: every data-i18n* element carries its ${lang} translation`, problems.length === 0, problems.slice(0, 5).join('; '));
+    const keys = [...html.matchAll(/data-i18n(?:-html|-placeholder|-aria-label|-title)?="([^"]+)"/g)].map((m) => m[1]);
+    ok(`static i18n ${lang}: page still has its data-i18n markers (${keys.length})`, keys.length > 50);
+    const raw = keys.filter((k) => html.includes(`>${k}<`));
+    ok(`static i18n ${lang}: no raw dictionary key rendered as text`, raw.length === 0, raw.slice(0, 5).join(', '));
+    const missing = keys.filter((k) => !DICT[k] || typeof DICT[k][lang] !== 'string' || !DICT[k][lang].trim());
+    ok(`static i18n ${lang}: every referenced key has a ${lang} string`, missing.length === 0, missing.slice(0, 5).join(', '));
+    includes(`static i18n ${lang}: <html lang>`, html, `<html lang="${lang}" data-lang-static="${lang}">`);
+    includes(`static i18n ${lang}: <title>`, html, `<title>${t('meta.title', lang).replace(/&/g, '&amp;')}</title>`);
+    includes(`static i18n ${lang}: canonical`, html, `<link rel="canonical" href="${url}" />`);
+    includes(`static i18n ${lang}: og:url`, html, `<meta property="og:url" content="${url}" />`);
+    includes(`static i18n ${lang}: og:locale`, html, `<meta property="og:locale" content="${ogLocaleForLang(lang)}" />`);
+    includes(`static i18n ${lang}: hreflang set (sk root, en, de, x-default root)`, html, expectedHreflang);
+    eq(`static i18n ${lang}: exactly one hreflang set`, (html.match(/hreflang="x-default"/g) || []).length, 1);
+    includes(`static i18n ${lang}: localStorage bootstrap before i18n.js`, html, `<script>try{localStorage.setItem("arling_lang","${lang}")}catch(e){}</script>`);
+    ok(`static i18n ${lang}: bootstrap precedes the module script`, html.indexOf('localStorage.setItem("arling_lang"') < html.indexOf('<script type="module">'));
+    includes(`static i18n ${lang}: module imports resolve one folder up`, html, "from '../i18n.js'");
+    eq(`static i18n ${lang}: no relative import left pointing at the folder`, html.includes("from './"), false);
+    includes(`static i18n ${lang}: subscribe.js one folder up`, html, 'src="../subscribe.js"');
+    includes(`static i18n ${lang}: favicon one folder up`, html, 'href="../favicon.svg"');
+    includes(`static i18n ${lang}: manifest one folder up`, html, 'href="../manifest.json"');
+    eq(`static i18n ${lang}: no <base href> (anchors and #c= permalinks must stay in the folder)`, html.includes('<base '), false);
+    includes(`static i18n ${lang}: switcher Slovak link goes to the root folder`, html, '<a href="../" data-set-lang="sk"');
+    includes(`static i18n ${lang}: switcher English link`, html, '<a href="../en/" data-set-lang="en"');
+    includes(`static i18n ${lang}: switcher German link`, html, '<a href="../de/" data-set-lang="de"');
+    ok(`static i18n ${lang}: switcher marks the current language`, new RegExp(`<a href="\\.\\./(?:${lang}/)?" data-set-lang="${lang}"[^>]*class="lang-active" aria-current="true"`).test(html));
+    includes(`static i18n ${lang}: subscribe form language`, html, `data-lang="${lang}"`);
+    includes(`static i18n ${lang}: h1 is the ${lang} headline`, html, `>${t('hero.h1', lang).replace(/&/g, '&amp;').replace(/</g, '&lt;')}</h1>`);
+    eq(`static i18n ${lang}: the Slovak headline is gone`, html.includes(`>${t('hero.h1', 'sk')}</h1>`), false);
+    const ld = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => JSON.parse(m[1]));
+    eq(`static i18n ${lang}: two JSON-LD blocks parse`, ld.length, 2);
+    eq(`static i18n ${lang}: JSON-LD SoftwareApplication name`, ld[0].name, t('meta.title', lang));
+    eq(`static i18n ${lang}: JSON-LD SoftwareApplication url`, ld[0].url, url);
+    ok(`static i18n ${lang}: JSON-LD offers translated`, Array.isArray(ld[0].offers) && ld[0].offers.every((o) => o.name && !/Zadarmo|balík/.test(o.name)), JSON.stringify((ld[0].offers || []).map((o) => o.name)));
+    const faqInHtml = (html.match(/data-i18n="faq\.q\d+"/g) || []).length;
+    eq(`static i18n ${lang}: JSON-LD FAQ has one entry per visible question`, ld[1].mainEntity.length, faqInHtml);
+    eq(`static i18n ${lang}: JSON-LD FAQ first question is translated`, ld[1].mainEntity[0].name, t('faq.q1', lang));
+    ok(`static i18n ${lang}: JSON-LD FAQ answers are plain text`, ld[1].mainEntity.every((q) => q.acceptedAnswer.text && !/<[a-z]/.test(q.acceptedAnswer.text)));
+    ok(`static i18n ${lang}: no em dash in the built page`, !html.includes('—'));
+    ok(`static i18n ${lang}: build is deterministic`, build(lang) === html);
+    const onDisk = existsSync(outputPath(lang)) ? norm(readFileSync(outputPath(lang), 'utf8')) : null;
+    ok(`static i18n ${lang}: ${lang}/index.html is committed and matches the build (run: node build-i18n.mjs)`, onDisk !== null && onDisk === norm(html), onDisk === null ? 'file missing' : 'stale file');
+  }
+
+  const sitemap = norm(readFileSync(new URL('./sitemap.xml', import.meta.url), 'utf8'));
+  for (const l of ['sk', 'en', 'de']) includes(`sitemap lists the ${l} URL`, sitemap, `<loc>${langUrl(l)}</loc>`);
+  eq('sitemap: three URLs', (sitemap.match(/<loc>/g) || []).length, 3);
+  const llms = norm(readFileSync(new URL('./llms.txt', import.meta.url), 'utf8'));
+  includes('llms.txt mentions the German URL', llms, langUrl('de'));
+  includes('llms.txt mentions the English URL', llms, langUrl('en'));
+}
+
 // ═══════════════════════════ summary ═══════════════════════════════════
 
 console.log(`\n${pass} passed, ${fail} failed (${pass + fail} total assertions)`);

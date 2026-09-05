@@ -1,26 +1,27 @@
 <!doctype html>
-<html lang="sk">
+<html lang="en" data-lang-static="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://homelab.tailbf8f27.ts.net; connect-src 'self' https://homelab.tailbf8f27.ts.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
-<title>SEPA pain.001 Generátor (slovenské banky)</title>
-<meta name="description" content="Vložte platby skopírované z Excelu alebo CSV a vygenerujte SEPA pain.001 XML hromadný príkaz pre Tatra banku, SLSP, VÚB alebo ČSOB. Súbor sa hneď skontroluje. Zadarmo, priamo v prehliadači, nič sa neodosiela." />
+<script>try{localStorage.setItem("arling_lang","en")}catch(e){}</script>
+<title>SEPA pain.001 Generator (SK banks + a German DE profile)</title>
+<meta name="description" content="Paste payments copied from Excel or CSV and generate a SEPA pain.001 XML batch payment file for a Slovak bank, or a generic German (DK) profile with Verwendungszweck instead of VS/SS/KS. The file is checked right away. Free, runs in your browser, nothing is uploaded." />
 <meta property="og:type" content="website" />
-<meta property="og:title" content="SEPA pain.001 Generátor (slovenské banky)" />
-<meta property="og:description" content="Vložte platby skopírované z Excelu alebo CSV a vygenerujte SEPA pain.001 XML hromadný príkaz pre Tatra banku, SLSP, VÚB alebo ČSOB. Súbor sa hneď skontroluje. Zadarmo, priamo v prehliadači, nič sa neodosiela." />
-<meta property="og:url" content="https://arling.sk/sepa-pain001-generator/" />
-<meta property="og:locale" content="sk_SK" />
-<link rel="canonical" href="https://arling.sk/sepa-pain001-generator/" />
+<meta property="og:title" content="SEPA pain.001 Generator (SK banks + a German DE profile)" />
+<meta property="og:description" content="Paste payments copied from Excel or CSV and generate a SEPA pain.001 XML batch payment file for a Slovak bank, or a generic German (DK) profile with Verwendungszweck instead of VS/SS/KS. The file is checked right away. Free, runs in your browser, nothing is uploaded." />
+<meta property="og:url" content="https://arling.sk/sepa-pain001-generator/en/" />
+<meta property="og:locale" content="en_US" />
+<link rel="canonical" href="https://arling.sk/sepa-pain001-generator/en/" />
 <link rel="alternate" hreflang="sk" href="https://arling.sk/sepa-pain001-generator/" />
 <link rel="alternate" hreflang="en" href="https://arling.sk/sepa-pain001-generator/en/" />
 <link rel="alternate" hreflang="de" href="https://arling.sk/sepa-pain001-generator/de/" />
 <link rel="alternate" hreflang="x-default" href="https://arling.sk/sepa-pain001-generator/" />
 <meta property="og:image" content="https://arling.sk/sepa-pain001-generator/icon-512.png" />
-<link rel="icon" href="favicon.svg" type="image/svg+xml" />
-<link rel="alternate icon" href="favicon.ico" />
-<link rel="apple-touch-icon" href="icon-192.png" />
-<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+<link rel="alternate icon" href="../favicon.ico" />
+<link rel="apple-touch-icon" href="../icon-192.png" />
+<link rel="manifest" href="../manifest.json" />
 <!-- Bez externého font CDN: len systémový font stack (viď body { font-family } nižšie). -->
 <script defer src="https://homelab.tailbf8f27.ts.net/script.js" data-website-id="eea965a2-3702-404f-b914-9dc007dcdbc2"></script>
 
@@ -28,29 +29,33 @@
 {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  "name": "SEPA pain.001 Generátor (slovenské banky)",
-  "url": "https://arling.sk/sepa-pain001-generator/",
+  "name": "SEPA pain.001 Generator (SK banks + a German DE profile)",
+  "url": "https://arling.sk/sepa-pain001-generator/en/",
   "description": "Free, client-side tool that builds a SEPA pain.001.001.03 XML batch payment file (hromadný príkaz na úhradu) from payments pasted or uploaded from Excel or CSV, ready for import into Tatra banka, Slovenská sporiteľňa (SLSP), VÚB, or ČSOB internet banking, or a generic German (Deutsche Kreditwirtschaft, \"de\" country profile) pain.001 file with Verwendungszweck instead of VS/SS/KS. Runs the sibling SEPA pain.001 Doctor engine on every generated file automatically. Available in Slovak, English and German.",
   "applicationCategory": "FinanceApplication",
   "operatingSystem": "Any (web browser)",
-  "inLanguage": ["sk", "en", "de"],
+  "inLanguage": [
+    "sk",
+    "en",
+    "de"
+  ],
   "offers": [
     {
       "@type": "Offer",
-      "name": "Zadarmo",
+      "name": "Free",
       "price": "0",
       "priceCurrency": "EUR"
     },
     {
       "@type": "Offer",
-      "name": "Pro mesačne (balík Bankové nástroje, štyri nástroje)",
+      "name": "Pro monthly (Banking Tools bundle, four tools)",
       "price": "9",
       "priceCurrency": "EUR",
       "url": "https://arling.sk/bankove-nastroje/"
     },
     {
       "@type": "Offer",
-      "name": "Pro ročne (balík Bankové nástroje, štyri nástroje)",
+      "name": "Pro yearly (Banking Tools bundle, four tools)",
       "price": "79",
       "priceCurrency": "EUR",
       "url": "https://arling.sk/bankove-nastroje/"
@@ -80,98 +85,98 @@
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "Ako pripraviť Excel, aby ho generátor prečítal?",
+      "name": "How do I prepare Excel so the generator reads it?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Označte stĺpce IBAN, suma a názov príjemcu (ideálne aj s hlavičkou v prvom riadku) a skopírujte bunky priamo do textového poľa (Ctrl+C, Ctrl+V): Excel ich prilepí oddelené tabulátormi a generátor to rozpozná automaticky. Rovnako funguje export do CSV oddeleného bodkočiarkou alebo čiarkou, alebo priame nahratie .csv/.txt/.tsv súboru. Ak automatické rozpoznanie stĺpcov netrafí správne pole, opravte ho ručne vo výberoch nad náhľadom platieb."
+        "text": "Select the IBAN, amount and recipient-name columns (ideally with a header row) and copy the cells straight into the text field (Ctrl+C, Ctrl+V): Excel pastes them tab-separated and the generator detects that automatically, in Slovak, English or German headers. A CSV export delimited with a semicolon or comma works the same way, as does uploading a .csv/.txt/.tsv file directly. If the automatic column detection misses a field, fix it by hand in the dropdowns above the payments preview."
       }
     },
     {
       "@type": "Question",
-      "name": "Kam sa zapíše variabilný symbol v SEPA XML?",
+      "name": "Where does the payment reference (VS/SS/KS) go in the SEPA XML?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "pain.001.001.03 nemá samostatné pole pre variabilný, špecifický ani konštantný symbol. Generátor ich zapíše do PmtId/EndToEndId v poradí /VS.../SS.../KS..., presne podľa konvencie Národnej banky Slovenska: rovnakej, akú kontroluje aj sesterský nástroj SEPA pain.001 Doctor."
+        "text": "pain.001.001.03 has no dedicated field for the Slovak variabilný/špecifický/konštantný symbol. In the “Slovakia” profile, the generator writes them into PmtId/EndToEndId as /VS.../SS.../KS..., exactly the National Bank of Slovakia convention checked by the sibling tool, SEPA pain.001 Doctor. In the “Germany (DK)” profile, these three fields don’t exist at all: the text goes into RmtInf/Ustrd (Verwendungszweck), and EndToEndId is taken from its own mapped column, or defaults to “NOTPROVIDED” if left empty."
       }
     },
     {
       "@type": "Question",
-      "name": "Ako naimportujem XML do Tatra banky, SLSP, VÚB a ČSOB?",
+      "name": "How do I import the XML into my bank’s online banking?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Stiahnutý .xml súbor nahrajte v internet bankingu do formulára pre hromadný alebo dávkový príkaz (zvyčajne v sekcii Platby → Hromadné platby → Import súboru). Presné umiestnenie sa medzi bankami líši. Ak import zlyhá, skontrolujte najprv hlásenie od SEPA pain.001 Doctora, ktoré sa zobrazí hneď po vygenerovaní: ukáže presný element, ktorý banka odmietne."
+        "text": "Upload the downloaded .xml file in your bank’s online banking form for a batch/bulk payment (usually under Payments → Bulk payments → Import file). This works the same way at Tatra banka, SLSP, VÚB and ČSOB as at German, Austrian and Swiss banks (for example Sparkasse, Volksbank, Deutsche Bank, Commerzbank, Raiffeisen, Erste, UBS or PostFinance); the exact location differs between banks. If the import fails, check the SEPA pain.001 Doctor report shown right after generation first: it points to the exact element a bank will reject."
       }
     },
     {
       "@type": "Question",
-      "name": "Odosielajú sa moje platby niekam?",
+      "name": "Is my payment data sent anywhere?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Nie. Parsovanie Excelu aj generovanie XML beží celé vo vašom prehliadači. IBAN, sumy ani mená sa nikam neposielajú, nástroj nemá backend. Jedinou sieťovou aktivitou je načítanie statických súborov stránky a anonymné počítadlo použitia (Umami), ktoré zaznamená len to, že prebehlo generovanie a aký bol výsledok kontroly, nikdy obsah platieb."
+        "text": "No. Parsing Excel and generating the XML both run entirely in your browser. IBANs, amounts and names are never sent anywhere; the tool has no backend. The only network activity is loading the page’s static files and an anonymous usage counter (Umami), which records only that generation happened and what the check result was, never the content of the payments."
       }
     },
     {
       "@type": "Question",
-      "name": "Koľko platieb môže byť v jednom súbore?",
+      "name": "How many payments can be in one file?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Generátor spracuje najviac 5000 platieb naraz. Ak majú platby rôzny dátum splatnosti, generátor ich automaticky rozdelí do samostatných blokov PmtInf podľa dátumu; Tatra banka aj tak obmedzuje jeden takýto blok na 500 transakcií, na čo SEPA pain.001 Doctor po vygenerovaní upozorní."
+        "text": "The generator processes at most 5000 payments at once. If payments have different execution dates, the generator automatically splits them into separate PmtInf blocks by date; Tatra banka still caps one such block at 500 transactions, which SEPA pain.001 Doctor flags after generation."
       }
     },
     {
       "@type": "Question",
-      "name": "Prečo banka odmietla súbor aj po kontrole?",
+      "name": "Why did the bank reject the file even after the check?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "SEPA pain.001 Doctor kontroluje formátové a bankové pravidlá, ktoré sú verejne zdokumentované, nie stav vášho účtu, existenciu účtu príjemcu ani interné limity banky (napríklad denný limit prevodov). Čistý výsledok kontroly preto nie je zárukou prijatia. Ak banka súbor aj tak odmietne, overte v prvom rade presné znenie chyby v internet bankingu."
+        "text": "SEPA pain.001 Doctor checks publicly documented format and bank-specific rules, not your account’s status, whether the recipient’s account exists, or a bank’s internal limits (e.g. a daily transfer cap). A clean check result is therefore not a guarantee of acceptance. If a bank rejects the file anyway, check the exact error text in internet banking first."
       }
     },
     {
       "@type": "Question",
-      "name": "Čo dostanem v Pro?",
+      "name": "What do I get with Pro?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Uložené profily platiteľov (IBAN, BIC, banka na jeden klik), generovanie viacerých súborov platieb naraz, predvolené šablóny mapovania stĺpcov pre Pohodu, Omegu (KROS) a Money S3, históriu posledných 50 vygenerovaných príkazov so spätným stiahnutím a prednostnú e-mailovú podporu. Samotné generovanie a kontrola XML sú aj naďalej úplne zadarmo, bez zmeny."
+        "text": "Saved payer profiles (IBAN, BIC, bank in one click), generating several payment files at once, preset column-mapping templates for Pohoda, Omega (KROS) and Money S3, a history of the last 50 generated commands with re-download, and priority email support. Generating and checking the XML itself stays completely free, unchanged. See the Pro section."
       }
     },
     {
       "@type": "Question",
-      "name": "Musím platiť, aby som vygeneroval XML?",
+      "name": "Do I have to pay to generate an XML?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Nie. Generovanie aj kontrola súboru sú a zostávajú zadarmo, bez limitu na počet platieb, súborov ani stiahnutí. Pro je len pohodlie navyše pre toho, kto hromadné príkazy pripravuje opakovane."
+        "text": "No. Generating and checking a file are, and stay, free, with no limit on payments, files, or downloads. Pro is just extra convenience for someone preparing batch payments repeatedly."
       }
     },
     {
       "@type": "Question",
-      "name": "Ako dostanem faktúru?",
+      "name": "How do I get an invoice?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Faktúru vystaví a pošle na váš e-mail Stripe hneď po zaplatení. Pri tomto predaji je ARLing s. r. o. predajcom cez Stripe Managed Payments: DPH aj vystavenie dokladu rieši priamo Stripe."
+        "text": "The invoice is issued and emailed to you by Stripe right after payment. For this sale, ARLing s. r. o. sells through Stripe Managed Payments: Stripe itself handles VAT and issuing the document."
       }
     },
     {
       "@type": "Question",
-      "name": "Čo ak zmením počítač?",
+      "name": "What if I change computers?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Licenčný kľúč nie je viazaný na jedno zariadenie. Nájdete ho v e-maile od Stripe po zaplatení; na novom počítači ho stačí vložiť ručne do poľa pre licenčný kľúč a Pro sa aktivuje aj tam."
+        "text": "The licence key isn’t tied to one device. You’ll find it in the email from Stripe after payment; on a new computer, just paste it manually into the licence-key field in the Pro section, and Pro activates there too."
       }
     },
     {
       "@type": "Question",
-      "name": "Čo ak Pro nechcem, môžem dostať peniaze naspäť?",
+      "name": "What if I don’t want Pro, can I get a refund?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Áno. Ak vám Pro nesadne, napíšte do 14 dní od kúpy na andrej@arling.sk a peniaze vrátime bez zbytočných otázok."
+        "text": "Yes. If Pro doesn’t work out for you, write within 14 days of purchase to andrej@arling.sk and we’ll refund it, no questions asked."
       }
     },
     {
       "@type": "Question",
-      "name": "Čím sa líši profil „Nemecko (DK)“ od „Slovensko“?",
+      "name": "How does the “Germany (DK)” profile differ from “Slovakia”?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Profil „Nemecko (DK)“ (Deutsche Kreditwirtschaft, pravidlá pre pain.001.001.03 platné v nemeckom bankovníctve) skryje stĺpce VS/ŠS/KS a namiesto nich ponúkne jeden voľný text Verwendungszweck (max. 140 znakov, znaková sada SEPA) a voliteľný stĺpec EndToEndId. Zoznam bánk sa zjednoduší na jednu všeobecnú predlohu „Bank nach DK-Regelwerk (pain.001.001.03)“ namiesto štyroch slovenských bánk. BIC zostáva nepovinný, ako pri každom IBAN z krajiny EHP/SEPA."
+        "text": "The “Germany (DK)” profile (Deutsche Kreditwirtschaft, the pain.001.001.03 rules used in German banking) hides the VS/SS/KS columns and offers one free-text Verwendungszweck instead (max. 140 characters, SEPA character set) plus an optional EndToEndId column. The bank list collapses to one generic “Bank nach DK-Regelwerk (pain.001.001.03)” preset instead of the four Slovak banks, since Tatra banka/SLSP/VÚB/ČSOB’s own per-bank rules don’t apply to it. BIC stays optional, as for any IBAN from an EEA/SEPA country."
       }
     }
   ]
@@ -502,25 +507,25 @@
 </head>
 <body>
 
-<a class="skip" href="#playground" data-i18n="skip">Skočiť na generátor</a>
+<a class="skip" href="#playground" data-i18n="skip">Skip to the generator</a>
 <header class="top">
   <div class="wrap">
     <div class="brand">
-      <a class="wordmark" href="https://arling.sk/sepa-pain001-generator/" data-i18n="wordmark">SEPA pain.001 Generátor</a>
-      <a class="wordmark-sub" href="https://arling.sk/" data-i18n="brand.sub">nástroj ARLing</a>
+      <a class="wordmark" href="https://arling.sk/sepa-pain001-generator/en/" data-i18n="wordmark">SEPA pain.001 Generator</a>
+      <a class="wordmark-sub" href="https://arling.sk/" data-i18n="brand.sub">an ARLing tool</a>
     </div>
     <div class="headnav">
       <nav class="main" aria-label="Stránka">
-        <a href="#problem" data-i18n="nav.how">Ako to funguje</a>
-        <a href="#playground" data-i18n="nav.convert">Generátor</a>
+        <a href="#problem" data-i18n="nav.how">How it works</a>
+        <a href="#playground" data-i18n="nav.convert">Generator</a>
         <a href="#endpoint" data-i18n="nav.api">API</a>
         <a href="#pro" data-i18n="nav.pro">Pro</a>
-        <a href="#faq" data-i18n="nav.faq">Otázky</a>
+        <a href="#faq" data-i18n="nav.faq">FAQ</a>
       </nav>
-      <div class="lang-switch" role="group" aria-label="Jazyk stránky" data-i18n-aria-label="lang.switch.aria">
-        <a href="./" class="lang-active" aria-current="true" data-set-lang="sk" hreflang="sk" aria-label="Slovenčina" data-i18n-aria-label="lang.sk.aria">SK</a>
-        <a href="en/" data-set-lang="en" hreflang="en" aria-label="English" data-i18n-aria-label="lang.en.aria">EN</a>
-        <a href="de/" data-set-lang="de" hreflang="de" aria-label="Deutsch" data-i18n-aria-label="lang.de.aria">DE</a>
+      <div class="lang-switch" role="group" aria-label="Page language" data-i18n-aria-label="lang.switch.aria">
+        <a href="../" data-set-lang="sk" hreflang="sk" aria-label="Slovak" data-i18n-aria-label="lang.sk.aria">SK</a>
+        <a href="../en/" data-set-lang="en" hreflang="en" aria-label="English" data-i18n-aria-label="lang.en.aria" class="lang-active" aria-current="true">EN</a>
+        <a href="../de/" data-set-lang="de" hreflang="de" aria-label="German" data-i18n-aria-label="lang.de.aria">DE</a>
       </div>
     </div>
   </div>
@@ -529,15 +534,15 @@
 <main>
   <div class="hero">
     <div class="wrap">
-      <h1 data-i18n="hero.h1">Zoznam platieb z Excelu na XML pre banku. Skontrolovaný, za minútu.</h1>
-      <p class="lead" data-i18n="hero.lead">Vložte platby skopírované z Excelu alebo CSV, vyplňte IBAN platiteľa a stiahnite pain.001 hromadný príkaz. Súbor sa hneď po vygenerovaní skontroluje cez ten istý engine ako SEPA pain.001 Doctor.</p>
-      <a class="btn btn-solid" href="#playground" data-i18n="hero.cta">Vytvoriť súbor</a><a class="btn btn-line" href="https://github.com/AndryRoby/sepa-pain001-generator" target="_blank" rel="noopener" data-i18n="hero.source">Zdrojový kód na GitHube</a>
+      <h1 data-i18n="hero.h1">A payment list from Excel to a bank XML file. Checked, in a minute.</h1>
+      <p class="lead" data-i18n="hero.lead">Paste payments copied from Excel or CSV, fill in the payer’s IBAN, and download a pain.001 batch payment file. The file is checked right after generation by the same engine as SEPA pain.001 Doctor.</p>
+      <a class="btn btn-solid" href="#playground" data-i18n="hero.cta">Create a file</a><a class="btn btn-line" href="https://github.com/AndryRoby/sepa-pain001-generator" target="_blank" rel="noopener" data-i18n="hero.source">Source code on GitHub</a>
       <ul class="facts">
-        <li data-i18n="hero.fact.banks">4 banky: Tatra banka, SLSP, VÚB, ČSOB</li>
-        <li data-i18n="hero.fact.tests">277 automatizovaných testov</li>
-        <li data-i18n="hero.fact.maxpayments">max. 5000 platieb</li>
-        <li data-i18n="hero.fact.free">0 €, bez účtu</li>
-        <li data-i18n="hero.fact.browser">beží vo vašom prehliadači</li>
+        <li data-i18n="hero.fact.banks">4 Slovak banks, plus a generic DE (Deutsche Kreditwirtschaft) profile</li>
+        <li data-i18n="hero.fact.tests">277 automated tests</li>
+        <li data-i18n="hero.fact.maxpayments">max. 5000 payments</li>
+        <li data-i18n="hero.fact.free">€0, no account</li>
+        <li data-i18n="hero.fact.browser">runs in your browser</li>
       </ul>
     </div>
   </div>
@@ -545,20 +550,20 @@
   <section id="problem">
     <div class="wrap">
       <p class="kicker">01</p>
-      <h2 data-i18n="s1.h2">Tri veci, ktoré pri ručnom skladaní XML najčastejšie pokazia súbor.</h2>
-      <p class="sub" data-i18n="s1.sub">Zložiť pain.001 XML v texťáku alebo vzorci v Exceli sa dá, ale stačí jedna maličkosť a banka súbor odmietne bez vysvetlenia.</p>
+      <h2 data-i18n="s1.h2">Three things that most often break a hand-assembled XML file.</h2>
+      <p class="sub" data-i18n="s1.sub">Assembling pain.001 XML by hand in a text editor or an Excel formula is possible, but one small mistake is enough for a bank to reject the file without explanation.</p>
       <ol class="rules">
         <li>
-          <b data-i18n="s1.r1.title">Stĺpce sa rozpoznávajú podľa názvu, nie podľa poradia.</b>
-          <p data-i18n-html="s1.r1.body">Generátor hľadá „IBAN“, „suma“, „názov“ a podobné hlavičky automaticky. Pri nezvyčajnom Exceli mapovanie skontrolujte a v prípade potreby ho ručne opravte vo výberoch nad náhľadom.</p>
+          <b data-i18n="s1.r1.title">Columns are recognized by name, not by position.</b>
+          <p data-i18n-html="s1.r1.body">The generator looks for headers like “IBAN”, “Amount”, “Name” automatically, in Slovak, English or German. For an unusual spreadsheet, check the mapping and fix it by hand in the dropdowns above the preview if needed.</p>
         </li>
         <li>
-          <b data-i18n="s1.r2.title">VS, ŠS a KS nemajú v XML vlastné pole.</b>
-          <p data-i18n-html="s1.r2.body">Musia byť zapísané v <code>EndToEndId</code> v presnom poradí <code>/VS.../SS.../KS...</code>. Zlé poradie prevod nezastaví, ale príjemca si platbu nespáruje s faktúrou.</p>
+          <b data-i18n="s1.r2.title">VS/SS/KS have no field of their own in the XML.</b>
+          <p data-i18n-html="s1.r2.body">They have to be written into <code>EndToEndId</code> in the exact order <code>/VS.../SS.../KS...</code> (the “sk” country profile does this automatically). The “de” profile skips VS/SS/KS entirely and uses an unstructured Verwendungszweck instead, since German banks don’t use these Slovak reference symbols.</p>
         </li>
         <li>
-          <b data-i18n="s1.r3.title">Formát je jedna vec, pravidlá banky druhá.</b>
-          <p data-i18n-html="s1.r3.body">Po vygenerovaní beží nad súborom rovnaký engine ako v <a href="https://arling.sk/sepa-pain001-doctor/">SEPA pain.001 Doctorovi</a>: BIC, dátum splatnosti, diakritika a limit transakcií podľa vybranej banky.</p>
+          <b data-i18n="s1.r3.title">The format is one thing, a bank’s own rules another.</b>
+          <p data-i18n-html="s1.r3.body">After generation, the same engine as <a href="https://arling.sk/sepa-pain001-doctor/">SEPA pain.001 Doctor</a> runs over the file: BIC, execution date, accented characters, and the transaction cap for the selected bank.</p>
         </li>
       </ol>
     </div>
@@ -567,121 +572,121 @@
   <section id="playground">
     <div class="wrap">
       <p class="kicker">02</p>
-      <h2 data-i18n="s2.h2">Vložte platby, vyplňte platiteľa. Dostanete hotový XML.</h2>
-      <p class="sub" data-i18n="s2.sub">Nič z toho, čo vložíte, sa neodosiela. Generovanie aj kontrola bežia vo vašom prehliadači.</p>
+      <h2 data-i18n="s2.h2">Paste payments, fill in the payer. You get a finished XML.</h2>
+      <p class="sub" data-i18n="s2.sub">Nothing you paste is sent anywhere. Generating and checking both run in your browser.</p>
 
       <div class="play">
         <div class="play-body">
           <div class="pane">
             <div class="pane-head">
               <div class="tabs">
-                <button class="tab-btn active" id="tab-form" type="button" data-i18n="s2.tab.form">Formulár</button>
+                <button class="tab-btn active" id="tab-form" type="button" data-i18n="s2.tab.form">Form</button>
                 <button class="tab-btn" id="tab-json" type="button" data-i18n="s2.tab.json">JSON</button>
               </div>
               <div class="pane-actions">
-                <button class="icon-btn" id="sample-btn" type="button" title="Načítať ukážkové platby (jedna zámerne s neplatným IBAN-om)" data-i18n="s2.sample.btn" data-i18n-title="s2.sample.btn.title">ukážka</button>
-                <button class="icon-btn primary" id="generate-btn" type="button" data-i18n="s2.generate.btn">Generovať ↵</button>
+                <button class="icon-btn" id="sample-btn" type="button" title="Load sample payments (one deliberately has an invalid IBAN)" data-i18n="s2.sample.btn" data-i18n-title="s2.sample.btn.title">sample</button>
+                <button class="icon-btn primary" id="generate-btn" type="button" data-i18n="s2.generate.btn">Generate ↵</button>
               </div>
             </div>
 
             <div id="form-pane">
               <div class="form-section">
-                <div class="form-section-title"><span data-i18n="s2.payer.title">Platiteľ</span><span class="hint-inline"><span data-i18n="s2.payer.hint">uložené profily</span> <a class="pro-badge" href="#pro" data-i18n="s2.pro.badge">PRO</a></span></div>
+                <div class="form-section-title"><span data-i18n="s2.payer.title">Payer</span><span class="hint-inline"><span data-i18n="s2.payer.hint">saved profiles</span> <a class="pro-badge" href="#pro" data-i18n="s2.pro.badge">PRO</a></span></div>
                 <div class="field-grid">
                   <div class="field full pro-profile-row">
-                    <label for="pro-profile-select" data-i18n="s2.profile.select.label">uložený profil platiteľa</label>
+                    <label for="pro-profile-select" data-i18n="s2.profile.select.label">saved payer profile</label>
                     <div class="pro-profile-controls">
-                      <select id="pro-profile-select" disabled><option value="" data-i18n="s2.profile.select.placeholder">(vybrať uložený profil)</option></select>
-                      <button class="icon-btn" id="pro-profile-save-btn" type="button" disabled data-i18n="s2.profile.save.btn">Uložiť ako profil</button>
-                      <button class="icon-btn" id="pro-profile-delete-btn" type="button" disabled data-i18n="s2.profile.delete.btn">Zmazať profil</button>
+                      <select id="pro-profile-select" disabled><option value="" data-i18n="s2.profile.select.placeholder">(select a saved profile)</option></select>
+                      <button class="icon-btn" id="pro-profile-save-btn" type="button" disabled data-i18n="s2.profile.save.btn">Save as a profile</button>
+                      <button class="icon-btn" id="pro-profile-delete-btn" type="button" disabled data-i18n="s2.profile.delete.btn">Delete profile</button>
                     </div>
                   </div>
                   <div class="field full">
-                    <label for="f-payer-name" data-i18n="s2.payer.name.label">názov firmy</label>
-                    <input type="text" id="f-payer-name" placeholder="Moja firma s. r. o." data-i18n-placeholder="s2.payer.name.placeholder" />
+                    <label for="f-payer-name" data-i18n="s2.payer.name.label">company name</label>
+                    <input type="text" id="f-payer-name" placeholder="My company Ltd." data-i18n-placeholder="s2.payer.name.placeholder" />
                   </div>
                   <div class="field">
-                    <label for="f-payer-iban" data-i18n="s2.payer.iban.label">IBAN debetného účtu</label>
+                    <label for="f-payer-iban" data-i18n="s2.payer.iban.label">Debtor IBAN</label>
                     <input type="text" id="f-payer-iban" placeholder="SK00 0000 0000 0000 0000 0000" />
                   </div>
                   <div class="field">
-                    <label for="f-payer-bic" data-i18n="s2.payer.bic.label">BIC platiteľa</label>
-                    <input type="text" id="f-payer-bic" placeholder="odvodí sa z IBAN" data-i18n-placeholder="s2.payer.bic.placeholder" />
-                    <span class="hint" id="payer-bic-hint" data-i18n="s2.payer.bic.hint">Odvodí sa automaticky zo 4-miestneho kódu banky v IBAN. Ak sa nepodarí, vyplňte ručne.</span>
+                    <label for="f-payer-bic" data-i18n="s2.payer.bic.label">Payer’s BIC</label>
+                    <input type="text" id="f-payer-bic" placeholder="derived from the IBAN" data-i18n-placeholder="s2.payer.bic.placeholder" />
+                    <span class="hint" id="payer-bic-hint" data-i18n="s2.payer.bic.hint">For a Slovak IBAN, this is derived automatically from the 4-digit bank code. For an IBAN from another country, fill it in by hand. Since February 2016, BIC has been optional for IBANs from EEA/SEPA countries anyway.</span>
                   </div>
                 </div>
               </div>
 
               <div class="form-section">
-                <div class="form-section-title" data-i18n="s2.settings.title">Nastavenia</div>
+                <div class="form-section-title" data-i18n="s2.settings.title">Settings</div>
                 <div class="field-grid cols-3">
                   <div class="field">
-                    <label for="f-countryprofile" data-i18n="s2.countryprofile.label">profil krajiny</label>
+                    <label for="f-countryprofile" data-i18n="s2.countryprofile.label">country profile</label>
                     <select id="f-countryprofile">
-                      <option value="sk" data-i18n="profile.sk.label">Slovensko (VS/ŠS/KS)</option>
-                      <option value="de" data-i18n="profile.de.label">Nemecko (DK, Verwendungszweck)</option>
+                      <option value="sk" data-i18n="profile.sk.label">Slovakia (VS/SS/KS)</option>
+                      <option value="de" data-i18n="profile.de.label">Germany (DK, Verwendungszweck)</option>
                     </select>
-                    <span class="hint" id="countryprofile-hint" data-i18n="s2.countryprofile.hint">Slovensko: VS/ŠS/KS v EndToEndId. Nemecko (DK): žiadne VS/ŠS/KS, namiesto toho Verwendungszweck a voliteľné EndToEndId.</span>
+                    <span class="hint" id="countryprofile-hint" data-i18n="s2.countryprofile.hint">Slovakia: VS/SS/KS packed into EndToEndId. Germany (DK): no VS/SS/KS, an unstructured Verwendungszweck and an optional EndToEndId column instead.</span>
                   </div>
                   <div class="field">
-                    <label for="f-bank" data-i18n="s2.bank.label">banka (cieľový import)</label>
+                    <label for="f-bank" data-i18n="s2.bank.label">bank (target import)</label>
                     <select id="f-bank">
                       <option value="tatrabanka" data-i18n="bank.tatrabanka">Tatra banka</option>
                       <option value="slsp" data-i18n="bank.slsp">Slovenská sporiteľňa (SLSP)</option>
                       <option value="vub" data-i18n="bank.vub">VÚB</option>
                       <option value="csob" data-i18n="bank.csob">ČSOB</option>
-                      <option value="generic" data-i18n="bank.generic">iná, neuvedená banka</option>
+                      <option value="generic" data-i18n="bank.generic">other / unspecified bank</option>
                     </select>
                   </div>
                   <div class="field">
-                    <label for="f-execdate" data-i18n="s2.execdate.label">dátum splatnosti</label>
+                    <label for="f-execdate" data-i18n="s2.execdate.label">execution date</label>
                     <input type="date" id="f-execdate" />
                   </div>
                   <div class="field">
-                    <label for="f-msgid" data-i18n="s2.msgid.label">MsgId (nepovinné)</label>
+                    <label for="f-msgid" data-i18n="s2.msgid.label">MsgId (optional)</label>
                     <input type="text" id="f-msgid" placeholder="auto: ARL-YYYYMMDD-HHMMSS" data-i18n-placeholder="s2.msgid.placeholder" />
                   </div>
                 </div>
               </div>
 
               <div class="form-section grow">
-                <div class="form-section-title"><span data-i18n="s2.payments.title">Platby</span><span class="hint-inline" data-i18n="s2.payments.hint">z Excelu (Ctrl+V) alebo súbor .csv/.txt/.tsv</span></div>
+                <div class="form-section-title"><span data-i18n="s2.payments.title">Payments</span><span class="hint-inline" data-i18n="s2.payments.hint">from Excel (Ctrl+V) or a .csv/.txt/.tsv file</span></div>
                 <div class="field">
                   <input type="file" id="f-file" accept=".csv,.txt,.tsv" />
                 </div>
-                <textarea id="f-payments" class="json-in" spellcheck="false" wrap="off" placeholder="Sem vložte platby skopírované z Excelu (IBAN, suma, názov, VS, správa…)." data-i18n-placeholder="s2.payments.placeholder"></textarea>
+                <textarea id="f-payments" class="json-in" spellcheck="false" wrap="off" placeholder="Paste payments copied from Excel here (IBAN, amount, name, reference, message…)." data-i18n-placeholder="s2.payments.placeholder"></textarea>
 
                 <div class="field">
-                  <label for="pro-template-select"><span data-i18n="s2.template.label">šablóna mapovania stĺpcov</span> <a class="pro-badge" href="#pro" data-i18n="s2.pro.badge">PRO</a></label>
+                  <label for="pro-template-select"><span data-i18n="s2.template.label">column-mapping template</span> <a class="pro-badge" href="#pro" data-i18n="s2.pro.badge">PRO</a></label>
                   <select id="pro-template-select" disabled>
-                    <option value="" data-i18n="s2.template.auto">(automatické rozpoznanie)</option>
+                    <option value="" data-i18n="s2.template.auto">(automatic detection)</option>
                     <option value="POHODA">Pohoda (Stormware)</option>
                     <option value="OMEGA">Omega (KROS)</option>
                     <option value="MONEY_S3">Money S3 (Seyfor)</option>
-                    <option value="EXCEL" data-i18n="s2.template.excel">Excel (univerzálny)</option>
+                    <option value="EXCEL" data-i18n="s2.template.excel">Excel (generic)</option>
                   </select>
                   <span class="hint pro-inline-hint" id="pro-template-note" hidden></span>
                 </div>
 
                 <div class="mapping-grid" id="mapping-grid">
                   <div class="field"><label for="map-iban" data-i18n="s2.map.iban">IBAN</label><select id="map-iban"></select></div>
-                  <div class="field"><label for="map-amount" data-i18n="s2.map.amount">Suma</label><select id="map-amount"></select></div>
-                  <div class="field"><label for="map-name" data-i18n="s2.map.name">Názov</label><select id="map-name"></select></div>
+                  <div class="field"><label for="map-amount" data-i18n="s2.map.amount">Amount</label><select id="map-amount"></select></div>
+                  <div class="field"><label for="map-name" data-i18n="s2.map.name">Name</label><select id="map-name"></select></div>
                   <div class="field" data-profile-field="sk"><label for="map-vs" data-i18n="s2.map.vs">VS</label><select id="map-vs"></select></div>
-                  <div class="field" data-profile-field="sk"><label for="map-ss" data-i18n="s2.map.ss">ŠS</label><select id="map-ss"></select></div>
+                  <div class="field" data-profile-field="sk"><label for="map-ss" data-i18n="s2.map.ss">SS</label><select id="map-ss"></select></div>
                   <div class="field" data-profile-field="sk"><label for="map-ks" data-i18n="s2.map.ks">KS</label><select id="map-ks"></select></div>
-                  <div class="field"><label for="map-message" id="map-message-label" data-i18n="s2.map.message">Správa</label><select id="map-message"></select></div>
-                  <div class="field"><label for="map-date" data-i18n="s2.map.date">Dátum</label><select id="map-date"></select></div>
+                  <div class="field"><label for="map-message" id="map-message-label" data-i18n="s2.map.message">Message</label><select id="map-message"></select></div>
+                  <div class="field"><label for="map-date" data-i18n="s2.map.date">Date</label><select id="map-date"></select></div>
                   <div class="field"><label for="map-bic" data-i18n="s2.map.bic">BIC</label><select id="map-bic"></select></div>
                   <div class="field" data-profile-field="de" hidden><label for="map-endtoend" data-i18n="s2.map.endtoend">EndToEndId</label><select id="map-endtoend"></select></div>
                 </div>
 
                 <div class="pro-blocks">
-                  <div class="form-section-title"><span data-i18n="s2.blocks.title">Ďalšie bloky platieb</span><span class="hint-inline"><span data-i18n="s2.blocks.hint">viac súborov naraz</span> <a class="pro-badge" href="#pro" data-i18n="s2.pro.badge">PRO</a></span></div>
+                  <div class="form-section-title"><span data-i18n="s2.blocks.title">Additional payment blocks</span><span class="hint-inline"><span data-i18n="s2.blocks.hint">several files at once</span> <a class="pro-badge" href="#pro" data-i18n="s2.pro.badge">PRO</a></span></div>
                   <div class="pro-blocks-list" id="pro-blocks-list"></div>
                   <div class="pro-blocks-actions">
-                    <button class="icon-btn" id="pro-block-add-btn" type="button" disabled data-i18n="s2.blocks.add.btn">+ pridať blok platieb</button>
-                    <label class="pro-merge-toggle"><input type="checkbox" id="pro-merge-checkbox" disabled /> <span data-i18n="s2.blocks.merge.label">zlúčiť všetky bloky do jedného XML (inak samostatný súbor na blok)</span></label>
+                    <button class="icon-btn" id="pro-block-add-btn" type="button" disabled data-i18n="s2.blocks.add.btn">+ add a payment block</button>
+                    <label class="pro-merge-toggle"><input type="checkbox" id="pro-merge-checkbox" disabled /> <span data-i18n="s2.blocks.merge.label">merge every block into one XML (otherwise a separate file per block)</span></label>
                   </div>
                 </div>
               </div>
@@ -695,29 +700,27 @@
 
           <div class="pane">
             <div class="pane-head">
-              <div class="pane-title"><span data-i18n="s2.output.label">Výsledok</span> · <span id="response-meta" data-i18n="js.status.idle">idle</span></div>
+              <div class="pane-title"><span data-i18n="s2.output.label">Result</span> · <span id="response-meta" data-i18n="js.status.idle">idle</span></div>
               <div class="pane-actions">
-                <button class="icon-btn" id="pro-history-btn" type="button" disabled data-i18n="s2.history.btn">história</button><a class="pro-badge" href="#pro" data-i18n="s2.pro.badge">PRO</a>
-                <button class="icon-btn" id="copy-report-btn" type="button" disabled data-i18n="s2.copyreport.btn">kopírovať report</button>
+                <button class="icon-btn" id="pro-history-btn" type="button" disabled data-i18n="s2.history.btn">history</button><a class="pro-badge" href="#pro" data-i18n="s2.pro.badge">PRO</a>
+                <button class="icon-btn" id="copy-report-btn" type="button" disabled data-i18n="s2.copyreport.btn">copy report</button>
               </div>
             </div>
             <div class="pro-history-panel" id="pro-history-panel" hidden></div>
             <div class="output" id="output">
-              <div class="placeholder" data-i18n-html="s2.output.placeholder.full">
-                vyplňte platiteľa a platby, stlačte <span class="kbd">Generovať</span> alebo <span class="kbd">⌘↵</span><span class="blink"></span>
-              </div>
+              <div class="placeholder" data-i18n-html="s2.output.placeholder.full">fill in the payer and payments, press <span class="kbd">Generate</span> or <span class="kbd">⌘↵</span><span class="blink"></span></div>
             </div>
             <div class="status-strip">
               <div data-i18n="s2.status.label">status</div>
               <div id="status-pill" class="status-pill" data-i18n="js.status.idle">idle</div>
               <div class="spacer"></div>
-              <div id="timing" data-i18n="js.timing.waiting">čaká</div>
+              <div id="timing" data-i18n="js.timing.waiting">waiting</div>
             </div>
           </div>
         </div>
 
         <div class="permalink-row">
-          <p class="fineprint" data-i18n="s2.permalink.note">Nastavenia (banka, dátum splatnosti, MsgId) sa po vygenerovaní uložia do odkazu na stránku. Platiteľ ani platby sa do odkazu neukladajú, takže výsledok cez URL zdieľať nemožno. Na zdieľanie výsledku použite tlačidlo „kopírovať report“ alebo stiahnutý XML súbor.</p>
+          <p class="fineprint" data-i18n="s2.permalink.note">Settings (bank, execution date, MsgId) are saved into the page link after generating. The payer and payments are never saved into the link, so the result can’t be shared via URL. To share the result, use the “copy report” button or the downloaded XML file.</p>
         </div>
       </div>
     </div>
@@ -726,40 +729,40 @@
   <section id="endpoint">
     <div class="wrap">
       <p class="kicker">03</p>
-      <h2 data-i18n="s3.h2">Dve funkcie. Platby dnu, XML von, hneď skontrolované.</h2>
-      <p class="sub" data-i18n-html="s3.sub">Žiadny server, žiadny API kľúč, žiadna registrácia. <code>generator-pain001.js</code> je čistý JavaScript: prečítajte si ho, forknite, alebo ho spustite vo vlastnom kóde či CI.</p>
+      <h2 data-i18n="s3.h2">Two functions. Payments in, XML out, checked right away.</h2>
+      <p class="sub" data-i18n-html="s3.sub">No server, no API key, no sign-up. <code>generator-pain001.js</code> is plain JavaScript: read it, fork it, or run it in your own code or CI.</p>
 
       <div class="endpoint">
         <div class="codeblock">
           <div class="codeblock-head">
             <span>generator-pain001.js</span>
-            <span data-i18n="s3.codeblock.label">0 závislostí</span>
+            <span data-i18n="s3.codeblock.label">0 dependencies</span>
           </div>
           <pre><span class="p">import</span> { parseRows, mapColumns, buildXml } <span class="p">from</span> <span class="s">'./generator-pain001.js'</span>;
 <span class="p">import</span> { diagnose } <span class="p">from</span> <span class="s">'./doctor-pain001.js'</span>;
-<span class="p">// <span data-i18n="s3.code.comment1">alebo globálne: const { parseRows, mapColumns, buildXml, bicFromIban } = window.SepaGenerator;</span></span>
+<span class="p">// <span data-i18n="s3.code.comment1">or globally: const { parseRows, mapColumns, buildXml, bicFromIban } = window.SepaGenerator;</span></span>
 
 <span class="p">const</span> rows = parseRows(excelRows);
 <span class="p">const</span> { payments } = mapColumns(rows, <span class="b">undefined</span>, profile);
 
 <span class="p">const</span> xml = buildXml({
   <span class="k">bank</span>:     <span class="s">'tatrabanka'</span> <span class="p">| 'slsp' | 'vub' | 'csob' | 'generic'</span>,
-  <span class="k">profile</span>:  <span class="s">'sk'</span> <span class="p">| 'de',  // <span data-i18n="s3.code.comment.profile">'de': Verwendungszweck namiesto VS/SS/KS</span></span>
+  <span class="k">profile</span>:  <span class="s">'sk'</span> <span class="p">| 'de',  // <span data-i18n="s3.code.comment.profile">'de': Verwendungszweck instead of VS/SS/KS</span></span>
   <span class="k">payer</span>:    { <span class="p">name, iban, bic</span> },
-  <span class="k">execDate</span>: <span class="s">'2026-09-06'</span><span class="p">,  // <span data-i18n="s3.code.comment.execdate">default: zajtra</span></span>
+  <span class="k">execDate</span>: <span class="s">'2026-09-06'</span><span class="p">,  // <span data-i18n="s3.code.comment.execdate">default: tomorrow</span></span>
   <span class="k">msgId</span>:    <span class="b">undefined</span><span class="p">,       // default: auto ARL-YYYYMMDD-HHMMSS</span>
   payments<span class="p">,       // {iban, amount, name, vs, ss, ks, message, bic, endToEndId, dateIso}[]</span>
 });
 
-<span class="p">// <span data-i18n="s3.code.comment2">súbor sa hneď kontroluje rovnakým engine ako SEPA pain.001 Doctor:</span></span>
+<span class="p">// <span data-i18n="s3.code.comment2">the file is checked right away by the same engine as SEPA pain.001 Doctor:</span></span>
 <span class="p">const</span> report = diagnose({ xml, bank: <span class="s">'tatrabanka'</span> });</pre>
         </div>
 
         <div class="endpoint-copy">
-          <p data-i18n-html="s3.copy.p1">Parsovanie Excelu/CSV, mapovanie stĺpcov aj skladanie XML beží presne tak, ako ho volá formulár vyššie, vo vašom prehliadači. Neexistuje backend ani API kľúč, ktorý by obsah vašich platieb odniesol inam.</p>
-          <p data-i18n-html="s3.copy.p2">Poradie a povinnosť polí v XML vychádza priamo z technickej dokumentácie Tatra banky (<code>pain.001.001.03</code>, sekcie GroupHeader a PaymentInformation) a z tých istých pravidiel bánk, ktoré overuje SEPA pain.001 Doctor.</p>
-          <p class="fineprint" data-i18n-html="s3.copy.p3">Zadarmo, otvorené, bez reklamy a bez sledovania nad rámec anonymných počtov použitia. Prípad, ktorý generátor spracuje zle, nahláste ako <a href="https://github.com/AndryRoby/sepa-pain001-generator/issues" target="_blank" rel="noopener">issue na GitHube</a>.</p>
-          <p class="fineprint" data-i18n="s3.copy.p4">Nástroj nie je prepojený s Tatra bankou, Slovenskou sporiteľňou, VÚB ani ČSOB a nie je banka. Čistý výsledok kontroly nezaručuje, že banka platbu prijme.</p>
+          <p data-i18n-html="s3.copy.p1">Parsing Excel/CSV, mapping columns, and building the XML run exactly as the form above calls them, in your browser. There is no backend or API key that could carry your payments’ content anywhere else.</p>
+          <p data-i18n-html="s3.copy.p2">The order and mandatory/optional status of every XML field comes directly from Tatra banka’s technical documentation (<code>pain.001.001.03</code>, GroupHeader and PaymentInformation sections) and the same bank-specific rules SEPA pain.001 Doctor checks.</p>
+          <p class="fineprint" data-i18n-html="s3.copy.p3">Free, open, no ads, and no tracking beyond anonymous usage counts. If the generator gets a case wrong, please report it as an <a href="https://github.com/AndryRoby/sepa-pain001-generator/issues" target="_blank" rel="noopener">issue on GitHub</a>.</p>
+          <p class="fineprint" data-i18n="s3.copy.p4">This tool is not affiliated with any bank and is not a bank itself. A clean check result does not guarantee a bank will accept the payment.</p>
         </div>
       </div>
     </div>
@@ -768,47 +771,47 @@
   <section id="pro">
     <div class="wrap">
       <p class="kicker">04</p>
-      <h2 data-i18n="s4.h2">Pro pre účtovníka, ktorý to robí každý mesiac.</h2>
-      <p class="sub" data-i18n="s4.sub">Bezplatná verzia ostáva bez limitov navždy, na počet platieb, súborov aj stiahnutí. Pro je pohodlie pri opakovanom mesačnom spracovaní, nie odomknutá funkčnosť.</p>
+      <h2 data-i18n="s4.h2">Pro for a bookkeeper who does this every month.</h2>
+      <p class="sub" data-i18n="s4.sub">The free version stays unlimited forever: no cap on payments, files, or downloads. Pro is convenience for repeat monthly use, not unlocked core functionality.</p>
 
       <ol class="rules">
         <li>
-          <b data-i18n="s4.r1.title">Uložené profily platiteľov.</b>
-          <p data-i18n="s4.r1.body">Názov firmy, IBAN, BIC aj banka na jeden klik z výberu, bez prepisovania pri každom hromadnom príkaze.</p>
+          <b data-i18n="s4.r1.title">Saved payer profiles.</b>
+          <p data-i18n="s4.r1.body">Company name, IBAN, BIC and bank in one click from a dropdown, no retyping for every batch.</p>
         </li>
         <li>
-          <b data-i18n="s4.r2.title">Viac súborov naraz.</b>
-          <p data-i18n="s4.r2.body">Pridajte viac blokov platieb (napríklad z troch hárkov) a vygenerujte buď samostatný XML pre každý blok, alebo jeden zlúčený súbor.</p>
+          <b data-i18n="s4.r2.title">Several files at once.</b>
+          <p data-i18n="s4.r2.body">Add several payment blocks (e.g. from three spreadsheets) and generate either a separate XML per block, or one merged file.</p>
         </li>
         <li>
-          <b data-i18n="s4.r3.title">Šablóny mapovania stĺpcov.</b>
-          <p data-i18n="s4.r3.body">Predvolené názvy stĺpcov pre exporty z Pohody, Omegy (KROS), Money S3 alebo univerzálny Excel. Mapovanie sa dá aj tak vždy ručne skontrolovať a opraviť.</p>
+          <b data-i18n="s4.r3.title">Column-mapping templates.</b>
+          <p data-i18n="s4.r3.body">Preset column names for exports from Pohoda, Omega (KROS) or Money S3. The mapping can still always be checked and fixed by hand.</p>
         </li>
       </ol>
 
       <div class="pro-purchase">
         <div class="pro-cta">
-          <p data-i18n-html="s4.cta.p"><b>Jedna licencia pre štyri nástroje.</b> Pro pre SEPA pain.001 Generátor sa aktivuje rovnakou licenciou ako SEPA pain.001 Doctor, camt.053 do Excelu a Párovač platieb: 9&nbsp;€ mesačne alebo 79&nbsp;€ ročne pre všetky štyri nástroje, DPH v cene, faktúru pošle Stripe.</p>
+          <p data-i18n-html="s4.cta.p"><b>One licence for four tools.</b> Pro for SEPA pain.001 Generator is activated by the same licence as SEPA pain.001 Doctor, camt.053 to Excel and Payment matcher: €9/month or €79/year for all four tools, VAT included, Stripe sends the invoice.</p>
           <div class="pro-buy">
-            <a class="btn btn-solid" id="pro-buy-yearly-btn" href="https://buy.stripe.com/cNi9ANcYi19FaoW09D4ko02" data-umami-event="buy_click" data-umami-event-plan="year" data-umami-event-place="generator" data-umami-event-spot="pro" data-i18n="s4.buy.year.btn">Kúpiť Pro, 79&nbsp;€/rok</a>
-            <a class="btn btn-line" id="pro-buy-monthly-btn" href="https://buy.stripe.com/5kQ4gt2jE7y354Cg8B4ko01" data-umami-event="buy_click" data-umami-event-plan="month" data-umami-event-place="generator" data-umami-event-spot="pro" data-i18n="s4.buy.month.btn">alebo 9&nbsp;€/mesiac</a>
+            <a class="btn btn-solid" id="pro-buy-yearly-btn" href="https://buy.stripe.com/cNi9ANcYi19FaoW09D4ko02" data-umami-event="buy_click" data-umami-event-plan="year" data-umami-event-place="generator" data-umami-event-spot="pro" data-i18n="s4.buy.year.btn">Buy Pro, €79/year</a>
+            <a class="btn btn-line" id="pro-buy-monthly-btn" href="https://buy.stripe.com/5kQ4gt2jE7y354Cg8B4ko01" data-umami-event="buy_click" data-umami-event-plan="month" data-umami-event-place="generator" data-umami-event-spot="pro" data-i18n="s4.buy.month.btn">or €9/month</a>
           </div>
-          <p class="fineprint" data-i18n="s4.buy.fineprint">Platba cez Stripe, DPH v cene, zrušiť môžete kedykoľvek. Licenčný kľúč dostanete hneď po zaplatení na potvrdzovacej stránke.</p>
-          <p class="pro-bundle-link"><a id="pro-bundle-link" href="https://arling.sk/bankove-nastroje/" data-umami-event="bundle_click" data-umami-event-place="generator" data-i18n="s4.bundle.link">Čo všetko je v balíku</a></p>
+          <p class="fineprint" data-i18n="s4.buy.fineprint">Payment via Stripe, VAT included, cancel anytime. You get the licence key on the confirmation page right after payment.</p>
+          <p class="pro-bundle-link"><a id="pro-bundle-link" href="https://arling.sk/bankove-nastroje/?lang=en" data-umami-event="bundle_click" data-umami-event-place="generator" data-i18n="s4.bundle.link">What is in the bundle</a></p>
         </div>
         <div class="pro-licence-box">
           <div class="pro-licence-status">
-            <span class="status-pill" id="pro-licence-pill" data-i18n="js.status.noLicence">bez licencie</span>
+            <span class="status-pill" id="pro-licence-pill" data-i18n="js.status.noLicence">no licence</span>
             <span id="pro-licence-detail"></span>
           </div>
           <div class="pro-licence-actions" id="pro-licence-actions-active" hidden>
-            <button class="icon-btn" id="pro-licence-remove-btn" type="button" data-i18n="s4.licence.remove.btn">Odstrániť licenciu</button>
+            <button class="icon-btn" id="pro-licence-remove-btn" type="button" data-i18n="s4.licence.remove.btn">Remove licence</button>
           </div>
           <div class="pro-licence-manual">
-            <label for="pro-licence-input" data-i18n="s4.licence.manual.label">Licenčný kľúč nájdete na potvrdzovacej stránke hneď po zaplatení. Kúpili ste ho na inom počítači alebo v inom nástroji? Vložte ho sem.</label>
+            <label for="pro-licence-input" data-i18n="s4.licence.manual.label">The licence key is on the confirmation page right after payment. Bought it on another computer or in another tool? Paste it here.</label>
             <div class="pro-licence-manual-row">
-              <input type="text" id="pro-licence-input" placeholder="Licenčný kľúč (dlhý reťazec s bodkou uprostred)" spellcheck="false" autocomplete="off" data-i18n-placeholder="s4.licence.input.placeholder" />
-              <button class="icon-btn primary" id="pro-licence-activate-btn" type="button" data-i18n="s4.licence.activate.btn">Aktivovať</button>
+              <input type="text" id="pro-licence-input" placeholder="Licence key (a long string with a dot in the middle)" spellcheck="false" autocomplete="off" data-i18n-placeholder="s4.licence.input.placeholder" />
+              <button class="icon-btn primary" id="pro-licence-activate-btn" type="button" data-i18n="s4.licence.activate.btn">Activate</button>
             </div>
             <p class="pro-licence-error" id="pro-licence-error"></p>
           </div>
@@ -820,25 +823,25 @@
   <section id="pricing">
     <div class="wrap">
       <p class="kicker">05</p>
-      <h2 data-i18n="s5.h2">Zadarmo. Bez limitov, natrvalo.</h2>
-      <p class="sub" data-i18n="s5.sub">Vznikol z vlastnej potreby: previesť zoznam platieb z Excelu na hromadný príkaz bez ručného skladania XML. Bez účtu, bez platby, bez limitu na počet platieb, súborov ani stiahnutí.</p>
+      <h2 data-i18n="s5.h2">Free. No limits, for good.</h2>
+      <p class="sub" data-i18n="s5.sub">Built out of a real need: turn a payment list from Excel into a batch payment file without hand-assembling XML. No account, no payment, no limit on payments, files, or downloads.</p>
       <div class="ask">
-        <p data-i18n-html="s5.ask.p">Ak vám ušetrí popoludnie, napíšte, čo generátor spracoval zle. <a href="https://github.com/AndryRoby/sepa-pain001-generator/issues" target="_blank" rel="noopener">Otvorte issue na GitHube</a>.</p>
+        <p data-i18n-html="s5.ask.p">If it saves you an afternoon, let us know what the generator got wrong. <a href="https://github.com/AndryRoby/sepa-pain001-generator/issues" target="_blank" rel="noopener">Open an issue on GitHub</a>.</p>
       </div>
       <div class="ask subscribe-ask" id="subscribe">
-        <p data-i18n-html="s5.subscribe.p"><b>Dajte mi vedieť o novom nástroji.</b> Len nové nástroje. Žiadny newsletter, žiadne zdieľanie. Odhlásenie odpoveďou na mail.</p>
-        <form id="subscribe-form" class="subscribe-form" data-subscribe data-source="sepa-pain001-generator" data-lang="sk" data-thanks="subscribe-thanks" data-error="subscribe-error" novalidate>
+        <p data-i18n-html="s5.subscribe.p"><b>Let me know about a new tool.</b> New tools only. No newsletter, no sharing. Unsubscribe by replying to the email.</p>
+        <form id="subscribe-form" class="subscribe-form" data-subscribe data-source="sepa-pain001-generator" data-lang="en" data-thanks="subscribe-thanks" data-error="subscribe-error" novalidate>
           <div class="hp" aria-hidden="true"><input type="text" name="website" id="subscribe-website" tabindex="-1" autocomplete="off"></div>
-          <input type="email" id="subscribe-email" name="email" required autocomplete="email" inputmode="email" placeholder="vas@email.sk" aria-label="E-mailová adresa" data-i18n-placeholder="s5.subscribe.email.placeholder" data-i18n-aria-label="s5.subscribe.email.aria">
-          <button class="btn btn-solid" type="submit" data-i18n="s5.subscribe.btn">Dať vedieť</button>
+          <input type="email" id="subscribe-email" name="email" required autocomplete="email" inputmode="email" placeholder="you@email.com" aria-label="Email address" data-i18n-placeholder="s5.subscribe.email.placeholder" data-i18n-aria-label="s5.subscribe.email.aria">
+          <button class="btn btn-solid" type="submit" data-i18n="s5.subscribe.btn">Notify me</button>
         </form>
-        <p id="subscribe-thanks" hidden data-i18n="s5.subscribe.thanks">Ďakujeme. Ozveme sa len vtedy, keď bude niečo nové.</p>
-        <p id="subscribe-error" hidden data-i18n-html="s5.subscribe.error">Nepodarilo sa uložiť. Napíšte na <a href="mailto:andrej@arling.sk">andrej@arling.sk</a>.</p>
-        <p class="fineprint subscribe-privacy"><a href="https://arling.sk/privacy/" data-i18n="s5.subscribe.privacy">Súkromie</a></p>
+        <p id="subscribe-thanks" hidden data-i18n="s5.subscribe.thanks">Thanks. We’ll only write when there’s something new.</p>
+        <p id="subscribe-error" hidden data-i18n-html="s5.subscribe.error">Could not save it. Please write to <a href="mailto:andrej@arling.sk">andrej@arling.sk</a>.</p>
+        <p class="fineprint subscribe-privacy"><a href="https://arling.sk/privacy/" data-i18n="s5.subscribe.privacy">Privacy</a></p>
       </div>
       <div class="ask business-ask" id="business">
-        <p data-i18n-html="s5.business.p"><b>Potrebujete to pre firmu?</b> Hromadné spracovanie, API pre účtovný systém, podpora. Napíšte, čo potrebujete, a odpovieme do 24 hodín.</p>
-        <a class="btn btn-line" id="business-link" href="mailto:andrej@arling.sk?subject=SEPA%20pain.001%20Gener%C3%A1tor%20pre%20firmu" data-umami-event="business_interest" data-i18n="s5.business.btn">Napísať, čo potrebujem</a>
+        <p data-i18n-html="s5.business.p"><b>Need this for a business?</b> Bulk processing, an API for your accounting system, support. Tell us what you need and we’ll reply within 24 hours.</p>
+        <a class="btn btn-line" id="business-link" href="mailto:andrej@arling.sk?subject=SEPA%20pain.001%20Generator%20for%20a%20business" data-umami-event="business_interest" data-i18n="s5.business.btn">Tell us what you need</a>
       </div>
     </div>
   </section>
@@ -846,56 +849,56 @@
   <section id="faq">
     <div class="wrap">
       <p class="kicker">06</p>
-      <h2 data-i18n="s6.h2">Otázky, ktoré ľudia naozaj hľadajú.</h2>
-      <p class="sub" data-i18n="s6.sub">Priame odpovede na otázky o generovaní SEPA pain.001 z Excelu.</p>
+      <h2 data-i18n="s6.h2">Questions people actually search for.</h2>
+      <p class="sub" data-i18n="s6.sub">Direct answers about generating a SEPA pain.001 file from Excel.</p>
 
       <details>
-        <summary data-i18n="faq.q1">Ako pripraviť Excel, aby ho generátor prečítal?</summary>
-        <p data-i18n-html="faq.a1">Označte stĺpce IBAN, suma a názov príjemcu (ideálne aj s hlavičkou v prvom riadku) a skopírujte bunky priamo do textového poľa (Ctrl+C, Ctrl+V): Excel ich prilepí oddelené tabulátormi a generátor to rozpozná automaticky. Rovnako funguje export do CSV oddeleného bodkočiarkou alebo čiarkou, alebo priame nahratie <code>.csv</code>/<code>.txt</code>/<code>.tsv</code> súboru. Ak automatické rozpoznanie stĺpcov netrafí správne pole, opravte ho ručne vo výberoch nad náhľadom platieb.</p>
+        <summary data-i18n="faq.q1">How do I prepare Excel so the generator reads it?</summary>
+        <p data-i18n-html="faq.a1">Select the IBAN, amount and recipient-name columns (ideally with a header row) and copy the cells straight into the text field (Ctrl+C, Ctrl+V): Excel pastes them tab-separated and the generator detects that automatically, in Slovak, English or German headers. A CSV export delimited with a semicolon or comma works the same way, as does uploading a .csv/.txt/.tsv file directly. If the automatic column detection misses a field, fix it by hand in the dropdowns above the payments preview.</p>
       </details>
       <details>
-        <summary data-i18n="faq.q2">Kam sa zapíše variabilný symbol v SEPA XML?</summary>
-        <p data-i18n-html="faq.a2"><code>pain.001.001.03</code> nemá samostatné pole pre variabilný, špecifický ani konštantný symbol. Generátor ich zapíše do <code>PmtId/EndToEndId</code> v poradí <code>/VS.../SS.../KS...</code>, presne podľa konvencie Národnej banky Slovenska: rovnakej, akú kontroluje aj sesterský nástroj <a href="https://arling.sk/sepa-pain001-doctor/">SEPA pain.001 Doctor</a>.</p>
+        <summary data-i18n="faq.q2">Where does the payment reference (VS/SS/KS) go in the SEPA XML?</summary>
+        <p data-i18n-html="faq.a2"><code>pain.001.001.03</code> has no dedicated field for the Slovak variabilný/špecifický/konštantný symbol. In the “Slovakia” profile, the generator writes them into <code>PmtId/EndToEndId</code> as <code>/VS.../SS.../KS...</code>, exactly the National Bank of Slovakia convention checked by the sibling tool, SEPA pain.001 Doctor. In the “Germany (DK)” profile, these three fields don’t exist at all: the text goes into <code>RmtInf/Ustrd</code> (Verwendungszweck), and <code>EndToEndId</code> is taken from its own mapped column, or defaults to “NOTPROVIDED” if left empty.</p>
       </details>
       <details>
-        <summary data-i18n="faq.q3">Ako naimportujem XML do Tatra banky, SLSP, VÚB a ČSOB?</summary>
-        <p data-i18n-html="faq.a3">Stiahnutý <code>.xml</code> súbor nahrajte v internet bankingu do formulára pre hromadný alebo dávkový príkaz (zvyčajne v sekcii Platby → Hromadné platby → Import súboru). Presné umiestnenie sa medzi bankami líši. Ak import zlyhá, skontrolujte najprv hlásenie, ktoré sa zobrazí hneď po vygenerovaní: ukáže presný element, ktorý banka odmietne.</p>
+        <summary data-i18n="faq.q3">How do I import the XML into my bank’s online banking?</summary>
+        <p data-i18n-html="faq.a3">Upload the downloaded .xml file in your bank’s online banking form for a batch/bulk payment (usually under Payments → Bulk payments → Import file). This works the same way at Tatra banka, SLSP, VÚB and ČSOB as at German, Austrian and Swiss banks (for example Sparkasse, Volksbank, Deutsche Bank, Commerzbank, Raiffeisen, Erste, UBS or PostFinance); the exact location differs between banks. If the import fails, check the SEPA pain.001 Doctor report shown right after generation first: it points to the exact element a bank will reject.</p>
       </details>
       <details>
-        <summary data-i18n="faq.q4">Odosielajú sa moje platby niekam?</summary>
-        <p data-i18n-html="faq.a4">Nie. Parsovanie Excelu aj generovanie XML beží celé vo vašom prehliadači. IBAN, sumy ani mená sa nikam neposielajú, nástroj nemá backend. Jedinou sieťovou aktivitou je načítanie statických súborov stránky a anonymné počítadlo použitia (Umami), ktoré zaznamená len to, že prebehlo generovanie a aký bol výsledok kontroly, nikdy obsah platieb.</p>
+        <summary data-i18n="faq.q4">Is my payment data sent anywhere?</summary>
+        <p data-i18n-html="faq.a4">No. Parsing Excel and generating the XML both run entirely in your browser. IBANs, amounts and names are never sent anywhere; the tool has no backend. The only network activity is loading the page’s static files and an anonymous usage counter (Umami), which records only that generation happened and what the check result was, never the content of the payments.</p>
       </details>
       <details>
-        <summary data-i18n="faq.q5">Koľko platieb môže byť v jednom súbore?</summary>
-        <p data-i18n-html="faq.a5">Generátor spracuje najviac 5000 platieb naraz. Ak majú platby rôzny dátum splatnosti, generátor ich automaticky rozdelí do samostatných blokov <code>PmtInf</code> podľa dátumu; Tatra banka aj tak obmedzuje jeden takýto blok na 500 transakcií, na čo kontrola po vygenerovaní upozorní.</p>
+        <summary data-i18n="faq.q5">How many payments can be in one file?</summary>
+        <p data-i18n-html="faq.a5">The generator processes at most 5000 payments at once. If payments have different execution dates, the generator automatically splits them into separate PmtInf blocks by date; Tatra banka still caps one such block at 500 transactions, which SEPA pain.001 Doctor flags after generation.</p>
       </details>
       <details>
-        <summary data-i18n="faq.q6">Prečo banka odmietla súbor aj po kontrole?</summary>
-        <p data-i18n-html="faq.a6">Kontrola po vygenerovaní overuje formátové a bankové pravidlá, ktoré sú verejne zdokumentované, nie stav vášho účtu, existenciu účtu príjemcu ani interné limity banky (napríklad denný limit prevodov). Čistý výsledok preto nie je zárukou prijatia. Ak banka súbor aj tak odmietne, overte v prvom rade presné znenie chyby v internet bankingu.</p>
+        <summary data-i18n="faq.q6">Why did the bank reject the file even after the check?</summary>
+        <p data-i18n-html="faq.a6">SEPA pain.001 Doctor checks publicly documented format and bank-specific rules, not your account’s status, whether the recipient’s account exists, or a bank’s internal limits (e.g. a daily transfer cap). A clean check result is therefore not a guarantee of acceptance. If a bank rejects the file anyway, check the exact error text in internet banking first.</p>
       </details>
       <details>
-        <summary data-i18n="faq.q7">Čo dostanem v Pro?</summary>
-        <p data-i18n-html="faq.a7">Uložené profily platiteľov (IBAN, BIC, banka na jeden klik), generovanie viacerých súborov platieb naraz, predvolené šablóny mapovania stĺpcov pre Pohodu, Omegu (KROS) a Money S3, históriu posledných 50 vygenerovaných príkazov so spätným stiahnutím a prednostnú e-mailovú podporu. Samotné generovanie a kontrola XML sú aj naďalej úplne zadarmo, bez zmeny. Pozrite si <a href="#pro">sekciu Pro</a>.</p>
+        <summary data-i18n="faq.q7">What do I get with Pro?</summary>
+        <p data-i18n-html="faq.a7">Saved payer profiles (IBAN, BIC, bank in one click), generating several payment files at once, preset column-mapping templates for Pohoda, Omega (KROS) and Money S3, a history of the last 50 generated commands with re-download, and priority email support. Generating and checking the XML itself stays completely free, unchanged. See the <a href="#pro">Pro section</a>.</p>
       </details>
       <details>
-        <summary data-i18n="faq.q8">Musím platiť, aby som vygeneroval XML?</summary>
-        <p data-i18n-html="faq.a8">Nie. Generovanie aj kontrola súboru sú a zostávajú zadarmo, bez limitu na počet platieb, súborov ani stiahnutí. Pro je len pohodlie navyše pre toho, kto hromadné príkazy pripravuje opakovane.</p>
+        <summary data-i18n="faq.q8">Do I have to pay to generate an XML?</summary>
+        <p data-i18n-html="faq.a8">No. Generating and checking a file are, and stay, free, with no limit on payments, files, or downloads. Pro is just extra convenience for someone preparing batch payments repeatedly.</p>
       </details>
       <details>
-        <summary data-i18n="faq.q9">Ako dostanem faktúru?</summary>
-        <p data-i18n-html="faq.a9">Faktúru vystaví a pošle na váš e-mail Stripe hneď po zaplatení. Pri tomto predaji je ARLing s. r. o. predajcom cez Stripe Managed Payments: DPH aj vystavenie dokladu rieši priamo Stripe.</p>
+        <summary data-i18n="faq.q9">How do I get an invoice?</summary>
+        <p data-i18n-html="faq.a9">The invoice is issued and emailed to you by Stripe right after payment. For this sale, ARLing s. r. o. sells through Stripe Managed Payments: Stripe itself handles VAT and issuing the document.</p>
       </details>
       <details>
-        <summary data-i18n="faq.q10">Čo ak zmením počítač?</summary>
-        <p data-i18n-html="faq.a10">Licenčný kľúč nie je viazaný na jedno zariadenie. Nájdete ho v e-maile od Stripe po zaplatení; na novom počítači ho stačí vložiť ručne do poľa pre licenčný kľúč v <a href="#pro">sekcii Pro</a> a Pro sa aktivuje aj tam.</p>
+        <summary data-i18n="faq.q10">What if I change computers?</summary>
+        <p data-i18n-html="faq.a10">The licence key isn’t tied to one device. You’ll find it in the email from Stripe after payment; on a new computer, just paste it manually into the licence-key field in the <a href="#pro">Pro section</a>, and Pro activates there too.</p>
       </details>
       <details>
-        <summary data-i18n="faq.q11">Čo ak Pro nechcem, môžem dostať peniaze naspäť?</summary>
-        <p data-i18n-html="faq.a11">Áno. Ak vám Pro nesadne, napíšte do 14 dní od kúpy na <a href="mailto:andrej@arling.sk?subject=Vr%C3%A1tenie%20Pro%20licencie">andrej@arling.sk</a> a peniaze vrátime bez zbytočných otázok.</p>
+        <summary data-i18n="faq.q11">What if I don’t want Pro, can I get a refund?</summary>
+        <p data-i18n-html="faq.a11">Yes. If Pro doesn’t work out for you, write within 14 days of purchase to <a href="mailto:andrej@arling.sk?subject=Vr%C3%A1tenie%20Pro%20licencie">andrej@arling.sk</a> and we’ll refund it, no questions asked.</p>
       </details>
       <details>
-        <summary data-i18n="faq.q12">Čím sa líši profil „Nemecko (DK)“ od „Slovensko“?</summary>
-        <p data-i18n-html="faq.a12">Profil „Nemecko (DK)“ (Deutsche Kreditwirtschaft, pravidlá pre pain.001.001.03 platné v nemeckom bankovníctve) skryje stĺpce VS/ŠS/KS a namiesto nich ponúkne jeden voľný text Verwendungszweck (max. 140 znakov, znaková sada SEPA) a voliteľný stĺpec EndToEndId. Zoznam bánk sa zjednoduší na jednu všeobecnú predlohu „Bank nach DK-Regelwerk (pain.001.001.03)“ namiesto štyroch slovenských bánk, keďže per-bankové pravidlá Tatra banky, SLSP, VÚB a ČSOB sa naň nevzťahujú. BIC zostáva nepovinný, ako pri každom IBAN z krajiny EHP/SEPA.</p>
+        <summary data-i18n="faq.q12">How does the “Germany (DK)” profile differ from “Slovakia”?</summary>
+        <p data-i18n-html="faq.a12">The “Germany (DK)” profile (Deutsche Kreditwirtschaft, the pain.001.001.03 rules used in German banking) hides the VS/SS/KS columns and offers one free-text Verwendungszweck instead (max. 140 characters, SEPA character set) plus an optional EndToEndId column. The bank list collapses to one generic “Bank nach DK-Regelwerk (pain.001.001.03)” preset instead of the four Slovak banks, since Tatra banka/SLSP/VÚB/ČSOB’s own per-bank rules don’t apply to it. BIC stays optional, as for any IBAN from an EEA/SEPA country.</p>
       </details>
     </div>
   </section>
@@ -903,19 +906,19 @@
 
 <footer>
   <div class="wrap cols">
-    <div><b>ARLing s. r. o.</b><br>Ivanská cesta 32E<br>821 04 Bratislava, <span data-i18n="footer.country">Slovensko</span></div>
+    <div><b>ARLing s. r. o.</b><br>Ivanská cesta 32E<br>821 04 Bratislava, <span data-i18n="footer.country">Slovakia</span></div>
     <div>IČO 56583486<br>IČ DPH SK2122352100<br><a href="mailto:andrej@arling.sk">andrej@arling.sk</a></div>
-    <div><span data-i18n="footer.sisters.label">Ďalšie nástroje:</span> <a href="https://arling.sk/sepa-pain001-doctor/" data-i18n="footer.tool.doctor">SEPA pain.001 Doctor</a> · <a href="https://arling.sk/camt053-to-excel/" data-i18n="footer.tool.camt">camt.053 do Excelu</a> · <a href="https://arling.sk/parovac-platieb/" data-i18n="footer.tool.matcher">Párovač platieb</a><br><span data-i18n="footer.bundle.label">Pro pre všetky štyri:</span> <a href="https://arling.sk/bankove-nastroje/" data-i18n="footer.bundle.name">Bankové nástroje pre účtovníkov</a><br><a href="https://arling.sk/" data-i18n="footer.all.tools">Všetky nástroje ARLing</a> · <a href="llms.txt">llms.txt</a> · <a href="https://github.com/AndryRoby/sepa-pain001-generator" target="_blank" rel="noopener">GitHub</a> · <a href="https://arling.sk/privacy/" data-i18n="footer.privacy">Súkromie</a></div>
+    <div><span data-i18n="footer.sisters.label">More tools:</span> <a href="https://arling.sk/sepa-pain001-doctor/" data-i18n="footer.tool.doctor">SEPA pain.001 Doctor</a> · <a href="https://arling.sk/camt053-to-excel/" data-i18n="footer.tool.camt">camt.053 to Excel</a> · <a href="https://arling.sk/parovac-platieb/" data-i18n="footer.tool.matcher">Payment matcher</a><br><span data-i18n="footer.bundle.label">Pro for all four:</span> <a href="https://arling.sk/bankove-nastroje/" data-i18n="footer.bundle.name">Banking tools for accountants</a><br><a href="https://arling.sk/" data-i18n="footer.all.tools">All ARLing tools</a> · <a href="../llms.txt">llms.txt</a> · <a href="https://github.com/AndryRoby/sepa-pain001-generator" target="_blank" rel="noopener">GitHub</a> · <a href="https://arling.sk/privacy/" data-i18n="footer.privacy">Privacy</a></div>
   </div>
-  <p class="wrap footer-note" data-i18n="footer.note">Nič neopúšťa váš prehliadač okrem anonymných počtov použitia cez self-hosted Umami (a e-mailu, ak sa prihlásite na odber nižšie).</p>
+  <p class="wrap footer-note" data-i18n="footer.note">Nothing leaves your browser except anonymous usage counts via self-hosted Umami (and an email address, if you sign up for updates below).</p>
 </footer>
 
 <div class="sticky-cta" id="sticky-cta" hidden>
   <div class="sticky-cta-inner">
-    <span class="sticky-cta-text" data-i18n="s4.sticky.text">Licencia Pro pre všetky štyri nástroje, zrušiť kedykoľvek.</span>
+    <span class="sticky-cta-text" data-i18n="s4.sticky.text">Pro licence for all four tools, cancel anytime.</span>
     <span class="sticky-cta-buttons">
-      <a class="btn btn-solid" id="sticky-buy-yearly-btn" href="https://buy.stripe.com/cNi9ANcYi19FaoW09D4ko02" data-umami-event="buy_click" data-umami-event-plan="year" data-umami-event-place="generator" data-umami-event-spot="sticky" data-i18n="s4.buy.year.btn">Kúpiť Pro, 79&nbsp;€/rok</a>
-      <a class="btn btn-line" id="sticky-buy-monthly-btn" href="https://buy.stripe.com/5kQ4gt2jE7y354Cg8B4ko01" data-umami-event="buy_click" data-umami-event-plan="month" data-umami-event-place="generator" data-umami-event-spot="sticky" data-i18n="s4.buy.month.btn">alebo 9&nbsp;€/mesiac</a>
+      <a class="btn btn-solid" id="sticky-buy-yearly-btn" href="https://buy.stripe.com/cNi9ANcYi19FaoW09D4ko02" data-umami-event="buy_click" data-umami-event-plan="year" data-umami-event-place="generator" data-umami-event-spot="sticky" data-i18n="s4.buy.year.btn">Buy Pro, €79/year</a>
+      <a class="btn btn-line" id="sticky-buy-monthly-btn" href="https://buy.stripe.com/5kQ4gt2jE7y354Cg8B4ko01" data-umami-event="buy_click" data-umami-event-plan="month" data-umami-event-place="generator" data-umami-event-spot="sticky" data-i18n="s4.buy.month.btn">or €9/month</a>
     </span>
     <button type="button" class="sticky-cta-close" id="sticky-cta-close" aria-label="Zavrieť lištu">&times;</button>
   </div>
@@ -923,11 +926,11 @@
 
 <!-- Scripts -->
 <script type="module">
-  import { parseRows, mapColumns, buildXml, bicFromIban, defaultExecDate, autoMsgId } from './generator-pain001.js';
-  import { diagnose } from './doctor-pain001.js';
-  import { isValid as licenceIsValid, load as licenceLoad, save as licenceSave, clear as licenceClear, claim as licenceClaim } from './licence.js';
-  import { applyTemplate, loadProfiles, addProfile, removeProfile, mergeBlockPayments, blockTotals, loadHistory, addHistoryEntry } from './pro.js';
-  import { t, tf, getLang, localeTagForLang, formatAmountForLang, formatDateForLang } from './i18n.js';
+  import { parseRows, mapColumns, buildXml, bicFromIban, defaultExecDate, autoMsgId } from '../generator-pain001.js';
+  import { diagnose } from '../doctor-pain001.js';
+  import { isValid as licenceIsValid, load as licenceLoad, save as licenceSave, clear as licenceClear, claim as licenceClaim } from '../licence.js';
+  import { applyTemplate, loadProfiles, addProfile, removeProfile, mergeBlockPayments, blockTotals, loadHistory, addHistoryEntry } from '../pro.js';
+  import { t, tf, getLang, localeTagForLang, formatAmountForLang, formatDateForLang } from '../i18n.js';
 
   const $ = (id) => document.getElementById(id);
 
@@ -1824,7 +1827,7 @@
     });
   });
 </script>
-<script src="subscribe.js" defer></script>
+<script src="../subscribe.js" defer></script>
 <script>
 (function () {
   var SLUG = 'sepa-pain001-generator';
