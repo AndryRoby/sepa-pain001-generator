@@ -212,7 +212,7 @@ export const DICT = {
   },
 
   // ── section 04: Pro ──────────────────────────────────────────────────
-  's4.h2': { sk: 'Pro na 12 mesiacov. Pre účtovníka, ktorý to robí každý mesiac.', en: 'Pro for 12 months. For a bookkeeper who does this every month.', de: 'Pro für 12 Monate. Für Buchhalter, die das jeden Monat machen.' },
+  's4.h2': { sk: 'Pro pre účtovníka, ktorý to robí každý mesiac.', en: 'Pro for a bookkeeper who does this every month.', de: 'Pro für Buchhalter, die das jeden Monat machen.' },
   's4.sub': {
     sk: 'Bezplatná verzia ostáva bez limitov navždy, na počet platieb, súborov aj stiahnutí. Pro je pohodlie pri opakovanom mesačnom spracovaní, nie odomknutá funkčnosť.',
     en: 'The free version stays unlimited forever: no cap on payments, files, or downloads. Pro is convenience for repeat monthly use, not unlocked core functionality.',
@@ -224,22 +224,22 @@ export const DICT = {
   's4.r2.body': { sk: 'Pridajte viac blokov platieb (napríklad z troch hárkov) a vygenerujte buď samostatný XML pre každý blok, alebo jeden zlúčený súbor.', en: 'Add several payment blocks (e.g. from three spreadsheets) and generate either a separate XML per block, or one merged file.', de: 'Fügen Sie mehrere Zahlungsblöcke hinzu (z. B. aus drei Tabellen) und erstellen Sie entweder eine separate XML je Block oder eine zusammengeführte Datei.' },
   's4.r3.title': { sk: 'Šablóny mapovania stĺpcov.', en: 'Column-mapping templates.', de: 'Vorlagen für Spaltenzuordnung.' },
   's4.r3.body': { sk: 'Predvolené názvy stĺpcov pre exporty z Pohody, Omegy (KROS) alebo Money S3. Mapovanie sa dá aj tak vždy ručne skontrolovať a opraviť.', en: 'Preset column names for exports from Pohoda, Omega (KROS) or Money S3. The mapping can still always be checked and fixed by hand.', de: 'Voreingestellte Spaltennamen für Exporte aus Pohoda, Omega (KROS) oder Money S3. Die Zuordnung lässt sich trotzdem jederzeit manuell prüfen und korrigieren.' },
+  's4.cta.p': {
+    sk: '<b>Jedna licencia pre štyri nástroje.</b> Pro pre SEPA pain.001 Generátor sa aktivuje rovnakou licenciou ako SEPA pain.001 Doctor, camt.053 do Excelu a Párovač platieb: 9&nbsp;€ mesačne alebo 79&nbsp;€ ročne pre všetky štyri nástroje, DPH v cene, faktúru pošle Stripe.',
+    en: '<b>One licence for four tools.</b> Pro for SEPA pain.001 Generátor is activated by the same licence as SEPA pain.001 Doctor, camt.053 do Excelu and Párovač platieb: €9/month or €79/year for all four tools, VAT included, Stripe sends the invoice.',
+    de: '<b>Eine Lizenz für vier Tools.</b> Pro für SEPA pain.001 Generátor wird mit derselben Lizenz aktiviert wie SEPA pain.001 Doctor, camt.053 do Excelu und Párovač platieb: 9&nbsp;€/Monat oder 79&nbsp;€/Jahr für alle vier Tools, inkl. MwSt., die Rechnung stellt Stripe.',
+  },
+  's4.cta.btn': { sk: 'Kúpiť Pro balík', en: 'Get the Pro bundle', de: 'Pro-Paket kaufen' },
+  's4.sticky.text': { sk: 'Pro pre všetky štyri nástroje: 9 €/mesiac alebo 79 €/rok.', en: 'Pro for all four tools: €9/month or €79/year.', de: 'Pro für alle vier Tools: 9 €/Monat oder 79 €/Jahr.' },
+  's4.sticky.btn': { sk: 'Kúpiť Pro balík', en: 'Get the Pro bundle', de: 'Pro-Paket kaufen' },
   's4.r4.title': { sk: 'História príkazov.', en: 'Order history.', de: 'Auftragsverlauf.' },
   's4.r4.body': { sk: 'Posledných 50 vygenerovaných súborov s dátumom, počtom platieb a sumou, uložené len vo vašom prehliadači, vrátane opätovného stiahnutia XML.', en: 'The last 50 generated files with date, payment count and total, stored only in your browser, including re-downloading the XML.', de: 'Die letzten 50 erstellten Dateien mit Datum, Zahlungsanzahl und Summe, nur in Ihrem Browser gespeichert, inklusive erneutem Herunterladen der XML.' },
   's4.r5.title': { sk: 'Prednostná podpora e-mailom.', en: 'Priority email support.', de: 'Bevorzugter E-Mail-Support.' },
   's4.r5.body': { sk: 'Otázka alebo prípad, ktorý si generátor pomýlil? Odpoveď prednostne, priamo od autora nástroja.', en: 'A question, or a case the generator got wrong? A priority reply, directly from the tool’s author.', de: 'Eine Frage oder ein Fall, den der Generator falsch verarbeitet hat? Bevorzugte Antwort, direkt vom Autor des Tools.' },
-  's4.price.amount.suffix': { sk: '/ 12 mesiacov, jednorazovo', en: '/ 12 months, one-time', de: '/ 12 Monate, einmalig' },
-  's4.buy.btn': { sk: 'Kúpiť Pro na 12 mesiacov, 39 €', en: 'Buy Pro for 12 months, €39', de: 'Pro für 12 Monate kaufen, 39 €' },
-  's4.buy.fineprint': { sk: 'Platba cez Stripe. Po zaplatení sa stránka vráti sem a licenciu aktivuje sama, nič netreba kopírovať.', en: 'Payment via Stripe. After paying, the page returns here and activates the licence by itself; nothing needs to be copied.', de: 'Zahlung über Stripe. Nach der Zahlung kehrt die Seite hierher zurück und aktiviert die Lizenz selbst; nichts muss kopiert werden.' },
   's4.licence.manual.label': { sk: 'Licenciu ste kúpili na inom počítači? Vložte licenčný kľúč sem.', en: 'Bought the licence on another computer? Paste the licence key here.', de: 'Lizenz auf einem anderen Computer gekauft? Lizenzschlüssel hier einfügen.' },
   's4.licence.input.placeholder': { sk: 'Licenčný kľúč (dlhý reťazec s bodkou uprostred)', en: 'Licence key (a long string with a dot in the middle)', de: 'Lizenzschlüssel (langer Text mit Punkt in der Mitte)' },
   's4.licence.activate.btn': { sk: 'Aktivovať', en: 'Activate', de: 'Aktivieren' },
   's4.licence.remove.btn': { sk: 'Odstrániť licenciu', en: 'Remove licence', de: 'Lizenz entfernen' },
-  's4.bundle.fineprint': {
-    sk: 'Používate aj camt.053 do Excelu alebo Párovač platieb? Balík <a href="https://arling.sk/bankove-nastroje/">Bankové nástroje pre účtovníkov</a> (od 9&nbsp;€/mesiac) dá jednu licenciu do všetkých štyroch naraz; kľúč z balíka funguje aj tu.',
-    en: 'Also using camt.053 to Excel or Párovač platieb? The <a href="https://arling.sk/bankove-nastroje/">Banking tools for accountants</a> bundle (from €9/month) gives one licence for all four tools at once; a bundle key works here too.',
-    de: 'Nutzen Sie auch camt.053 nach Excel oder Párovač platieb? Das Paket <a href="https://arling.sk/bankove-nastroje/">Banktools für Buchhalter</a> (ab 9&nbsp;€/Monat) gibt eine Lizenz für alle vier Tools zugleich; ein Schlüssel aus dem Paket funktioniert auch hier.',
-  },
 
   // ── section 05: pricing / ask ────────────────────────────────────────
   's5.h2': { sk: 'Zadarmo. Bez limitov, natrvalo.', en: 'Free. No limits, for good.', de: 'Kostenlos. Ohne Limits, dauerhaft.' },
@@ -446,7 +446,7 @@ export const DICT = {
   'js.licence.reason.unsupported': { sk: 'prehliadač nepodporovaný', en: 'browser not supported', de: 'Browser nicht unterstützt' },
   'js.licence.reason.default': { sk: 'neplatná licencia', en: 'invalid licence', de: 'ungültige Lizenz' },
   'js.licence.detail.unsupported': { sk: 'Pro vyžaduje aktuálny prehliadač s podporou WebCrypto Ed25519 (Chrome, Firefox alebo Safari 17+). Aktualizujte prehliadač a skúste znova.', en: 'Pro needs a current browser with WebCrypto Ed25519 support (Chrome, Firefox or Safari 17+). Update your browser and try again.', de: 'Pro benötigt einen aktuellen Browser mit WebCrypto-Ed25519-Unterstützung (Chrome, Firefox oder Safari 17+). Aktualisieren Sie Ihren Browser und versuchen Sie es erneut.' },
-  'js.licence.detail.expired': { sk: 'Táto licencia už vypršala. Kúpou novej licencie získate ďalších 12 mesiacov.', en: 'This licence has already expired. Buying a new licence gets you another 12 months.', de: 'Diese Lizenz ist bereits abgelaufen. Mit dem Kauf einer neuen Lizenz erhalten Sie weitere 12 Monate.' },
+  'js.licence.detail.expired': { sk: 'Táto licencia už vypršala. Kúpou novej licencie ju obnovíte.', en: 'This licence has already expired. Buying a new licence renews it.', de: 'Diese Lizenz ist bereits abgelaufen. Mit dem Kauf einer neuen Lizenz wird sie erneuert.' },
   'js.licence.detail.plan': { sk: 'Tento kľúč platí pre iný produkt ARLing, nie pre SEPA pain.001 Generátor ani balík Bankové nástroje.', en: 'This key is valid for a different ARLing product, not SEPA pain.001 Generator or the Banking tools bundle.', de: 'Dieser Schlüssel gilt für ein anderes ARLing-Produkt, nicht für den SEPA-pain.001-Generator oder das Banktools-Paket.' },
   'js.licence.detail.malformed': { sk: 'Kľúč sa nepodarilo prečítať, skontrolujte, či ste ho skopírovali celý.', en: 'The key could not be read. Check that you copied it in full.', de: 'Der Schlüssel konnte nicht gelesen werden. Prüfen Sie, ob Sie ihn vollständig kopiert haben.' },
   'js.licence.detail.default': { sk: 'Kľúč sa nepodarilo overiť.', en: 'The key could not be verified.', de: 'Der Schlüssel konnte nicht überprüft werden.' },
@@ -683,6 +683,13 @@ export function applyI18n(lang) {
   if (businessLink) {
     businessLink.href = 'mailto:andrej@arling.sk?subject=' + encodeURIComponent(t('s5.business.subject', l));
   }
+
+  // The Pro-section and sticky-bar bundle links send visitors to the
+  // bankove-nastroje bundle page in the language they are already reading.
+  ['pro-bundle-link', 'sticky-bundle-link'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.href = 'https://arling.sk/bankove-nastroje/?lang=' + l;
+  });
 
   try { document.dispatchEvent(new CustomEvent('arling:langchange', { detail: { lang: l } })); } catch (e) {}
 }
