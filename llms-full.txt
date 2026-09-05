@@ -80,7 +80,7 @@ A "profil krajiny" / "country profile" selector next to the bank selector picks 
 - **"sk"** (default, current behaviour): VS/ŠS/KS packed into `EndToEndId`, bank selector offering Tatra banka, SLSP, VÚB, ČSOB, or a generic profile.
 - **"de"** (Deutsche Kreditwirtschaft, DK): no VS/ŠS/KS columns; a Verwendungszweck column instead (max. 140 characters, SEPA character set); an optional `EndToEndId` column; the bank selector collapses to a single generic **"Bank nach DK-Regelwerk (pain.001.001.03)"** preset, since the four Slovak banks' own per-bank rules (execution-date window, transaction cap, diacritics handling) don't apply to a DK-profile file. BIC stays optional for any IBAN from an EEA/SEPA country, per SEPA Regulation (EU) 260/2012 (effective February 2016).
 
-The "de" profile is selected automatically when the page language is German (`?lang=de`), and can be picked manually while browsing in English or Slovak. Column auto-detection recognizes both German (`Betrag`, `Empfänger`, `Verwendungszweck`, `Ausführungsdatum`) and English (`Amount`, `Beneficiary`, `Reference`, `Execution date`) header names in addition to the Slovak ones, regardless of which profile or page language is active.
+The "de" profile is selected automatically when the page language is German (the German page https://arling.sk/sepa-pain001-generator/de/, or `?lang=de` on the root URL), and can be picked manually while browsing in English or Slovak. Column auto-detection recognizes both German (`Betrag`, `Empfänger`, `Verwendungszweck`, `Ausführungsdatum`) and English (`Amount`, `Beneficiary`, `Reference`, `Execution date`) header names in addition to the Slovak ones, regardless of which profile or page language is active.
 
 ## Worked example
 

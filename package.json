@@ -5,6 +5,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "node build-i18n.mjs",
     "test": "node tests.mjs"
   },
   "license": "UNLICENSED",

@@ -1,6 +1,6 @@
 # SEPA pain.001 Generátor: hromadné príkazy pre slovenské banky
 
-> Free, client-side tool that builds a SEPA pain.001 XML batch payment file from payments pasted or uploaded from Excel or CSV. Two country profiles: "sk" (Tatra banka/SLSP/VÚB/ČSOB, variabilný/špecifický/konštantný symbol in EndToEndId) and "de" (Deutsche Kreditwirtschaft, Verwendungszweck instead of VS/SS/KS, optional EndToEndId column, generic DK bank preset). Available in Slovak, English and German (a language switcher in the header, `?lang=sk|en|de`); the "de" profile follows the page language automatically and is selectable in English or Slovak too.
+> Free, client-side tool that builds a SEPA pain.001 XML batch payment file from payments pasted or uploaded from Excel or CSV. Two country profiles: "sk" (Tatra banka/SLSP/VÚB/ČSOB, variabilný/špecifický/konštantný symbol in EndToEndId) and "de" (Deutsche Kreditwirtschaft, Verwendungszweck instead of VS/SS/KS, optional EndToEndId column, generic DK bank preset). Available in Slovak, English and German, each at its own URL: Slovak at https://arling.sk/sepa-pain001-generator/, English at https://arling.sk/sepa-pain001-generator/en/, German at https://arling.sk/sepa-pain001-generator/de/ (a language switcher in the header; the old `?lang=sk|en|de` links on the root URL keep working); the "de" profile follows the page language automatically and is selectable in English or Slovak too.
 
 > Free, client-side tool that builds a SEPA pain.001 XML batch payment file (hromadný príkaz na úhradu) directly from payments pasted or uploaded from Excel or CSV, ready for import into Tatra banka, Slovenská sporiteľňa (SLSP), VÚB, or ČSOB internet banking.
 
@@ -42,7 +42,9 @@ No account, no login, no cookies for the tool itself, no server-side processing 
 
 ## Links
 
-- Tool: https://arling.sk/sepa-pain001-generator/
+- Tool: https://arling.sk/sepa-pain001-generator/ (Slovak)
+- Tool, English: https://arling.sk/sepa-pain001-generator/en/
+- Tool, German: https://arling.sk/sepa-pain001-generator/de/
 - Full reference (input format, BIC table, worked example, FAQ): https://arling.sk/sepa-pain001-generator/llms-full.txt
 - Source code: https://github.com/AndryRoby/sepa-pain001-generator
 - Sibling tool (checks a finished pain.001 file against bank rules): https://arling.sk/sepa-pain001-doctor/

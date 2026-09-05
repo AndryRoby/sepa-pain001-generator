@@ -1,6 +1,6 @@
 # SEPA pain.001 Generátor: hromadné príkazy pre slovenské banky
 
-Live: https://arling.sk/sepa-pain001-generator/
+Live: https://arling.sk/sepa-pain001-generator/ (Slovak) · https://arling.sk/sepa-pain001-generator/en/ (English) · https://arling.sk/sepa-pain001-generator/de/ (German)
 
 **English summary:** a free, client-side tool that turns payments
 pasted from Excel or CSV into a SEPA `pain.001.001.03` XML batch
@@ -210,7 +210,13 @@ activate Pro there too.
 
 ## Running it locally
 
-There's no build step. It's static files.
+Static files, no bundler. The only generated files are the English and
+German pages: `en/index.html` and `de/index.html` are prerendered from
+`index.html` plus the dictionary in `i18n.js` by `build-i18n.mjs`
+(plain Node, no dependencies), so each language has its own URL for
+search engines while the tool's runtime stays one code base. After
+editing `index.html` or `i18n.js`, run `node build-i18n.mjs` and
+commit the two folders; `node tests.mjs` fails while they are stale.
 
 ```bash
 git clone https://github.com/AndryRoby/sepa-pain001-generator.git
