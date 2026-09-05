@@ -28,6 +28,7 @@ export const STORAGE_KEY = 'arling_lang';
 export const DICT = {
   // ── header / nav / language switch ────────────────────────────────────
   'skip': { sk: 'Skočiť na generátor', en: 'Skip to the generator', de: 'Zum Generator springen' },
+  'wordmark': { sk: 'SEPA pain.001 Generátor', en: 'SEPA pain.001 Generator', de: 'SEPA-pain.001-Generator' },
   'brand.sub': { sk: 'nástroj ARLing', en: 'an ARLing tool', de: 'ein ARLing-Tool' },
   'nav.how': { sk: 'Ako to funguje', en: 'How it works', de: 'So funktioniert es' },
   'nav.convert': { sk: 'Generátor', en: 'Generator', de: 'Generator' },
@@ -62,7 +63,7 @@ export const DICT = {
   's1.h2': {
     sk: 'Tri veci, ktoré pri ručnom skladaní XML najčastejšie pokazia súbor.',
     en: 'Three things that most often break a hand-assembled XML file.',
-    de: 'Drei Dinge, die eine handgebaute XML-Datei am häufigsten zerstören.',
+    de: 'Drei Dinge, die eine handgebaute XML-Datei am häufigsten ungültig machen.',
   },
   's1.sub': {
     sk: 'Zložiť pain.001 XML v texťáku alebo vzorci v Exceli sa dá, ale stačí jedna maličkosť a banka súbor odmietne bez vysvetlenia.',
@@ -117,12 +118,12 @@ export const DICT = {
   's2.payer.bic.label': { sk: 'BIC platiteľa', en: 'Payer’s BIC', de: 'BIC des Zahlers' },
   's2.payer.bic.placeholder': { sk: 'odvodí sa z IBAN', en: 'derived from the IBAN', de: 'wird aus der IBAN abgeleitet' },
   's2.payer.bic.hint': {
-    sk: 'Odvodí sa automaticky zo 4-miestneho kódu banky v IBAN. Ak sa nepodarí, vyplňte ručne.',
-    en: 'Derived automatically from the 4-digit bank code in the IBAN. If that fails, fill it in by hand. Since February 2016, BIC has been optional for IBANs from EEA/SEPA countries anyway.',
-    de: 'Wird automatisch aus dem 4-stelligen Bankleitzahl-Code in der IBAN abgeleitet. Gelingt das nicht, tragen Sie es manuell ein. Seit Februar 2016 ist der BIC bei IBANs aus EWR-/SEPA-Ländern ohnehin optional.',
+    sk: 'Pri slovenskom IBAN sa odvodí automaticky zo 4-miestneho kódu banky. Pri IBAN z inej krajiny ho vyplňte ručne.',
+    en: 'For a Slovak IBAN, this is derived automatically from the 4-digit bank code. For an IBAN from another country, fill it in by hand. Since February 2016, BIC has been optional for IBANs from EEA/SEPA countries anyway.',
+    de: 'Bei einer slowakischen IBAN wird das automatisch aus dem 4-stelligen Bankleitzahl-Code abgeleitet. Bei einer IBAN aus einem anderen Land tragen Sie sie bitte manuell ein. Seit Februar 2016 ist der BIC bei IBANs aus EWR-/SEPA-Ländern ohnehin optional.',
   },
   's2.settings.title': { sk: 'Nastavenia', en: 'Settings', de: 'Einstellungen' },
-  's2.bank.label': { sk: 'banka (cieľový import)', en: 'bank (target import)', de: 'Bank (Zielimport)' },
+  's2.bank.label': { sk: 'banka (cieľový import)', en: 'bank (target import)', de: 'Zielbank' },
   's2.execdate.label': { sk: 'dátum splatnosti', en: 'execution date', de: 'Ausführungsdatum' },
   's2.msgid.label': { sk: 'MsgId (nepovinné)', en: 'MsgId (optional)', de: 'MsgId (optional)' },
   's2.msgid.placeholder': { sk: 'auto: ARL-YYYYMMDD-HHMMSS', en: 'auto: ARL-YYYYMMDD-HHMMSS', de: 'automatisch: ARL-YYYYMMDD-HHMMSS' },
@@ -226,8 +227,8 @@ export const DICT = {
   's4.r3.body': { sk: 'Predvolené názvy stĺpcov pre exporty z Pohody, Omegy (KROS) alebo Money S3. Mapovanie sa dá aj tak vždy ručne skontrolovať a opraviť.', en: 'Preset column names for exports from Pohoda, Omega (KROS) or Money S3. The mapping can still always be checked and fixed by hand.', de: 'Voreingestellte Spaltennamen für Exporte aus Pohoda, Omega (KROS) oder Money S3. Die Zuordnung lässt sich trotzdem jederzeit manuell prüfen und korrigieren.' },
   's4.cta.p': {
     sk: '<b>Jedna licencia pre štyri nástroje.</b> Pro pre SEPA pain.001 Generátor sa aktivuje rovnakou licenciou ako SEPA pain.001 Doctor, camt.053 do Excelu a Párovač platieb: 9&nbsp;€ mesačne alebo 79&nbsp;€ ročne pre všetky štyri nástroje, DPH v cene, faktúru pošle Stripe.',
-    en: '<b>One licence for four tools.</b> Pro for SEPA pain.001 Generátor is activated by the same licence as SEPA pain.001 Doctor, camt.053 do Excelu and Párovač platieb: €9/month or €79/year for all four tools, VAT included, Stripe sends the invoice.',
-    de: '<b>Eine Lizenz für vier Tools.</b> Pro für SEPA pain.001 Generátor wird mit derselben Lizenz aktiviert wie SEPA pain.001 Doctor, camt.053 do Excelu und Párovač platieb: 9&nbsp;€/Monat oder 79&nbsp;€/Jahr für alle vier Tools, inkl. MwSt., die Rechnung stellt Stripe.',
+    en: '<b>One licence for four tools.</b> Pro for SEPA pain.001 Generator is activated by the same licence as SEPA pain.001 Doctor, camt.053 to Excel and Payment matcher: €9/month or €79/year for all four tools, VAT included, Stripe sends the invoice.',
+    de: '<b>Eine Lizenz für vier Tools.</b> Pro für den SEPA-pain.001-Generator wird mit derselben Lizenz aktiviert wie SEPA pain.001 Doctor, camt.053 nach Excel und Zahlungsabgleich: 9&nbsp;€/Monat oder 79&nbsp;€/Jahr für alle vier Tools, inkl. MwSt., die Rechnung stellt Stripe.',
   },
   's4.cta.btn': { sk: 'Kúpiť Pro balík', en: 'Get the Pro bundle', de: 'Pro-Paket kaufen' },
   's4.sticky.text': { sk: 'Pro pre všetky štyri nástroje: 9 €/mesiac alebo 79 €/rok.', en: 'Pro for all four tools: €9/month or €79/year.', de: 'Pro für alle vier Tools: 9 €/Monat oder 79 €/Jahr.' },
@@ -295,11 +296,11 @@ export const DICT = {
     en: '<code>pain.001.001.03</code> has no dedicated field for the Slovak variabilný/špecifický/konštantný symbol. In the “Slovakia” profile, the generator writes them into <code>PmtId/EndToEndId</code> as <code>/VS.../SS.../KS...</code>, exactly the National Bank of Slovakia convention checked by the sibling tool, SEPA pain.001 Doctor. In the “Germany (DK)” profile, these three fields don’t exist at all: the text goes into <code>RmtInf/Ustrd</code> (Verwendungszweck), and <code>EndToEndId</code> is taken from its own mapped column, or defaults to “NOTPROVIDED” if left empty.',
     de: '<code>pain.001.001.03</code> hat kein eigenes Feld für den slowakischen variabilný/špecifický/konštantný symbol. Im Profil „Slowakei“ schreibt der Generator diese als <code>/VS.../SS.../KS...</code> in <code>PmtId/EndToEndId</code>, genau nach der Konvention der Národná banka Slovenska, die auch das Schwester-Tool SEPA pain.001 Doctor prüft. Im Profil „Deutschland (DK)“ gibt es diese drei Felder gar nicht: Der Text steht in <code>RmtInf/Ustrd</code> (Verwendungszweck), und <code>EndToEndId</code> wird aus einer eigenen zugeordneten Spalte übernommen oder ist „NOTPROVIDED“, wenn sie leer bleibt.',
   },
-  'faq.q3': { sk: 'Ako naimportujem XML do Tatra banky, SLSP, VÚB a ČSOB?', en: 'How do I import the XML into Tatra banka, SLSP, VÚB or ČSOB?', de: 'Wie importiere ich die XML bei Tatra banka, SLSP, VÚB oder ČSOB?' },
+  'faq.q3': { sk: 'Ako naimportujem XML do internet bankingu?', en: 'How do I import the XML into my bank’s online banking?', de: 'Wie importiere ich die XML in mein Online-Banking?' },
   'faq.a3': {
-    sk: 'Stiahnutý .xml súbor nahrajte v internet bankingu do formulára pre hromadný alebo dávkový príkaz (zvyčajne v sekcii Platby → Hromadné platby → Import súboru). Presné umiestnenie sa medzi bankami líši. Ak import zlyhá, skontrolujte najprv hlásenie od SEPA pain.001 Doctora, ktoré sa zobrazí hneď po vygenerovaní: ukáže presný element, ktorý banka odmietne.',
-    en: 'Upload the downloaded .xml file in your internet banking’s form for a batch/bulk payment (usually under Payments → Bulk payments → Import file). The exact location differs between banks. If the import fails, check the SEPA pain.001 Doctor report shown right after generation first: it points to the exact element a bank will reject.',
-    de: 'Laden Sie die heruntergeladene .xml-Datei im Online-Banking im Formular für Sammel-/Stapelüberweisungen hoch (meist unter Zahlungen → Sammelüberweisungen → Datei importieren). Der genaue Ort unterscheidet sich je Bank. Schlägt der Import fehl, prüfen Sie zuerst den SEPA-pain.001-Doctor-Bericht, der direkt nach der Erstellung angezeigt wird: Er zeigt genau das Element, das eine Bank ablehnen wird.',
+    sk: 'Stiahnutý .xml súbor nahrajte v internet bankingu do formulára pre hromadný alebo dávkový príkaz (zvyčajne v sekcii Platby → Hromadné platby → Import súboru). Platí to pre Tatra banku, SLSP, VÚB aj ČSOB rovnako ako pre nemecké, rakúske a švajčiarske banky (napríklad Sparkasse, Volksbank, Deutsche Bank, Commerzbank, Raiffeisen, Erste, UBS alebo PostFinance), presné umiestnenie sa medzi bankami líši. Ak import zlyhá, skontrolujte najprv hlásenie od SEPA pain.001 Doctora, ktoré sa zobrazí hneď po vygenerovaní: ukáže presný element, ktorý banka odmietne.',
+    en: 'Upload the downloaded .xml file in your bank’s online banking form for a batch/bulk payment (usually under Payments → Bulk payments → Import file). This works the same way at Tatra banka, SLSP, VÚB and ČSOB as at German, Austrian and Swiss banks (for example Sparkasse, Volksbank, Deutsche Bank, Commerzbank, Raiffeisen, Erste, UBS or PostFinance); the exact location differs between banks. If the import fails, check the SEPA pain.001 Doctor report shown right after generation first: it points to the exact element a bank will reject.',
+    de: 'Laden Sie die heruntergeladene .xml-Datei im Online-Banking im Formular für Sammel-/Stapelüberweisungen hoch (meist unter Zahlungen → Sammelüberweisungen → Datei importieren). Das funktioniert bei Tatra banka, SLSP, VÚB und ČSOB genauso wie bei deutschen, österreichischen und Schweizer Banken (zum Beispiel Sparkasse, Volksbank, Deutsche Bank, Commerzbank, Raiffeisen, Erste, UBS oder PostFinance); der genaue Ort unterscheidet sich je Bank. Schlägt der Import fehl, prüfen Sie zuerst den SEPA-pain.001-Doctor-Bericht, der direkt nach der Erstellung angezeigt wird: Er zeigt genau das Element, das eine Bank ablehnen wird.',
   },
   'faq.q4': { sk: 'Odosielajú sa moje platby niekam?', en: 'Is my payment data sent anywhere?', de: 'Werden meine Zahlungsdaten irgendwohin gesendet?' },
   'faq.a4': {
@@ -360,6 +361,15 @@ export const DICT = {
   'footer.sisters.label': { sk: 'Ďalšie nástroje:', en: 'More tools:', de: 'Weitere Tools:' },
   'footer.all.tools': { sk: 'Všetky nástroje ARLing', en: 'All ARLing tools', de: 'Alle ARLing-Tools' },
   'footer.privacy': { sk: 'Súkromie', en: 'Privacy', de: 'Datenschutz' },
+  'footer.tool.doctor': { sk: 'SEPA pain.001 Doctor', en: 'SEPA pain.001 Doctor', de: 'SEPA pain.001 Doctor' },
+  'footer.tool.camt': { sk: 'camt.053 do Excelu', en: 'camt.053 to Excel', de: 'camt.053 nach Excel' },
+  'footer.tool.matcher': { sk: 'Párovač platieb', en: 'Payment matcher', de: 'Zahlungsabgleich' },
+  'footer.bundle.label': { sk: 'Pro pre všetky štyri:', en: 'Pro for all four:', de: 'Pro für alle vier:' },
+  'footer.bundle.name': { sk: 'Bankové nástroje pre účtovníkov', en: 'Banking tools for accountants', de: 'Banktools für Buchhalter' },
+  'footer.country': { sk: 'Slovensko', en: 'Slovakia', de: 'Slowakei' },
+  's2.template.excel': { sk: 'Excel (univerzálny)', en: 'Excel (generic)', de: 'Excel (allgemein)' },
+  's3.code.comment.profile': { sk: "'de': Verwendungszweck namiesto VS/SS/KS", en: "'de': Verwendungszweck instead of VS/SS/KS", de: "'de': Verwendungszweck statt VS/SS/KS" },
+  's3.code.comment.execdate': { sk: 'predvolené: zajtra', en: 'default: tomorrow', de: 'Standard: morgen' },
   'footer.note': {
     sk: 'Nič neopúšťa váš prehliadač okrem anonymných počtov použitia cez self-hosted Umami (a e-mailu, ak sa prihlásite na odber nižšie).',
     en: 'Nothing leaves your browser except anonymous usage counts via self-hosted Umami (and an email address, if you sign up for updates below).',
@@ -379,7 +389,7 @@ export const DICT = {
   },
 
   // ── dynamic JS strings (status pills, errors, dynamic labels) ──────────
-  'js.status.idle': { sk: 'idle', en: 'idle', de: 'idle' },
+  'js.status.idle': { sk: 'pripravené', en: 'idle', de: 'bereit' },
   'js.status.pass': { sk: 'v poriadku', en: 'pass', de: 'in Ordnung' },
   'js.status.warn': { sk: 'upozornenia', en: 'warnings', de: 'Hinweise' },
   'js.status.fail': { sk: 'chyby', en: 'fail', de: 'Fehler' },

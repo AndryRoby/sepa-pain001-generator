@@ -351,6 +351,40 @@ throws('buildXml: throws on zero payments', () => buildXml({ payer: { name: 'X',
   notIncludes('buildXml: no CdtrAgt block when BIC cannot be derived and none supplied', xml, 'CdtrAgt');
 }
 
+// ── GrpHdr/InitgPty and PmtInf/DbtrAgt: both mandatory (minOccurs unset ->
+// 1) in the official pain.001.001.03 XSD (confirmed by validating a
+// generated file against the schema published via iso20022.org's message
+// archive, mirrored at github.com/raphaelm/python-sepaxml). InitgPty was
+// missing outright; DbtrAgt was only written when a BIC could be resolved,
+// which never happens for a non-Slovak payer IBAN (bicFromIban() only
+// matches ^SK\d{22}$) unless the user fills in the BIC field by hand — the
+// exact common case for the "de" profile's German/Austrian/Swiss payers. ──
+{
+  const xml = buildXml({ payer: { name: 'Firma s.r.o.', iban: IBAN_TATRA }, payments: [{ iban: IBAN_VUB, amount: 10, name: 'Jozef' }] });
+  includes('buildXml: GrpHdr carries the mandatory InitgPty element', xml, '<InitgPty>');
+  includes('buildXml: InitgPty/Nm uses the payer name (same party as Dbtr)', xml, '<InitgPty>\n        <Nm>Firma s.r.o.</Nm>\n      </InitgPty>');
+  ok('buildXml: InitgPty appears inside GrpHdr, before the first PmtInf', xml.indexOf('<InitgPty>') > xml.indexOf('<GrpHdr>') && xml.indexOf('<InitgPty>') < xml.indexOf('<PmtInf>'));
+}
+{
+  // Non-Slovak payer IBAN, no explicit BIC given: bicFromIban() cannot
+  // resolve one, so DbtrAgt must still appear (mandatory) with the same
+  // ISO 20022 "NOTPROVIDED" placeholder convention buildEndToEndId() uses.
+  const IBAN_DE_PAYER = 'DE89370400440532013000';
+  const xml = buildXml({ profile: 'de', payer: { name: 'Firma GmbH', iban: IBAN_DE_PAYER }, payments: [{ iban: IBAN_VUB, amount: 10, name: 'Jozef', endToEndId: 'INV-1' }] });
+  includes('buildXml: DbtrAgt is always present even when no payer BIC can be resolved', xml, '<DbtrAgt>');
+  includes('buildXml: DbtrAgt falls back to Othr/Id NOTPROVIDED, not an empty/omitted BIC', xml, '<Othr>\n            <Id>NOTPROVIDED</Id>\n          </Othr>');
+  notIncludes('buildXml: no bare/empty <BIC> element written for the unresolved payer', xml, '<BIC></BIC>');
+}
+{
+  // Payer BIC given explicitly (or resolvable): still exactly one DbtrAgt,
+  // using the real BIC, not the NOTPROVIDED fallback.
+  const xml = buildXml({ payer: { name: 'Firma', iban: 'DE89370400440532013000', bic: 'COBADEFFXXX' }, payments: [{ iban: IBAN_VUB, amount: 10, name: 'Jozef', vs: '1' }] });
+  eq('buildXml: exactly one DbtrAgt block per PmtInf', (xml.match(/<DbtrAgt>/g) || []).length, 1);
+  includes('buildXml: DbtrAgt uses the explicit payer BIC when given', xml, '<BIC>COBADEFFXXX</BIC>');
+  const dbtrAgtBlock = xml.slice(xml.indexOf('<DbtrAgt>'), xml.indexOf('</DbtrAgt>'));
+  notIncludes('buildXml: DbtrAgt does not fall back to NOTPROVIDED when a real payer BIC is known', dbtrAgtBlock, 'NOTPROVIDED');
+}
+
 {
   const xml = buildXml({
     payer: { name: 'Firma', iban: IBAN_TATRA },
@@ -792,6 +826,28 @@ deepEq('sepaCharsetViolations: clean text has no violations', sepaCharsetViolati
   const rows = [['IBAN', 'Betrag', 'Empfänger', 'Verwendungszweck', 'EndToEndId'], [IBAN_DE_1, '10', 'Max', 'Test', longE2e]];
   const mapped = mapColumns(rows, undefined, 'de');
   ok('de profile row validation: EndToEndId over 35 chars flagged (ISO 20022 Max35Text)', mapped.payments[0].errors.some((e) => /35/.test(e)));
+}
+
+// ── de profile: the same DK Anlage 3 charset rule that restricts
+// Verwendungszweck also covers Cdtr/Nm, so an ordinary German surname with
+// an umlaut or ß (Müller, Schäfer, Groß, ...) must be flagged too — before
+// this check existed, a whole batch of perfectly normal German names built
+// "clean" (hasError: false) and only bounced individually at the bank. ────
+{
+  const rows = [['IBAN', 'Betrag', 'Empfänger', 'Verwendungszweck'], [IBAN_DE_1, '10', 'Jürgen Müller', 'Test']];
+  const mapped = mapColumns(rows, undefined, 'de');
+  ok('de profile row validation: umlaut in creditor name is flagged', mapped.payments[0].errors.some((e) => /SEPA/.test(e)));
+  eq('de profile row validation: umlaut name is fine under the sk profile (no SEPA charset check there)', mapColumns(rows, undefined, 'sk').payments[0].hasError, false);
+}
+{
+  const rows = [['IBAN', 'Betrag', 'Empfänger', 'Verwendungszweck'], [IBAN_DE_1, '10', 'Weiß & Groß GmbH', 'Test']];
+  const mapped = mapColumns(rows, undefined, 'de');
+  ok('de profile row validation: eszett (ß) in creditor name is flagged too', mapped.payments[0].errors.some((e) => /SEPA/.test(e)));
+}
+{
+  const rows = [['IBAN', 'Betrag', 'Empfänger', 'Verwendungszweck'], [IBAN_DE_1, '10', 'Max Mustermann', 'Test']];
+  const mapped = mapColumns(rows, undefined, 'de');
+  eq('de profile row validation: a plain-ASCII creditor name has no SEPA charset error', mapped.payments[0].hasError, false);
 }
 
 // ═══════════════════════════ i18n.js: SK/EN/DE dictionary ═══════════════

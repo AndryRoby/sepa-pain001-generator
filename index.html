@@ -487,7 +487,7 @@
 <header class="top">
   <div class="wrap">
     <div class="brand">
-      <a class="wordmark" href="https://arling.sk/sepa-pain001-generator/">SEPA pain.001 Generátor</a>
+      <a class="wordmark" href="https://arling.sk/sepa-pain001-generator/" data-i18n="wordmark">SEPA pain.001 Generátor</a>
       <a class="wordmark-sub" href="https://arling.sk/" data-i18n="brand.sub">nástroj ARLing</a>
     </div>
     <div class="headnav">
@@ -639,7 +639,7 @@
                     <option value="POHODA">Pohoda (Stormware)</option>
                     <option value="OMEGA">Omega (KROS)</option>
                     <option value="MONEY_S3">Money S3 (Seyfor)</option>
-                    <option value="EXCEL">Excel (univerzálny)</option>
+                    <option value="EXCEL" data-i18n="s2.template.excel">Excel (univerzálny)</option>
                   </select>
                   <span class="hint pro-inline-hint" id="pro-template-note" hidden></span>
                 </div>
@@ -720,14 +720,14 @@
 <span class="p">import</span> { diagnose } <span class="p">from</span> <span class="s">'./doctor-pain001.js'</span>;
 <span class="p">// <span data-i18n="s3.code.comment1">alebo globálne: const { parseRows, mapColumns, buildXml, bicFromIban } = window.SepaGenerator;</span></span>
 
-<span class="p">const</span> rows = parseRows(textZExcelu);
+<span class="p">const</span> rows = parseRows(excelRows);
 <span class="p">const</span> { payments } = mapColumns(rows, <span class="b">undefined</span>, profile);
 
 <span class="p">const</span> xml = buildXml({
   <span class="k">bank</span>:     <span class="s">'tatrabanka'</span> <span class="p">| 'slsp' | 'vub' | 'csob' | 'generic'</span>,
-  <span class="k">profile</span>:  <span class="s">'sk'</span> <span class="p">| 'de',  // 'de': Verwendungszweck namiesto VS/SS/KS</span>
+  <span class="k">profile</span>:  <span class="s">'sk'</span> <span class="p">| 'de',  // <span data-i18n="s3.code.comment.profile">'de': Verwendungszweck namiesto VS/SS/KS</span></span>
   <span class="k">payer</span>:    { <span class="p">name, iban, bic</span> },
-  <span class="k">execDate</span>: <span class="s">'2026-09-06'</span><span class="p">,  // default: zajtra</span>
+  <span class="k">execDate</span>: <span class="s">'2026-09-06'</span><span class="p">,  // <span data-i18n="s3.code.comment.execdate">default: zajtra</span></span>
   <span class="k">msgId</span>:    <span class="b">undefined</span><span class="p">,       // default: auto ARL-YYYYMMDD-HHMMSS</span>
   payments<span class="p">,       // {iban, amount, name, vs, ss, ks, message, bic, endToEndId, dateIso}[]</span>
 });
@@ -879,9 +879,9 @@
 
 <footer>
   <div class="wrap cols">
-    <div><b>ARLing s. r. o.</b><br>Ivanská cesta 32E<br>821 04 Bratislava, Slovensko</div>
+    <div><b>ARLing s. r. o.</b><br>Ivanská cesta 32E<br>821 04 Bratislava, <span data-i18n="footer.country">Slovensko</span></div>
     <div>IČO 56583486<br>IČ DPH SK2122352100<br><a href="mailto:andrej@arling.sk">andrej@arling.sk</a></div>
-    <div><span data-i18n="footer.sisters.label">Ďalšie nástroje:</span> <a href="https://arling.sk/sepa-pain001-doctor/">SEPA pain.001 Doctor</a> · <a href="https://arling.sk/supabase-redirect-doctor/" target="_blank" rel="noopener">Supabase Redirect Doctor</a> · <a href="https://arling.sk/flutter-supabase-doctor/" target="_blank" rel="noopener">Flutter Supabase Doctor</a><br><a href="https://arling.sk/" data-i18n="footer.all.tools">Všetky nástroje ARLing</a> · <a href="llms.txt">llms.txt</a> · <a href="https://github.com/AndryRoby/sepa-pain001-generator" target="_blank" rel="noopener">GitHub</a> · <a href="https://arling.sk/privacy/" data-i18n="footer.privacy">Súkromie</a></div>
+    <div><span data-i18n="footer.sisters.label">Ďalšie nástroje:</span> <a href="https://arling.sk/sepa-pain001-doctor/" data-i18n="footer.tool.doctor">SEPA pain.001 Doctor</a> · <a href="https://arling.sk/camt053-to-excel/" data-i18n="footer.tool.camt">camt.053 do Excelu</a> · <a href="https://arling.sk/parovac-platieb/" data-i18n="footer.tool.matcher">Párovač platieb</a><br><span data-i18n="footer.bundle.label">Pro pre všetky štyri:</span> <a href="https://arling.sk/bankove-nastroje/" data-i18n="footer.bundle.name">Bankové nástroje pre účtovníkov</a><br><a href="https://arling.sk/" data-i18n="footer.all.tools">Všetky nástroje ARLing</a> · <a href="llms.txt">llms.txt</a> · <a href="https://github.com/AndryRoby/sepa-pain001-generator" target="_blank" rel="noopener">GitHub</a> · <a href="https://arling.sk/privacy/" data-i18n="footer.privacy">Súkromie</a></div>
   </div>
   <p class="wrap footer-note" data-i18n="footer.note">Nič neopúšťa váš prehliadač okrem anonymných počtov použitia cez self-hosted Umami (a e-mailu, ak sa prihlásite na odber nižšie).</p>
 </footer>

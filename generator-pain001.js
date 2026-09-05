@@ -481,6 +481,20 @@ function buildPaymentRow(cells, mapping, rowNumber, profile) {
       const bad = sepaCharsetViolations(message);
       if (bad.length) errors.push(`Verwendungszweck obsahuje znak mimo znakovej sady SEPA: ${bad.join(' ')}.`);
     }
+    // The same DK (Deutsche Kreditwirtschaft) Anlage 3 character-set rule
+    // that restricts Verwendungszweck applies to the whole message, Cdtr/Nm
+    // included — German umlauts (ä/ö/ü) and ß are not in the permitted SEPA
+    // set and must be transliterated (ä->ae, ö->oe, ü->ue, ß->ss) before
+    // submission, exactly like Verwendungszweck above. Names are exactly
+    // where a German-market user is most likely to hit this (Müller,
+    // Schäfer, Groß, ...), so this is checked here too, not only on the
+    // free-text message: without it, a payment batch of ordinary German
+    // names would build "clean" (hasError: false) and then bounce, silently
+    // and individually, per creditor at the bank.
+    if (name) {
+      const badName = sepaCharsetViolations(name);
+      if (badName.length) errors.push(`Názov príjemcu obsahuje znak mimo znakovej sady SEPA: ${badName.join(' ')}.`);
+    }
   } else {
     if (vs.length > 10) errors.push(`VS má ${vs.length} číslic, maximum je 10.`);
     if (ss.length > 10) errors.push(`ŠS má ${ss.length} číslic, maximum je 10.`);
@@ -628,6 +642,18 @@ function buildTx(p, transliterateValues, profile) {
   return xml;
 }
 
+// DbtrAgt is mandatory (minOccurs unset -> defaults to 1) in
+// PaymentInstructionInformation3 per the official pain.001.001.03 XSD, so it
+// must always be written, unlike CdtrAgt (creditor's own agent) a few lines
+// below in buildTx(), which really is optional (minOccurs="0") in
+// CreditTransferTransactionInformation10 and stays conditional. When no BIC
+// is known for the payer (bicFromIban() only resolves Slovak IBANs, so this
+// is the normal case for the "de" country profile's foreign payer IBANs
+// unless the user fills in the BIC field), FinInstnId falls back to
+// Othr/Id = "NOTPROVIDED", the same ISO 20022 placeholder convention this
+// file already uses for a missing EndToEndId (see buildEndToEndId()) —
+// every child of FinancialInstitutionIdentification7 is itself optional, so
+// this still validates, whereas omitting the element outright does not.
 function buildPmtInf({ index, msgId, date, payerName, payerIban, payerBic, txXml }) {
   const pmtInfId = `${msgId}-P${index + 1}`;
   let xml = `    <PmtInf>
@@ -646,16 +672,15 @@ function buildPmtInf({ index, msgId, date, payerName, payerIban, payerBic, txXml
         <Id>
           <IBAN>${xmlEscape(payerIban)}</IBAN>
         </Id>
-      </DbtrAcct>`;
-  if (payerBic) {
-    xml += `
+      </DbtrAcct>
       <DbtrAgt>
-        <FinInstnId>
-          <BIC>${xmlEscape(payerBic)}</BIC>
+        <FinInstnId>${payerBic ? `
+          <BIC>${xmlEscape(payerBic)}</BIC>` : `
+          <Othr>
+            <Id>NOTPROVIDED</Id>
+          </Othr>`}
         </FinInstnId>
-      </DbtrAgt>`;
-  }
-  xml += `
+      </DbtrAgt>
       <ChrgBr>SLEV</ChrgBr>
 ${txXml}
     </PmtInf>`;
@@ -710,6 +735,13 @@ export function buildXml(config) {
   const creDtTm = nowCreDtTm(cfg.now);
   const ctrlSum = totalSum.toFixed(2);
 
+  // InitgPty (Initiating Party) is mandatory (minOccurs unset -> defaults to
+  // 1) in GroupHeader32 per the official pain.001.001.03 XSD
+  // (urn:iso:std:iso:20022:tech:xsd:pain.001.001.03, checked against the copy
+  // published via iso20022.org's message archive): a file without it fails
+  // strict schema validation, even though the Slovak banks this tool was
+  // first built for tolerate its absence. Modelled as the payer/debtor
+  // initiating their own payment, i.e. the same party as Dbtr.
   return `<?xml version="1.0" encoding="UTF-8"?>
 <Document xmlns="${PAIN_NAMESPACE}">
   <CstmrCdtTrfInitn>
@@ -718,6 +750,9 @@ export function buildXml(config) {
       <CreDtTm>${creDtTm}</CreDtTm>
       <NbOfTxs>${totalCount}</NbOfTxs>
       <CtrlSum>${ctrlSum}</CtrlSum>
+      <InitgPty>${payerName ? `
+        <Nm>${xmlEscape(payerName)}</Nm>` : ''}
+      </InitgPty>
     </GrpHdr>
 ${pmtInfBlocks}
   </CstmrCdtTrfInitn>
