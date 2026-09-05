@@ -410,6 +410,17 @@
   .pro-cta { border:1px solid var(--line); background:var(--paper-2); padding:24px; flex:1 1 280px; min-width:0; }
   .pro-cta p { margin:0 0 16px; color:var(--ink-2); font-size:15px; }
   .pro-cta .btn { display:inline-block; }
+  .pro-buy { display:flex; flex-wrap:wrap; gap:10px; margin:0 0 12px; }
+  .pro-buy .btn { margin:0; text-align:center; }
+  .pro-buy .btn + .btn { margin:0; }
+  .pro-cta p.fineprint { font-size:12.5px; color:var(--muted); margin:0 0 10px; }
+  .pro-cta p.pro-bundle-link { font-size:13.5px; margin:0; }
+  /* Mobile: the buy box comes right after the intro, the three reasons follow (Paper Sell: price early). */
+  @media (max-width:760px) {
+    #pro .wrap { display:flex; flex-direction:column; }
+    #pro .pro-purchase { margin-top:0; }
+    #pro .rules { order:5; margin-top:28px; }
+  }
   .pro-price { border:1px solid var(--line); background:var(--paper-2); padding:24px; }
   .pro-price-amount { font:400 36px/1 var(--serif); margin:0 0 16px; }
   .pro-price-amount span { font:14px/1 var(--sans); color:var(--muted); }
@@ -472,9 +483,17 @@
 
   /* Sticky mobile Pro bar (Paper Sell): mobile only, appears after the hero, closable. */
   .sticky-cta { position:fixed; left:0; right:0; bottom:0; z-index:30; background:var(--paper-2); border-top:1px solid var(--line); }
-  .sticky-cta-inner { display:flex; align-items:center; gap:10px; max-width:1040px; margin:0 auto; padding:10px 14px; }
-  .sticky-cta-text { flex:1 1 auto; min-width:0; font-size:12.5px; color:var(--ink-2); overflow-wrap:anywhere; }
-  .sticky-cta .btn { flex:none; padding:10px 14px; font-size:13.5px; margin:0; }
+  .sticky-cta-inner { display:flex; flex-wrap:wrap; align-items:center; gap:8px 10px; max-width:1040px; margin:0 auto; padding:10px 14px; }
+  .sticky-cta-text { flex:1 1 160px; min-width:0; font-size:12.5px; color:var(--ink-2); overflow-wrap:anywhere; }
+  .sticky-cta-buttons { display:flex; flex-wrap:wrap; gap:8px; flex:none; }
+  .sticky-cta .btn { flex:none; padding:10px 14px; font-size:13.5px; margin:0; white-space:nowrap; }
+  .sticky-cta .btn + .btn { margin:0; }
+  @media (max-width:520px) {
+    .sticky-cta-text { flex:1 1 calc(100% - 40px); }
+    .sticky-cta-close { order:1; }
+    .sticky-cta-buttons { order:2; flex:1 1 100%; }
+    .sticky-cta-buttons .btn { flex:1 1 auto; text-align:center; }
+  }
   .sticky-cta-close { flex:none; width:30px; height:30px; border:1px solid var(--line); background:var(--paper); color:var(--ink-2); border-radius:4px; cursor:pointer; font:16px/1 var(--sans); padding:0; }
   .sticky-cta-close:hover { border-color:var(--accent); color:var(--accent); }
   @media (min-width:761px) { .sticky-cta { display:none !important; } }
@@ -770,7 +789,12 @@
       <div class="pro-purchase">
         <div class="pro-cta">
           <p data-i18n-html="s4.cta.p"><b>Jedna licencia pre štyri nástroje.</b> Pro pre SEPA pain.001 Generátor sa aktivuje rovnakou licenciou ako SEPA pain.001 Doctor, camt.053 do Excelu a Párovač platieb: 9&nbsp;€ mesačne alebo 79&nbsp;€ ročne pre všetky štyri nástroje, DPH v cene, faktúru pošle Stripe.</p>
-          <a class="btn btn-solid" id="pro-bundle-link" href="https://arling.sk/bankove-nastroje/" data-umami-event="bundle_click" data-i18n="s4.cta.btn">Kúpiť Pro balík</a>
+          <div class="pro-buy">
+            <a class="btn btn-solid" id="pro-buy-yearly-btn" href="https://buy.stripe.com/cNi9ANcYi19FaoW09D4ko02" data-umami-event="buy_click" data-umami-event-plan="year" data-umami-event-place="generator" data-umami-event-spot="pro" data-i18n="s4.buy.year.btn">Kúpiť Pro, 79&nbsp;€/rok</a>
+            <a class="btn btn-line" id="pro-buy-monthly-btn" href="https://buy.stripe.com/5kQ4gt2jE7y354Cg8B4ko01" data-umami-event="buy_click" data-umami-event-plan="month" data-umami-event-place="generator" data-umami-event-spot="pro" data-i18n="s4.buy.month.btn">alebo 9&nbsp;€/mesiac</a>
+          </div>
+          <p class="fineprint" data-i18n="s4.buy.fineprint">Platba cez Stripe, DPH v cene, zrušiť môžete kedykoľvek. Licenčný kľúč dostanete hneď po zaplatení na potvrdzovacej stránke.</p>
+          <p class="pro-bundle-link"><a id="pro-bundle-link" href="https://arling.sk/bankove-nastroje/" data-umami-event="bundle_click" data-umami-event-place="generator" data-i18n="s4.bundle.link">Čo všetko je v balíku</a></p>
         </div>
         <div class="pro-licence-box">
           <div class="pro-licence-status">
@@ -781,7 +805,7 @@
             <button class="icon-btn" id="pro-licence-remove-btn" type="button" data-i18n="s4.licence.remove.btn">Odstrániť licenciu</button>
           </div>
           <div class="pro-licence-manual">
-            <label for="pro-licence-input" data-i18n="s4.licence.manual.label">Licenciu ste kúpili na inom počítači? Vložte licenčný kľúč sem.</label>
+            <label for="pro-licence-input" data-i18n="s4.licence.manual.label">Licenčný kľúč nájdete na potvrdzovacej stránke hneď po zaplatení. Kúpili ste ho na inom počítači alebo v inom nástroji? Vložte ho sem.</label>
             <div class="pro-licence-manual-row">
               <input type="text" id="pro-licence-input" placeholder="Licenčný kľúč (dlhý reťazec s bodkou uprostred)" spellcheck="false" autocomplete="off" data-i18n-placeholder="s4.licence.input.placeholder" />
               <button class="icon-btn primary" id="pro-licence-activate-btn" type="button" data-i18n="s4.licence.activate.btn">Aktivovať</button>
@@ -888,8 +912,11 @@
 
 <div class="sticky-cta" id="sticky-cta" hidden>
   <div class="sticky-cta-inner">
-    <span class="sticky-cta-text" data-i18n="s4.sticky.text">Pro pre všetky štyri nástroje: 9 €/mesiac alebo 79 €/rok.</span>
-    <a class="btn btn-solid" id="sticky-bundle-link" href="https://arling.sk/bankove-nastroje/" data-umami-event="bundle_click" data-umami-event-place="sticky" data-i18n="s4.sticky.btn">Kúpiť Pro balík</a>
+    <span class="sticky-cta-text" data-i18n="s4.sticky.text">Licencia Pro pre všetky štyri nástroje, zrušiť kedykoľvek.</span>
+    <span class="sticky-cta-buttons">
+      <a class="btn btn-solid" id="sticky-buy-yearly-btn" href="https://buy.stripe.com/cNi9ANcYi19FaoW09D4ko02" data-umami-event="buy_click" data-umami-event-plan="year" data-umami-event-place="generator" data-umami-event-spot="sticky" data-i18n="s4.buy.year.btn">Kúpiť Pro, 79&nbsp;€/rok</a>
+      <a class="btn btn-line" id="sticky-buy-monthly-btn" href="https://buy.stripe.com/5kQ4gt2jE7y354Cg8B4ko01" data-umami-event="buy_click" data-umami-event-plan="month" data-umami-event-place="generator" data-umami-event-spot="sticky" data-i18n="s4.buy.month.btn">alebo 9&nbsp;€/mesiac</a>
+    </span>
     <button type="button" class="sticky-cta-close" id="sticky-cta-close" aria-label="Zavrieť lištu">&times;</button>
   </div>
 </div>
