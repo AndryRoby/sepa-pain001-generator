@@ -52,6 +52,7 @@ const I18N_ATTRS = {
   'data-i18n': null,
   'data-i18n-html': null,
   'data-i18n-placeholder': 'placeholder',
+  'data-i18n-alt': 'alt',
   'data-i18n-aria-label': 'aria-label',
   'data-i18n-title': 'title',
 };
@@ -162,7 +163,7 @@ function removeAttr(attrs, name) {
 
 function collectI18n(attrs) {
   const out = [];
-  const re = /\s(data-i18n(?:-html|-placeholder|-aria-label|-title)?)\s*=\s*"([^"]*)"/g;
+  const re = /\s(data-i18n(?:-html|-placeholder|-alt|-aria-label|-title)?)\s*=\s*"([^"]*)"/g;
   let m;
   while ((m = re.exec(attrs))) out.push({ attr: m[1], key: m[2] });
   return out;
