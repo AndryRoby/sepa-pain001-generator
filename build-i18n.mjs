@@ -30,6 +30,7 @@
 // The tool's runtime (parsing, conversion, download, Pro) is not touched.
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DICT, LANGS, STORAGE_KEY, ogLocaleForLang } from './i18n.js';
@@ -330,7 +331,7 @@ export function build(lang, sourceHtml) {
   html = relocateUrls(html, lang);
 
   if (problems.length) throw new Error(`build-i18n (${lang}):\n - ` + problems.join('\n - '));
-  return html;
+  return prepocitajCsp(html);
 }
 
 /** Re-scans a built page: every data-i18n* element must carry the
@@ -356,6 +357,32 @@ export function verify(html, lang) {
     return null;
   });
   return problems;
+}
+
+// ─────────────────────── CSP odtlačky vlastnej stránky ───────────────────────
+//
+// Táto stránka vzniká z index.html, ale nie je s ním zhodná: build do nej
+// pridáva vlastný vložený skript, ktorý uloží jazyk priečinka. Odtlačok
+// zdroja preto nesedí a prehliadač zablokuje VŠETKY vložené skripty na
+// stránke, potichu a bez viditeľného príznaku. 6. 9. 2026 boli takto naživo
+// nefunkčné anglické aj nemecké verzie camt.053 a SEPA Generátora.
+//
+// Prepočet je tu zámerne, nie až v ops/design/csp-hash.mjs: keby ho robil až
+// ten, výsledok by sa rozišiel s tým, čo vyrobí `node build-i18n.mjs`, a test
+// na zastarané súbory by padal. Takto je výstup buildu sám v sebe konzistentný
+// a csp-hash na ňom nemá čo opravovať.
+function prepocitajCsp(html) {
+  const csp = html.match(/(<meta[^>]*Content-Security-Policy"[^>]*content=")([^"]+)(")/i);
+  if (!csp) return html;
+  const src = csp[2].match(/script-src ([^;]+)/);
+  if (!src) return html;
+  const inline = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+  const potrebne = [...new Set(inline.map((s) => "'sha256-" + createHash('sha256').update(s, 'utf8').digest('base64') + "'"))];
+  const ostatne = src[1].split(/\s+/).filter((x) => x && !x.startsWith("'sha256-"));
+  const novy = [...ostatne, ...potrebne].join(' ');
+  if (novy === src[1].trim()) return html;
+  const novaPolicy = csp[2].replace(/script-src [^;]+/, 'script-src ' + novy);
+  return html.slice(0, csp.index) + csp[1] + novaPolicy + csp[3] + html.slice(csp.index + csp[0].length);
 }
 
 export function outputPath(lang) {
