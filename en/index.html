@@ -4,7 +4,7 @@
 <script src="/style/vzhlad.js?v=93c2659f"></script>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://homelab.tailbf8f27.ts.net 'sha256-Ra6Uywy+wsJf4KPNx0SzRl80g7NgcrRvVypX9OfV/+M=' 'sha256-QjgVSIt3iK921fCl5AQLTMQosYfXzCOEn7IdwPXA+fc=' 'sha256-JJ0M9x9MDnThIiQvIxQWnb0a7GSiQdIB+iaI1OE23YA=' 'sha256-BtvPTFFizsyu/p9NkYtxmzIBC0/AN2r6vqXVVkHJcY0=' 'sha256-xJwFEuNW98hRmVB4DhvaYDl63XJrfzBCM1jVCEilCKU=' 'sha256-strbyq1BpI+7BIJr0ChKiwrudallB9cNlc0wfYdMxCM='; connect-src 'self' https://homelab.tailbf8f27.ts.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://homelab.tailbf8f27.ts.net 'sha256-Ra6Uywy+wsJf4KPNx0SzRl80g7NgcrRvVypX9OfV/+M=' 'sha256-QjgVSIt3iK921fCl5AQLTMQosYfXzCOEn7IdwPXA+fc=' 'sha256-JJ0M9x9MDnThIiQvIxQWnb0a7GSiQdIB+iaI1OE23YA=' 'sha256-Uq6+fvSZHO/DHlswSBoM+WBTreIuHO0THRICFKzGBEY=' 'sha256-xJwFEuNW98hRmVB4DhvaYDl63XJrfzBCM1jVCEilCKU=' 'sha256-strbyq1BpI+7BIJr0ChKiwrudallB9cNlc0wfYdMxCM='; connect-src 'self' https://homelab.tailbf8f27.ts.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <script>try{localStorage.setItem("arling_lang","en")}catch(e){}</script>
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0a0908">
@@ -1114,7 +1114,7 @@
   function refreshMapping(resetTouched) {
     const rows = parseRows(paymentsInput.value);
     const profile = currentProfile();
-    const auto = mapColumns(rows, undefined, profile);
+    const auto = mapColumns(rows, undefined, profile, getLang());
     const columnCount = auto.columnCount;
     MAPPING_FIELDS.forEach((field) => {
       const sel = $(mapSelectId(field));
@@ -1535,11 +1535,11 @@
     const profile = COUNTRY_PROFILES.includes(cfg.profile) ? cfg.profile : 'sk';
     const schema = cfg.schema === '09' ? '09' : '03';
 
-    const mainMapped = mapColumns(parseRows(cfg.paymentsText), cfg.mapping, profile);
+    const mainMapped = mapColumns(parseRows(cfg.paymentsText), cfg.mapping, profile, getLang());
     const proBlocksActive = licenceState.valid && extraBlocks.length > 0;
     const extraMapped = proBlocksActive
       ? extraBlocks
-        .map((b) => mapColumns(parseRows(b.text), cfg.mapping, profile))
+        .map((b) => mapColumns(parseRows(b.text), cfg.mapping, profile, getLang()))
         .filter((m) => m.payments.length > 0)
       : [];
 
@@ -1548,19 +1548,19 @@
       if (proBlocksActive && extraMapped.length > 0 && $('pro-merge-checkbox').checked) {
         const merged = mergeBlockPayments([{ payments: mainMapped.payments }, ...extraMapped.map((m) => ({ payments: m.payments }))]);
         const xml = buildXml({ bank: cfg.bank, profile, schema, payer, execDate: cfg.execDate, msgId: cfg.msgId, payments: merged });
-        entries = [{ xml, mapped: { payments: merged }, doctorResult: diagnose({ xml, bank: cfg.bank }), filename: downloadFilename(), label: tf('js.mergedfile.label', { n: 1 + extraMapped.length }) }];
+        entries = [{ xml, mapped: { payments: merged }, doctorResult: diagnose({ xml, bank: cfg.bank, lang: getLang() }), filename: downloadFilename(), label: tf('js.mergedfile.label', { n: 1 + extraMapped.length }) }];
         track('pro_feature', { name: 'multi_block_merge', blocks: 1 + extraMapped.length });
       } else if (proBlocksActive && extraMapped.length > 0) {
         const blocks = [mainMapped, ...extraMapped];
         const baseMsgId = (cfg.msgId && cfg.msgId.trim()) || autoMsgId();
         entries = blocks.map((m, i) => {
           const xml = buildXml({ bank: cfg.bank, profile, schema, payer, execDate: cfg.execDate, msgId: `${baseMsgId}-B${i + 1}`, payments: m.payments });
-          return { xml, mapped: m, doctorResult: diagnose({ xml, bank: cfg.bank }), filename: downloadFilename('-blok' + (i + 1)), label: tf('js.blockfile.label', { i: i + 1, n: blocks.length }) };
+          return { xml, mapped: m, doctorResult: diagnose({ xml, bank: cfg.bank, lang: getLang() }), filename: downloadFilename('-blok' + (i + 1)), label: tf('js.blockfile.label', { i: i + 1, n: blocks.length }) };
         });
         track('pro_feature', { name: 'multi_block_separate', blocks: blocks.length });
       } else {
         const xml = buildXml({ bank: cfg.bank, profile, schema, payer, execDate: cfg.execDate, msgId: cfg.msgId, payments: mainMapped.payments });
-        entries = [{ xml, mapped: mainMapped, doctorResult: diagnose({ xml, bank: cfg.bank }), filename: downloadFilename() }];
+        entries = [{ xml, mapped: mainMapped, doctorResult: diagnose({ xml, bank: cfg.bank, lang: getLang() }), filename: downloadFilename() }];
       }
     } catch (e) {
       renderError(e.message);

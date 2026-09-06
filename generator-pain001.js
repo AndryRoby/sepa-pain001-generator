@@ -451,9 +451,95 @@ function nowCreDtTm(base) {
   return d.toISOString().replace(/\.\d{3}Z$/, 'Z');
 }
 
+// ───────────────────────── jazyk hlások pri riadkoch ─────────────────────────
+// Kontrola riadkov hárku hovorí priamo návštevníkovi: "Chýba IBAN", "Adresa
+// nemá mesto". Bez prekladu to nemecký zákazník z reklamy dostal po slovensky.
+// Jazyk sa podáva do mapColumns() ako štvrtý parameter; predvolená je
+// slovenčina, takže staršie volania sa nemenia.
+const HLASKY = {
+  sk: {
+    poleUlica: 'Ulica', poleCislo: 'Číslo domu', polePsc: 'PSČ', poleMesto: 'Mesto',
+    chybaIban: 'Chýba IBAN.',
+    neplatnyIban: 'Neplatný IBAN.',
+    chybaSuma: 'Chýba suma.',
+    sumaNecislo: 'Suma nie je platné číslo.',
+    sumaNekladna: 'Suma musí byť kladná.',
+    chybaNazov: 'Chýba názov príjemcu.',
+    nazovDlhy: (n) => 'Názov má ' + n + ' znakov, maximum je 70.',
+    spravaDlha: (n) => 'Správa má ' + n + ' znakov, maximum je 140.',
+    datumNerozpoznany: 'Dátum sa nepodarilo rozpoznať, použije sa predvolený dátum splatnosti.',
+    e2eDlhy: (n) => 'EndToEndId má ' + n + ' znakov, maximum je 35.',
+    spravaZnaky: (z) => 'Správa pre príjemcu obsahuje znak mimo znakovej sady SEPA: ' + z + '.',
+    nazovZnaky: (z) => 'Názov príjemcu obsahuje znak mimo znakovej sady SEPA: ' + z + '.',
+    vsDlhy: (n) => 'VS má ' + n + ' číslic, maximum je 10.',
+    ssDlhy: (n) => 'ŠS má ' + n + ' číslic, maximum je 10.',
+    ksDlhy: (n) => 'KS má ' + n + ' číslice, maximum je 4.',
+    krajinaNeznama: (k) => 'Krajinu „' + k + '“ nevieme priradiť ku kódu podľa ISO 3166-1. Napíšte dvojpísmenový kód, napríklad SK.',
+    krajinaDoplnena: (k) => 'Krajina adresy nebola uvedená, doplnili sme ' + k + ' podľa IBAN-u. Skontrolujte to.',
+    poleDlhe: (pole, n, max) => pole + ' má ' + n + ' znakov, maximum je ' + max + '.',
+    adresaBezMesta: 'Adresa nemá mesto. Od 15. 11. 2026 banka platbu s takouto adresou odmietne.',
+    adresaBezKrajiny: 'Adresa nemá kód krajiny. Od 15. 11. 2026 banka platbu s takouto adresou odmietne.',
+    adresaNerozobrana: (a) => 'Adresu „' + a + '“ sa nepodarilo rozobrať na mesto a krajinu. Rozdeľte ju do stĺpcov, alebo píšte „Ulica 1, 821 04 Mesto, SK“.',
+  },
+  en: {
+    poleUlica: 'Street', poleCislo: 'Building number', polePsc: 'Post code', poleMesto: 'Town',
+    chybaIban: 'IBAN is missing.',
+    neplatnyIban: 'Invalid IBAN.',
+    chybaSuma: 'Amount is missing.',
+    sumaNecislo: 'The amount is not a valid number.',
+    sumaNekladna: 'The amount must be positive.',
+    chybaNazov: 'The creditor name is missing.',
+    nazovDlhy: (n) => 'The name is ' + n + ' characters, the maximum is 70.',
+    spravaDlha: (n) => 'The remittance text is ' + n + ' characters, the maximum is 140.',
+    datumNerozpoznany: 'The date could not be recognised, the default execution date will be used.',
+    e2eDlhy: (n) => 'EndToEndId is ' + n + ' characters, the maximum is 35.',
+    spravaZnaky: (z) => 'The remittance text contains a character outside the SEPA character set: ' + z + '.',
+    nazovZnaky: (z) => 'The creditor name contains a character outside the SEPA character set: ' + z + '.',
+    vsDlhy: (n) => 'VS has ' + n + ' digits, the maximum is 10.',
+    ssDlhy: (n) => 'ŠS has ' + n + ' digits, the maximum is 10.',
+    ksDlhy: (n) => 'KS has ' + n + ' digits, the maximum is 4.',
+    krajinaNeznama: (k) => 'We cannot map the country "' + k + '" to an ISO 3166-1 code. Write the two-letter code, for example SK.',
+    krajinaDoplnena: (k) => 'The address had no country, we filled in ' + k + ' from the IBAN. Please check it.',
+    poleDlhe: (pole, n, max) => pole + ' is ' + n + ' characters, the maximum is ' + max + '.',
+    adresaBezMesta: 'The address has no town. From 15 November 2026 the bank will reject a payment with such an address.',
+    adresaBezKrajiny: 'The address has no country code. From 15 November 2026 the bank will reject a payment with such an address.',
+    adresaNerozobrana: (a) => 'We could not split the address "' + a + '" into town and country. Put them in separate columns, or write "Street 1, 821 04 Town, SK".',
+  },
+  de: {
+    poleUlica: 'Straße', poleCislo: 'Hausnummer', polePsc: 'PLZ', poleMesto: 'Ort',
+    chybaIban: 'Die IBAN fehlt.',
+    neplatnyIban: 'Ungültige IBAN.',
+    chybaSuma: 'Der Betrag fehlt.',
+    sumaNecislo: 'Der Betrag ist keine gültige Zahl.',
+    sumaNekladna: 'Der Betrag muss positiv sein.',
+    chybaNazov: 'Der Name des Empfängers fehlt.',
+    nazovDlhy: (n) => 'Der Name hat ' + n + ' Zeichen, das Maximum ist 70.',
+    spravaDlha: (n) => 'Der Verwendungszweck hat ' + n + ' Zeichen, das Maximum ist 140.',
+    datumNerozpoznany: 'Das Datum konnte nicht erkannt werden, es wird das voreingestellte Ausführungsdatum verwendet.',
+    e2eDlhy: (n) => 'EndToEndId hat ' + n + ' Zeichen, das Maximum ist 35.',
+    spravaZnaky: (z) => 'Der Verwendungszweck enthält ein Zeichen außerhalb des SEPA-Zeichensatzes: ' + z + '.',
+    nazovZnaky: (z) => 'Der Name des Empfängers enthält ein Zeichen außerhalb des SEPA-Zeichensatzes: ' + z + '.',
+    vsDlhy: (n) => 'VS hat ' + n + ' Ziffern, das Maximum ist 10.',
+    ssDlhy: (n) => 'ŠS hat ' + n + ' Ziffern, das Maximum ist 10.',
+    ksDlhy: (n) => 'KS hat ' + n + ' Ziffern, das Maximum ist 4.',
+    krajinaNeznama: (k) => 'Das Land „' + k + '“ lässt sich keinem Code nach ISO 3166-1 zuordnen. Schreiben Sie den zweibuchstabigen Code, zum Beispiel SK.',
+    krajinaDoplnena: (k) => 'Die Adresse hatte kein Land, wir haben ' + k + ' aus der IBAN ergänzt. Bitte prüfen Sie das.',
+    poleDlhe: (pole, n, max) => pole + ' hat ' + n + ' Zeichen, das Maximum ist ' + max + '.',
+    adresaBezMesta: 'Die Adresse hat keinen Ort. Ab dem 15. November 2026 weist die Bank eine Zahlung mit einer solchen Adresse zurück.',
+    adresaBezKrajiny: 'Die Adresse hat keinen Ländercode. Ab dem 15. November 2026 weist die Bank eine Zahlung mit einer solchen Adresse zurück.',
+    adresaNerozobrana: (a) => 'Die Adresse „' + a + '“ ließ sich nicht in Ort und Land zerlegen. Verteilen Sie sie auf eigene Spalten, oder schreiben Sie „Straße 1, 821 04 Ort, SK“.',
+  },
+};
+
+function hlaskyPre(lang) {
+  const l = typeof lang === 'string' ? lang.slice(0, 2).toLowerCase() : 'sk';
+  return HLASKY[l] || HLASKY.sk;
+}
+
 // ─────────────────────────── row build + validation ────────────────────────
 
-function buildPaymentRow(cells, mapping, rowNumber, profile) {
+function buildPaymentRow(cells, mapping, rowNumber, profile, lang) {
+  const H = hlaskyPre(lang);
   const get = (field) => {
     const idx = mapping[field];
     if (idx === null || idx === undefined || idx < 0) return '';
@@ -479,15 +565,15 @@ function buildPaymentRow(cells, mapping, rowNumber, profile) {
 
   const errors = [];
   const warnings = [];
-  if (!ibanRaw) errors.push('Chýba IBAN.');
-  else if (!checkIban(iban).valid) errors.push('Neplatný IBAN.');
-  if (!amountRaw) errors.push('Chýba suma.');
-  else if (amount === null) errors.push('Suma nie je platné číslo.');
-  else if (amount <= 0) errors.push('Suma musí byť kladná.');
-  if (!name) errors.push('Chýba názov príjemcu.');
-  else if (name.length > 70) errors.push(`Názov má ${name.length} znakov, maximum je 70.`);
-  if (message.length > 140) errors.push(`Správa má ${message.length} znakov, maximum je 140.`);
-  if (dateRaw && !dateIso) errors.push('Dátum sa nepodarilo rozpoznať, použije sa predvolený dátum splatnosti.');
+  if (!ibanRaw) errors.push(H.chybaIban);
+  else if (!checkIban(iban).valid) errors.push(H.neplatnyIban);
+  if (!amountRaw) errors.push(H.chybaSuma);
+  else if (amount === null) errors.push(H.sumaNecislo);
+  else if (amount <= 0) errors.push(H.sumaNekladna);
+  if (!name) errors.push(H.chybaNazov);
+  else if (name.length > 70) errors.push(H.nazovDlhy(name.length));
+  if (message.length > 140) errors.push(H.spravaDlha(message.length));
+  if (dateRaw && !dateIso) errors.push(H.datumNerozpoznany);
 
   if (profile === 'de') {
     // "de" country profile: no VS/ŠS/KS fields at all (Verwendungszweck
@@ -495,10 +581,10 @@ function buildPaymentRow(cells, mapping, rowNumber, profile) {
     // checks below are skipped; EndToEndId and the SEPA character set on
     // Verwendungszweck are checked instead — see FIELD_LIST's comment and
     // resolveEndToEndId() further down.
-    if (endToEndId.length > 35) errors.push(`EndToEndId má ${endToEndId.length} znakov, maximum je 35.`);
+    if (endToEndId.length > 35) errors.push(H.e2eDlhy(endToEndId.length));
     if (message) {
       const bad = sepaCharsetViolations(message);
-      if (bad.length) errors.push(`Verwendungszweck obsahuje znak mimo znakovej sady SEPA: ${bad.join(' ')}.`);
+      if (bad.length) errors.push(H.spravaZnaky(bad.join(' ')));
     }
     // The same DK (Deutsche Kreditwirtschaft) Anlage 3 character-set rule
     // that restricts Verwendungszweck applies to the whole message, Cdtr/Nm
@@ -512,35 +598,35 @@ function buildPaymentRow(cells, mapping, rowNumber, profile) {
     // and individually, per creditor at the bank.
     if (name) {
       const badName = sepaCharsetViolations(name);
-      if (badName.length) errors.push(`Názov príjemcu obsahuje znak mimo znakovej sady SEPA: ${badName.join(' ')}.`);
+      if (badName.length) errors.push(H.nazovZnaky(badName.join(' ')));
     }
   } else {
-    if (vs.length > 10) errors.push(`VS má ${vs.length} číslic, maximum je 10.`);
-    if (ss.length > 10) errors.push(`ŠS má ${ss.length} číslic, maximum je 10.`);
-    if (ks.length > 4) errors.push(`KS má ${ks.length} číslice, maximum je 4.`);
+    if (vs.length > 10) errors.push(H.vsDlhy(vs.length));
+    if (ss.length > 10) errors.push(H.ssDlhy(ss.length));
+    if (ks.length > 4) errors.push(H.ksDlhy(ks.length));
   }
 
   if (address.hasAny) {
     if (address.countryRaw && !address.country) {
-      errors.push(`Krajinu „${address.countryRaw}" nevieme priradiť ku kódu podľa ISO 3166-1. Napíšte dvojpísmenový kód, napríklad SK.`);
+      errors.push(H.krajinaNeznama(address.countryRaw));
     } else if (!address.country) {
       // Krajinu nikto neuviedol. Dopĺňame ju z IBAN-u príjemcu, lebo adresa
       // bez <Ctry> je po 15. 11. 2026 dôvod na odmietnutie celej platby a
       // krajina banky je pri bežnom SEPA príkaze tá istá ako krajina
       // príjemcu. Isté to nie je, preto to hlásime a v tabuľke to vidno.
       address.country = countryFromIban(iban);
-      if (address.country) warnings.push(`Krajina adresy nebola uvedená, doplnili sme ${address.country} podľa IBAN-u. Skontrolujte to.`);
+      if (address.country) warnings.push(H.krajinaDoplnena(address.country));
     }
     for (const pole of ['street', 'buildingNumber', 'postCode', 'town']) {
       const dlzka = address[pole].length;
       if (dlzka > ADRESA_LIMITY[pole]) {
-        errors.push(`${ADRESA_NAZVY[pole]} má ${dlzka} znakov, maximum je ${ADRESA_LIMITY[pole]}.`);
+        errors.push(H.poleDlhe(H[ADRESA_NAZVY[pole]], dlzka, ADRESA_LIMITY[pole]));
       }
     }
-    if (!address.town) warnings.push('Adresa nemá mesto. Od 15. 11. 2026 banka platbu s takouto adresou odmietne.');
-    if (!address.country) warnings.push('Adresa nemá kód krajiny. Od 15. 11. 2026 banka platbu s takouto adresou odmietne.');
+    if (!address.town) warnings.push(H.adresaBezMesta);
+    if (!address.country) warnings.push(H.adresaBezKrajiny);
     if (address.addressRaw && !address.parsedAddress && !address.town) {
-      warnings.push(`Adresu „${address.addressRaw}" sa nepodarilo rozobrať na mesto a krajinu. Rozdeľte ju do stĺpcov, alebo píšte „Ulica 1, 821 04 Mesto, SK".`);
+      warnings.push(H.adresaNerozobrana(address.addressRaw));
     }
   }
 
@@ -585,7 +671,7 @@ function zostavAdresu(get) {
  *   behaviour) or 'de' (no VS/ŠS/KS, EndToEndId column instead — see
  *   buildXml()'s own `profile` option for what this changes in the XML).
  */
-export function mapColumns(rows, overrides, profile) {
+export function mapColumns(rows, overrides, profile, lang) {
   const prof = profile === 'de' ? 'de' : 'sk';
   const allRows = Array.isArray(rows) ? rows : [];
   const columnCount = allRows.reduce((max, r) => Math.max(max, Array.isArray(r) ? r.length : 0), 0);
@@ -607,7 +693,7 @@ export function mapColumns(rows, overrides, profile) {
   const headerLabels = [];
   for (let c = 0; c < columnCount; c++) headerLabels.push(hasHeader && headerRow[c] ? headerRow[c] : `Stĺpec ${c + 1}`);
 
-  const payments = dataRows.map((cells, i) => buildPaymentRow(cells, mapping, i + 1, prof));
+  const payments = dataRows.map((cells, i) => buildPaymentRow(cells, mapping, i + 1, prof, lang));
 
   return { hasHeader, headerLabels, columnCount, detectedMapping, mapping, payments, rowCount: dataRows.length, profile: prof };
 }
@@ -638,7 +724,8 @@ export const TERMIN_ADRESY = '2026-11-15';
 // Dĺžky podľa ISO 20022. Prekročenie hlásime ako chybu riadka, netichým
 // orezaním: skrátená adresa je nesprávna adresa.
 const ADRESA_LIMITY = { street: 70, buildingNumber: 16, postCode: 16, town: 35 };
-const ADRESA_NAZVY = { street: 'Ulica', buildingNumber: 'Číslo domu', postCode: 'PSČ', town: 'Mesto' };
+// Kľúče do HLASKY, nie hotové slová: názov poľa sa prekladá spolu s vetou.
+const ADRESA_NAZVY = { street: 'poleUlica', buildingNumber: 'poleCislo', postCode: 'polePsc', town: 'poleMesto' };
 
 // Kódy alpha-3 a názvy krajín, ktoré sa v slovenských, českých a nemeckých
 // exportoch reálne objavia. Čokoľvek iné musí prísť ako dvojpísmenový kód.
