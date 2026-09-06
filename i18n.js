@@ -448,6 +448,15 @@ export const DICT = {
   },
 
   // ── dynamic JS strings (status pills, errors, dynamic labels) ──────────
+  // Hlavicka ukazkovych dat. Plnia sa z nej rozbalovacie zoznamy priradenia
+  // stlpcov, takze v nej nesmie ostat slovencina na cudzojazycnej stranke.
+  'js.sample.header': {
+    sk: 'IBAN\tSuma\tNázov\tVS\tSpráva\tUlica\tČíslo domu\tPSČ\tMesto\tKrajina',
+    en: 'IBAN\tAmount\tName\tVS\tMessage\tStreet\tBuilding no.\tPost code\tTown\tCountry',
+    de: 'IBAN\tBetrag\tName\tVS\tVerwendungszweck\tStraße\tHausnummer\tPLZ\tOrt\tLand',
+  },
+  'js.sample.invoice': { sk: 'Faktúra č.', en: 'Invoice No.', de: 'Rechnung Nr.' },
+  'js.sample.overpaid': { sk: 'Preplatok', en: 'Overpayment', de: 'Überzahlung' },
   'js.status.idle': { sk: 'pripravené', en: 'idle', de: 'bereit' },
   'js.status.pass': { sk: 'v poriadku', en: 'pass', de: 'in Ordnung' },
   'js.status.warn': { sk: 'upozornenia', en: 'warnings', de: 'Hinweise' },
