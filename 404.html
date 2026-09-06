@@ -7,43 +7,43 @@
 <meta name="robots" content="noindex" />
 <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
 <link rel="alternate icon" href="./favicon.ico" />
+<!-- Vzhľad: jediný zdroj je /style/paper.css (Paper v2), fonty ARLing sú hostené u nás, žiadne externé CDN. -->
+<link rel="preload" href="/fonts/arling-sans.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/arling-serif.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/style/paper.css">
+<noscript><style>.r{opacity:1 !important;transform:none !important;filter:none !important}</style></noscript>
 <style>
-  :root {
-    --paper:#f6f2ea; --paper-2:#fbf9f4; --ink:#1b1a17; --ink-2:#4a4741; --muted:#66625a; --line:#d9d2c4;
-    --accent:#b23a1d; --accent-soft:#f3e2dc;
-    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
-    --sans:system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    --mono:ui-monospace,"Cascadia Code",Consolas,Menlo,monospace;
-    color-scheme: light dark;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root { --paper:#151412; --paper-2:#1d1b18; --ink:#efe9de; --ink-2:#c9c2b5; --muted:#8f887b; --line:#2e2b26; --accent:#e0623f; --accent-soft:#3a1f17; }
-  }
-  * { box-sizing:border-box; }
-  html { background:var(--paper); }
-  body {
-    margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
-    color:var(--ink); background:var(--paper); font:16px/1.55 var(--sans); -webkit-font-smoothing:antialiased;
-  }
-  a { color:inherit; text-decoration-color:var(--line); text-underline-offset:3px; }
-  a:hover { text-decoration-color:var(--accent); }
-  :focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
-  .card { max-width:480px; width:100%; text-align:center; }
-  .kicker { font:400 14px/1 var(--serif); color:var(--accent); letter-spacing:.06em; text-transform:uppercase; margin:0 0 14px; }
-  h1 { font:400 clamp(26px,4.5vw,34px)/1.2 var(--serif); letter-spacing:-.01em; margin:0 0 14px; }
-  p.sub { color:var(--ink-2); font-size:15.5px; margin:0 0 28px; }
-  .btn { display:inline-block; font:600 15px/1 var(--sans); padding:13px 20px; border-radius:4px; text-decoration:none; }
-  .btn-solid { background:var(--accent); color:#fff; }
-  .btn-solid:hover { background:var(--ink); color:var(--paper); }
-  code { font:14px/1.4 var(--mono); background:var(--paper-2); border:1px solid var(--line); border-radius:3px; padding:1px 5px; }
+  /* Len to, čo paper.css nerieši: jedna stredová karta na celú výšku obrazovky. */
+  body { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px 0; }
+  main { width:var(--wrap); max-width:560px; text-align:center; }
+  .lock { display:flex; align-items:center; justify-content:center; gap:11px; margin:0 0 clamp(20px,3vw,32px); flex-wrap:wrap; }
+  .lock svg { display:block; flex:none; }
+  .lock b { font:600 21px/1 var(--display); color:var(--ink); letter-spacing:-.01em; }
+  .lock span { font-family:var(--ui); font-size:13px; color:var(--muted); border-left:1px solid var(--line); padding-left:11px; }
+  h1 { margin:0 0 14px; }
+  .sub { color:var(--body); margin:0 auto clamp(24px,3vw,32px); max-width:44ch; }
+  code { background:var(--card); border:1px solid var(--line); border-radius:4px; padding:1px 5px; }
+  @media (max-width:420px) { .lock span { border-left:none; padding-left:0; } }
 </style>
 </head>
 <body>
-  <div class="card">
-    <p class="kicker">SEPA pain.001 Generátor</p>
-    <h1>Táto stránka neexistuje.</h1>
-    <p class="sub">Aj banka by tento odkaz odmietla. Vráťte sa a namiesto neho si vygenerujte svoj <code>pain.001</code> XML z Excelu.</p>
-    <a class="btn btn-solid" href="./">Späť na SEPA pain.001 Generátor</a>
-  </div>
+<div class="wash" aria-hidden="true"><i></i><i></i></div>
+
+<main id="card">
+  <p class="lock r">
+    <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><defs><path id="m" fill-rule="evenodd" d="M16 2.5 L29 29.5 H3 Z M16 12.4 L22.4 25.6 H9.6 Z"/><clipPath id="mr"><rect x="16" width="16" height="32"/></clipPath></defs><use href="#m" fill="#141413"/><use href="#m" fill="#b23a1d" clip-path="url(#mr)"/></svg>
+    <b>ARLing</b><span>SEPA pain.001 Generátor</span>
+  </p>
+  <h1 class="r d1">Táto stránka neexistuje.</h1>
+  <p class="sub r d2">Aj banka by tento odkaz odmietla. Vráťte sa a namiesto neho si vygenerujte svoj <code>pain.001</code> XML z Excelu.</p>
+  <p class="r d3" style="margin:0"><a class="btn btn-solid" href="./" data-umami-event="404_back">Späť na SEPA pain.001 Generátor</a></p>
+</main>
+
+<script>
+// Jeden pokojný príchod. prefers-reduced-motion vypína všetko, žiadna knižnica.
+document.addEventListener('DOMContentLoaded', function () {
+  document.getElementById('card').classList.add('in');
+});
+</script>
 </body>
 </html>
