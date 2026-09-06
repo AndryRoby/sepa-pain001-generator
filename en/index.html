@@ -4,7 +4,7 @@
 <script src="/style/vzhlad.js?v=93c2659f"></script>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://homelab.tailbf8f27.ts.net 'sha256-Ra6Uywy+wsJf4KPNx0SzRl80g7NgcrRvVypX9OfV/+M=' 'sha256-QjgVSIt3iK921fCl5AQLTMQosYfXzCOEn7IdwPXA+fc=' 'sha256-JJ0M9x9MDnThIiQvIxQWnb0a7GSiQdIB+iaI1OE23YA=' 'sha256-Uq6+fvSZHO/DHlswSBoM+WBTreIuHO0THRICFKzGBEY=' 'sha256-xJwFEuNW98hRmVB4DhvaYDl63XJrfzBCM1jVCEilCKU=' 'sha256-strbyq1BpI+7BIJr0ChKiwrudallB9cNlc0wfYdMxCM='; connect-src 'self' https://homelab.tailbf8f27.ts.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://homelab.tailbf8f27.ts.net 'sha256-Ra6Uywy+wsJf4KPNx0SzRl80g7NgcrRvVypX9OfV/+M=' 'sha256-QjgVSIt3iK921fCl5AQLTMQosYfXzCOEn7IdwPXA+fc=' 'sha256-JJ0M9x9MDnThIiQvIxQWnb0a7GSiQdIB+iaI1OE23YA=' 'sha256-MeugGxwudsC614DbmDFdkYiqNIM+ZYifqwrJi4LXMDk=' 'sha256-ay+1+rvME+Zd0jekRZ0zCs/atq5QcMLAb063a2fWXm0=' 'sha256-strbyq1BpI+7BIJr0ChKiwrudallB9cNlc0wfYdMxCM='; connect-src 'self' https://homelab.tailbf8f27.ts.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <script>try{localStorage.setItem("arling_lang","en")}catch(e){}</script>
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0a0908">
@@ -31,7 +31,7 @@
 <!-- Vzhľad: jediný zdroj je /style/paper.css (Paper v2), fonty ARLing sú hostené u nás, žiadne externé CDN. -->
 <link rel="preload" href="/fonts/arling-sans.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/arling-serif.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/style/paper.css?v=d1ba2c04">
+<link rel="stylesheet" href="/style/paper.css?v=e68fba59">
 <script src="/style/prepinac.js?v=2988c181" defer></script>
 <noscript><style>.r,.w{opacity:1 !important;transform:none !important;filter:none !important}</style></noscript>
 <script defer src="https://homelab.tailbf8f27.ts.net/script.js" data-website-id="eea965a2-3702-404f-b914-9dc007dcdbc2"></script>
@@ -326,7 +326,10 @@
   .big-pill.warn { color:var(--warn); border-color:var(--warn); }
   .big-pill.fail { color:var(--accent); border-color:var(--accent); }
   .result-summary { font-size:13px; color:var(--body); line-height:1.6; margin:10px 0 0; }
-  .warn-banner { border:1px solid var(--accent); background:var(--accent-soft); color:var(--ink); padding:10px 14px; font-size:12.5px; line-height:1.55; border-radius:8px; }
+  /* color je natvrdo tmavohnedá, nie var(--ink): --ink je vo (jedinom, tmavom)
+     motíve stránky #fafafa, takmer biela, na krémovom --accent-soft pozadí by
+     text prakticky zmizol (kontrast cca 1.2:1). */
+  .warn-banner { border:1px solid var(--accent); background:var(--accent-soft); color:#3a1f14; padding:10px 14px; font-size:12.5px; line-height:1.55; border-radius:8px; }
 
   /* Náhľad platieb: na mobile sa každý riadok rozloží na kartu s názvami stĺpcov (data-th) */
   /* bez min-width: v úzkom paneli by posledný stĺpec inak odišiel mimo obraz */
@@ -528,7 +531,7 @@
       <div class="cta r d2"><a class="btn btn-solid" href="#playground" data-umami-event="hero_generator" data-i18n="hero.cta">Create a file</a><a class="btn btn-line" href="https://github.com/AndryRoby/sepa-pain001-generator" target="_blank" rel="noopener" data-umami-event="hero_source" data-i18n="hero.source">Source code on GitHub</a></div>
       <ul class="facts proof r d3">
         <li data-i18n="hero.fact.banks">4 Slovak banks, plus a generic DE (Deutsche Kreditwirtschaft) profile</li>
-        <li data-i18n="hero.fact.tests">277 automated tests</li>
+        <li data-i18n="hero.fact.tests">456 automated tests</li>
         <li data-i18n="hero.fact.maxpayments">max. 5000 payments</li>
         <li data-i18n="hero.fact.free">€0, no account</li>
         <li data-i18n="hero.fact.browser">runs in your browser</li>
@@ -1385,7 +1388,9 @@
   function downloadFilename(suffix) {
     const d = new Date();
     const pad = (n) => String(n).padStart(2, '0');
-    return `hromadny-prikaz-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}${suffix || ''}.xml`;
+    // Predpona je jazyková (t('js.filename.prefix')), lebo meno súboru sa
+    // zobrazuje aj priamo v paneli s výsledkom, nielen pri stiahnutí.
+    return `${t('js.filename.prefix')}-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}${suffix || ''}.xml`;
   }
 
   function triggerXmlDownload(xml, filename) {
@@ -1592,7 +1597,7 @@
   generateBtn.addEventListener('click', generate);
 
   sampleBtn.addEventListener('click', () => {
-    configToForm({ payer: SAMPLE_PAYER, bank: 'tatrabanka', profile: 'sk', execDate: defaultExecDate(), msgId: '', paymentsText: SAMPLE_PAYMENTS_TEXT, mapping: {} });
+    configToForm({ payer: { ...SAMPLE_PAYER, name: t('s2.payer.name.placeholder') }, bank: 'tatrabanka', profile: 'sk', execDate: defaultExecDate(), msgId: '', paymentsText: SAMPLE_PAYMENTS_TEXT, mapping: {} });
     if (jsonPane && !jsonPane.hidden) jsonInput.value = JSON.stringify(formConfigAsJsonObj(), null, 2);
     lastXml = ''; lastResult = null; lastResults = [];
     extraBlocks = [];
@@ -1899,7 +1904,7 @@
   // detected language even though our 'arling:langchange' listener above
   // was registered too late to catch that very first dispatch.
   const initialProfile = getLang() === 'de' ? 'de' : 'sk';
-  configToForm({ payer: SAMPLE_PAYER, bank: 'tatrabanka', profile: initialProfile, execDate: defaultExecDate(), msgId: '', paymentsText: SAMPLE_PAYMENTS_TEXT, mapping: {} });
+  configToForm({ payer: { ...SAMPLE_PAYER, name: t('s2.payer.name.placeholder') }, bank: 'tatrabanka', profile: initialProfile, execDate: defaultExecDate(), msgId: '', paymentsText: SAMPLE_PAYMENTS_TEXT, mapping: {} });
   profileTouched = false; // initial profile above was only a language-based default, not a visitor's own choice, see the 'arling:langchange' listener
   jsonInput.value = JSON.stringify(formConfigAsJsonObj(), null, 2);
   loadSettingsFromHash(); // only overrides bank / profile / execDate / msgId, never payer or payments
@@ -1941,11 +1946,21 @@
     var KEY = 'arling_sticky_closed_' + SLUG;
     var closeBtn = document.getElementById('sticky-cta-close');
     var hero = document.querySelector('.hero');
+    // #pro má tie isté nákupné tlačidlá ako lišta a pätička má vlastné odkazy
+    // pod lištou - keď je niektoré z nich v zábere, lišta by ich len
+    // prekrývala alebo duplikovala, tak sa má schovať.
+    var proEl = document.getElementById('pro');
+    var footerEl = document.querySelector('footer');
     var isClosed = function () { try { return sessionStorage.getItem(KEY) === '1'; } catch (e) { return false; } };
     var onScroll = function () {
       if (isClosed()) { bar.hidden = true; return; }
       var pastHero = !hero || hero.getBoundingClientRect().bottom <= 0;
-      bar.hidden = !pastHero;
+      var proRect = proEl ? proEl.getBoundingClientRect() : null;
+      // aj horná aj dolná hranica, nech sa lišta po prejdení #pro (napr. v
+      // #faq) zase ukáže, a neschová sa natrvalo len preto, že top je záporný
+      var proVisible = !!proRect && proRect.top < window.innerHeight && proRect.bottom > 0;
+      var footerVisible = !!footerEl && footerEl.getBoundingClientRect().top < window.innerHeight;
+      bar.hidden = !pastHero || proVisible || footerVisible;
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
