@@ -8,6 +8,7 @@ import {
   parseRows, mapColumns, buildXml, bicFromIban, parseAmount, parseFlexibleDate,
   buildEndToEndId, resolveEndToEndId, checkIban, transliterate, autoMsgId, defaultExecDate, MAX_PAYMENTS,
   isSepaCharset, sepaCharsetViolations,
+  normalizeCountry, countryFromIban, parseAddressLine, PAIN_NAMESPACES, TERMIN_ADRESY,
 } from './generator-pain001.js';
 import { diagnose } from './doctor-pain001.js';
 import { parse as parseLicence, verify as verifyLicence, isValid as isValidLicence, load as loadLicence, save as saveLicence, clear as clearLicence, todayIso as licenceTodayIso, STORAGE_KEY as LICENCE_STORAGE_KEY, DEFAULT_PLAN, BUNDLE_PLAN, BUNDLE_STORAGE_KEY, ACCEPTED_PLANS, STORAGE_KEYS as LICENCE_STORAGE_KEYS } from './licence.js';
@@ -58,6 +59,11 @@ function notIncludes(name, haystack, needle) {
   const cond = typeof haystack === 'string' && !haystack.includes(needle);
   ok(name, cond, cond ? '' : `did not expect string to include ${JSON.stringify(needle)}`);
 }
+// Krížové kontroly Doctorom majú pripnutý dátum. Bez neho by sa správanie
+// suity samo zmenilo 15. 11. 2026, keď Doctor začne k pain.001.001.03
+// pripisovať výhradu k verzii správy (pozri TERMIN_ADRESY).
+const DNES_PRED = '2026-10-01';
+
 function throws(name, fn, matcher) {
   try {
     fn();
@@ -427,7 +433,7 @@ throws('buildXml: throws on zero payments', () => buildXml({ payer: { name: 'X',
       { iban: IBAN_VUB_2, amount: 450, name: 'Jozef Novak', vs: '123', ss: '456', ks: '0308', message: 'Faktura 2026-1' },
     ],
   });
-  const result = diagnose({ xml, bank: 'vub' });
+  const result = diagnose({ xml, bank: 'vub', dnes: DNES_PRED });
   const highs = result.problems.filter((p) => p.severity === 'high');
   eq('integration (VUB): a clean, fully-specified payment produces zero high-severity Doctor problems', highs.length, 0, JSON.stringify(highs));
   eq('integration (VUB): Doctor status is not "fail"', result.status !== 'fail', true);
@@ -440,7 +446,7 @@ throws('buildXml: throws on zero payments', () => buildXml({ payer: { name: 'X',
     execDate: defaultExecDate(),
     payments: [{ iban: IBAN_VUB, amount: 99.9, name: 'Maria Nova', vs: '1', message: 'Test' }],
   });
-  const result = diagnose({ xml, bank: 'tatrabanka' });
+  const result = diagnose({ xml, bank: 'tatrabanka', dnes: DNES_PRED });
   const highs = result.problems.filter((p) => p.severity === 'high');
   eq('integration (Tatra banka): clean payment produces zero high-severity Doctor problems', highs.length, 0, JSON.stringify(highs));
 }
@@ -452,7 +458,7 @@ throws('buildXml: throws on zero payments', () => buildXml({ payer: { name: 'X',
   const parsed = mapColumns(rows);
   ok('mapColumns flags the deliberately-broken sample IBAN as invalid', parsed.payments[0].errors.some((e) => /IBAN/.test(e)));
   const xml = buildXml({ payer: { name: 'Firma', iban: IBAN_TATRA }, payments: parsed.payments });
-  const result = diagnose({ xml, bank: 'generic' });
+  const result = diagnose({ xml, bank: 'generic', dnes: DNES_PRED });
   ok('integration: Doctor also catches the same broken IBAN post-generation', result.problems.some((p) => p.code === 'cdtr_iban_invalid'));
 }
 
@@ -789,7 +795,7 @@ eq('resolveEndToEndId: unknown profile falls back to "sk" behaviour', resolveEnd
   notIncludes('de profile XML: no "/SS" reference symbol anywhere in the file', xml, '/SS');
   notIncludes('de profile XML: no "/KS" reference symbol anywhere in the file', xml, '/KS');
   includes('de profile XML: stays pain.001.001.03', xml, 'urn:iso:std:iso:20022:tech:xsd:pain.001.001.03');
-  const result = diagnose({ xml, bank: 'generic' });
+  const result = diagnose({ xml, bank: 'generic', dnes: DNES_PRED });
   eq('de profile XML: Doctor status is not "fail"', result.status !== 'fail', true);
 }
 {
@@ -1031,6 +1037,243 @@ eq('ogLocaleForLang: en -> en_US', ogLocaleForLang('en'), 'en_US');
   const llms = norm(readFileSync(new URL('./llms.txt', import.meta.url), 'utf8'));
   includes('llms.txt mentions the German URL', llms, langUrl('de'));
   includes('llms.txt mentions the English URL', llms, langUrl('en'));
+}
+
+
+// ═════════════════ štruktúrovaná adresa a pain.001.001.09 ═════════════════
+//
+// Termín 15. 11. 2026: keď je v SEPA správe uvedená poštová adresa, musí mať
+// aspoň mesto a kód krajiny. Dovtedy generátor adresu nezapisoval vôbec,
+// takže každý súbor s adresou vyrobený týmto nástrojom by banka po termíne
+// odmietla. Tieto testy strážia, že to platí aj v .03, aj v .09.
+
+const DNES_PO = '2026-11-20';
+
+{
+  eq('krajina: dvojpísmenový kód prejde', normalizeCountry('sk'), 'SK');
+  eq('krajina: názov po slovensky', normalizeCountry('Slovensko'), 'SK');
+  eq('krajina: názov po česky s diakritikou', normalizeCountry('Česká republika'), 'CZ');
+  eq('krajina: to isté slovo česky aj slovensky', normalizeCountry('Německo'), normalizeCountry('Nemecko'));
+  eq('krajina: nemecký názov', normalizeCountry('Österreich'), 'AT');
+  eq('krajina: alpha-3', normalizeCountry('SVK'), 'SK');
+  eq('krajina: neznámy text nevymýšľame', normalizeCountry('Kdesi za horami'), '');
+  eq('krajina: prázdna hodnota', normalizeCountry(''), '');
+  eq('krajina z IBAN-u', countryFromIban(IBAN_TATRA), 'SK');
+  eq('krajina z nezmyselného IBAN-u', countryFromIban('123'), '');
+}
+
+{
+  const a = parseAddressLine('Ivanská cesta 32E, 821 04 Bratislava, Slovensko');
+  eq('adresa v jednom stĺpci: ulica', a.street, 'Ivanská cesta');
+  eq('adresa v jednom stĺpci: číslo domu', a.buildingNumber, '32E');
+  eq('adresa v jednom stĺpci: PSČ', a.postCode, '821 04');
+  eq('adresa v jednom stĺpci: mesto', a.town, 'Bratislava');
+  eq('adresa v jednom stĺpci: krajina', a.country, 'SK');
+  ok('adresa v jednom stĺpci: rozobratá', a.parsed);
+
+  const b = parseAddressLine('Hlavná 12, 811 01 Bratislava');
+  eq('adresa bez krajiny: mesto sa nájde', b.town, 'Bratislava');
+  eq('adresa bez krajiny: krajina zostane prázdna', b.country, '');
+
+  const c = parseAddressLine('Bahnhofstrasse 7a, Berlin 10115, DE');
+  eq('adresa s PSČ za mestom: mesto', c.town, 'Berlin');
+  eq('adresa s PSČ za mestom: PSČ', c.postCode, '10115');
+
+  const d = parseAddressLine('nejaký nezmysel bez čiarky');
+  ok('nerozoberateľná adresa: nehádame', !d.parsed);
+  eq('nerozoberateľná adresa: mesto ostane prázdne', d.town, '');
+}
+
+{
+  // Hlavičky po slovensky, nemecky a anglicky.
+  const sk = mapColumns([['IBAN', 'Suma', 'Nazov', 'Ulica', 'Cislo domu', 'PSC', 'Mesto', 'Krajina'], []]);
+  eq('hlavičky sk: ulica', sk.mapping.street, 3);
+  eq('hlavičky sk: číslo domu', sk.mapping.buildingNumber, 4);
+  eq('hlavičky sk: PSČ', sk.mapping.postCode, 5);
+  eq('hlavičky sk: mesto', sk.mapping.town, 6);
+  eq('hlavičky sk: krajina', sk.mapping.country, 7);
+
+  const de = mapColumns([['IBAN', 'Betrag', 'Name', 'Strasse', 'Hausnummer', 'PLZ', 'Ort', 'Land'], []]);
+  eq('hlavičky de: ulica', de.mapping.street, 3);
+  eq('hlavičky de: číslo domu', de.mapping.buildingNumber, 4);
+  eq('hlavičky de: PSČ', de.mapping.postCode, 5);
+  eq('hlavičky de: mesto', de.mapping.town, 6);
+  eq('hlavičky de: krajina', de.mapping.country, 7);
+
+  const en = mapColumns([['IBAN', 'Amount', 'Beneficiary', 'Street', 'Postal code', 'City', 'Country'], []]);
+  eq('hlavičky en: mesto', en.mapping.town, 5);
+  eq('hlavičky en: krajina', en.mapping.country, 6);
+
+  // Krátke slová sú ukotvené, aby nechytali nesúvisiace stĺpce.
+  const falosne = mapColumns([['IBAN', 'Suma', 'Nazov', 'Sortiment', 'Stredisko'], []]);
+  eq('krátke vzory nechytia Sortiment', falosne.mapping.town, null);
+  eq('krátke vzory nechytia Stredisko', falosne.mapping.street, null);
+}
+
+{
+  const r = mapColumns([
+    ['IBAN', 'Suma', 'Nazov', 'Adresa'],
+    [IBAN_VUB_2, '10', 'Jozef Novak', 'Hlavná 12, 811 01 Bratislava, SK'],
+  ]);
+  eq('spoločný stĺpec Adresa sa rozpozná', r.mapping.address, 3);
+  eq('spoločný stĺpec: mesto', r.payments[0].address.town, 'Bratislava');
+  eq('spoločný stĺpec: krajina', r.payments[0].address.country, 'SK');
+
+  const r2 = mapColumns([
+    ['IBAN', 'Suma', 'Nazov', 'Adresa', 'Mesto'],
+    [IBAN_VUB_2, '10', 'Jozef Novak', 'Hlavná 12, 811 01 Bratislava, SK', 'Košice'],
+  ]);
+  eq('samostatný stĺpec má prednosť pred spoločným', r2.payments[0].address.town, 'Košice');
+}
+
+{
+  // Krajina chýba: doplní sa z IBAN-u, ale nahlási sa to.
+  const r = mapColumns([
+    ['IBAN', 'Suma', 'Nazov', 'Mesto'],
+    [IBAN_VUB_2, '10', 'Jozef Novak', 'Bratislava'],
+  ]);
+  eq('chýbajúca krajina sa doplní z IBAN-u', r.payments[0].address.country, 'SK');
+  ok('doplnenie krajiny sa nahlási', r.payments[0].hasWarning);
+  ok('riadok s doplnenou krajinou nie je chybný', !r.payments[0].hasError);
+
+  // Mesto chýba: to už doplniť nevieme, len upozorníme.
+  const r2 = mapColumns([
+    ['IBAN', 'Suma', 'Nazov', 'Ulica'],
+    [IBAN_VUB_2, '10', 'Jozef Novak', 'Hlavná 12'],
+  ]);
+  ok('chýbajúce mesto sa nahlási', r2.payments[0].warnings.join(' ').indexOf('mesto') !== -1);
+  ok('upozornenie spomína termín', r2.payments[0].warnings.join(' ').indexOf('15. 11. 2026') !== -1);
+
+  // Nezrozumiteľná krajina je chyba riadka, nie tiché zahodenie.
+  const r3 = mapColumns([
+    ['IBAN', 'Suma', 'Nazov', 'Mesto', 'Krajina'],
+    [IBAN_VUB_2, '10', 'Jozef Novak', 'Bratislava', 'Kdesi za horami'],
+  ]);
+  ok('nezrozumiteľná krajina je chyba', r3.payments[0].hasError);
+  ok('chyba menuje ISO 3166-1', r3.payments[0].errors.join(' ').indexOf('ISO 3166-1') !== -1);
+
+  // Príliš dlhé mesto je chyba, nie tiché orezanie.
+  const r4 = mapColumns([
+    ['IBAN', 'Suma', 'Nazov', 'Mesto', 'Krajina'],
+    [IBAN_VUB_2, '10', 'Jozef Novak', 'M'.repeat(36), 'SK'],
+  ]);
+  ok('mesto nad 35 znakov je chyba', r4.payments[0].errors.join(' ').indexOf('Mesto má 36 znakov') !== -1);
+
+  // Bez adresných stĺpcov sa nič nemení a nič sa nehlási.
+  const r5 = mapColumns([['IBAN', 'Suma', 'Nazov'], [IBAN_VUB_2, '10', 'Jozef Novak']]);
+  ok('bez adresy žiadne upozornenie', !r5.payments[0].hasWarning);
+  ok('bez adresy hasAny je false', !r5.payments[0].address.hasAny);
+}
+
+function xmlSAdresou(schema, bank) {
+  return buildXml({
+    schema,
+    bank: bank || 'generic',
+    payer: {
+      name: 'ARLing s. r. o.',
+      iban: IBAN_TATRA,
+      address: { street: 'Ivanská cesta', buildingNumber: '32E', postCode: '821 04', town: 'Bratislava', country: 'Slovensko' },
+    },
+    execDate: '2026-11-20',
+    msgId: 'TEST-ADR',
+    now: new Date('2026-11-16T09:00:00Z'),
+    payments: [{
+      iban: IBAN_VUB_2, amount: 120.5, name: 'Jozef Novak', vs: '2026001', message: 'Faktura 1',
+      bic: 'SUBASKBX',
+      address: { street: 'Hlavná', buildingNumber: '12', postCode: '811 01', town: 'Bratislava', country: 'SK' },
+    }],
+  });
+}
+
+{
+  const x03 = xmlSAdresou('03');
+  includes('.03: menný priestor', x03, PAIN_NAMESPACES['03']);
+  includes('.03: adresa platiteľa', x03, '<TwnNm>Bratislava</TwnNm>');
+  includes('.03: adresa príjemcu má ulicu', x03, '<StrtNm>Hlavná</StrtNm>');
+  includes('.03: kód banky sa volá BIC', x03, '<BIC>SUBASKBX</BIC>');
+  includes('.03: dátum je priamo v ReqdExctnDt', x03, '<ReqdExctnDt>2026-11-20</ReqdExctnDt>');
+  notIncludes('.03: žiadne BICFI', x03, 'BICFI');
+  eq('.03: dva bloky PstlAdr (platiteľ a príjemca)', (x03.match(/<PstlAdr>/g) || []).length, 2);
+
+  // Poradie prvkov je v PostalAddress6 aj PostalAddress24 dané schémou.
+  // Keby sa prehodilo, banka súbor odmietne pri validácii, nie pri čítaní.
+  const blok = x03.slice(x03.indexOf('<PstlAdr>'), x03.indexOf('</PstlAdr>'));
+  const poradie = (blok.match(/<(StrtNm|BldgNb|PstCd|TwnNm|Ctry)>/g) || []).join('');
+  eq('.03: poradie prvkov adresy podľa schémy', poradie, '<StrtNm><BldgNb><PstCd><TwnNm><Ctry>');
+}
+
+{
+  const x09 = xmlSAdresou('09');
+  includes('.09: menný priestor', x09, PAIN_NAMESPACES['09']);
+  includes('.09: dátum je zabalený v Dt', x09, '<ReqdExctnDt>\n        <Dt>2026-11-20</Dt>');
+  includes('.09: kód banky sa volá BICFI', x09, '<BICFI>SUBASKBX</BICFI>');
+  notIncludes('.09: žiadny holý BIC element', x09, '<BIC>');
+  eq('.09: dva bloky PstlAdr', (x09.match(/<PstlAdr>/g) || []).length, 2);
+  const blok = x09.slice(x09.indexOf('<PstlAdr>'), x09.indexOf('</PstlAdr>'));
+  const poradie = (blok.match(/<(StrtNm|BldgNb|PstCd|TwnNm|Ctry)>/g) || []).join('');
+  eq('.09: poradie prvkov adresy podľa schémy', poradie, '<StrtNm><BldgNb><PstCd><TwnNm><Ctry>');
+}
+
+{
+  // Predvolená verzia zostáva .03, aby sa doterajším používateľom nič nezmenilo.
+  const x = buildXml({
+    payer: { name: 'Firma s.r.o.', iban: IBAN_VUB },
+    execDate: '2026-10-01',
+    payments: [{ iban: IBAN_VUB_2, amount: 10, name: 'Jozef Novak', vs: '1' }],
+  });
+  includes('predvolene .03', x, PAIN_NAMESPACES['03']);
+  notIncludes('bez adresných údajov sa PstlAdr nezapíše', x, '<PstlAdr>');
+}
+
+{
+  // Krajina platiteľa sa doplní z jeho IBAN-u, keď ju vo formulári nevyplnil.
+  const x = buildXml({
+    payer: { name: 'Firma s.r.o.', iban: IBAN_TATRA, address: { town: 'Bratislava' } },
+    execDate: '2026-10-01',
+    payments: [{ iban: IBAN_VUB_2, amount: 10, name: 'Jozef Novak', vs: '1' }],
+  });
+  includes('krajina platiteľa doplnená z IBAN-u', x, '<Ctry>SK</Ctry>');
+}
+
+{
+  // ČSOB neberie diakritiku, takže adresa sa prepisuje rovnako ako názvy.
+  const x = xmlSAdresou('03', 'csob');
+  includes('ČSOB: adresa bez diakritiky', x, '<StrtNm>Hlavna</StrtNm>');
+  includes('ČSOB: ulica platiteľa bez diakritiky', x, '<StrtNm>Ivanska cesta</StrtNm>');
+  notIncludes('ČSOB: v adrese nezostala diakritika', x, 'Hlavná');
+}
+
+{
+  // Krížová kontrola vlastným Doctorom, dátumom nastaveným za termín: súbor,
+  // ktorý vyrobíme, nesmie mať ani jednu výhradu k adrese.
+  for (const schema of ['03', '09']) {
+    const r = diagnose({ xml: xmlSAdresou(schema, 'tatrabanka'), bank: 'tatrabanka', dnes: DNES_PO });
+    const adresne = r.problems.filter((p) => p.code.indexOf('adresa') === 0);
+    eq(`Doctor po termíne nemá výhradu k adrese (.${schema})`, adresne.length, 0);
+    eq(`Doctor po termíne nenašiel vysokú závažnosť (.${schema})`,
+      r.problems.filter((p) => p.severity === 'high').length, 0);
+  }
+  // .09 je po termíne verzia, ktorú Doctor nekomentuje vôbec.
+  const r09 = diagnose({ xml: xmlSAdresou('09', 'tatrabanka'), bank: 'tatrabanka', dnes: DNES_PO });
+  eq('Doctor po termíne nekomentuje verziu .09',
+    r09.problems.filter((p) => p.code.indexOf('schema_namespace') === 0).length, 0);
+}
+
+{
+  // Súbor bez adries prejde aj po termíne: adresa je v SEPA nepovinná.
+  const x = buildXml({
+    schema: '09',
+    payer: { name: 'Firma s.r.o.', iban: IBAN_VUB, bic: 'SUBASKBX' },
+    execDate: '2026-11-20',
+    payments: [{ iban: IBAN_VUB_2, amount: 10, name: 'Jozef Novak', vs: '1' }],
+  });
+  const r = diagnose({ xml: x, bank: 'vub', dnes: DNES_PO });
+  eq('súbor bez adries je po termíne v poriadku',
+    r.problems.filter((p) => p.code.indexOf('adresa') === 0).length, 0);
+}
+
+{
+  eq('termín adresy je 15. 11. 2026', TERMIN_ADRESY, '2026-11-15');
 }
 
 // ═══════════════════════════ summary ═══════════════════════════════════

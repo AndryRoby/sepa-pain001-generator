@@ -456,7 +456,180 @@ function parseAmountText(str) {
 
 // ──────────────────────────────── main logic ───────────────────────────────
 
+// ── Štruktúrovaná adresa: termín 15. novembra 2026 ──────────────────────────
+//
+// Od 15. 11. 2026 sa v SEPA schémach (SCT, SCT Inst, SDD Core aj B2B) prestáva
+// prijímať plne neštruktúrovaná poštová adresa. Ak je adresa v správe uvedená,
+// musí byť štruktúrovaná alebo hybridná, a v oboch prípadoch musí obsahovať
+// aspoň mesto (TwnNm) a kód krajiny (Ctry). Banka súbor so starou adresou
+// odmietne.
+//
+// Pozor na rozšírený omyl: pain.001.001.03 štruktúrovanú adresu unesie. Jej
+// PostalAddress6 má StrtNm, BldgNb, PstCd, TwnNm, CtrySubDvsn aj Ctry, takže
+// požiadavku "aspoň mesto a krajina" splníte aj v nej. Novšia PostalAddress24
+// z pain.001.001.09 pridáva len jemnejšie polia (BldgNm, Flr, PstBx, Room,
+// TwnLctnNm, DstrctNm) a obmedzuje AdrLine na dva riadky. Prechod na .09 teda
+// nevynucuje adresa, ale to, že časť bánk k termínu prestáva .03 prijímať.
+//
+// Pozor na dátum. Verzia 1.0 pravidiel SEPA úhrady z roku 2025 uvádzala ako
+// koniec neštruktúrovanej adresy 22. november 2026; verzia 1.1 to opravila na
+// 15. november 2026, a to je platný dátum. Časť bankových stránok stále cituje
+// staršiu verziu, preto sa tie dva dátumy na internete miešajú. Samé pravidlá
+// z roku 2025 (a s nimi hybridná adresa) platia od 5. októbra 2025.
+//
+// Zdroje overené 6. 9. 2026:
+//  - European Payments Council, zosúladenie schém SCT/SCT Inst/SDD na 15. 11. 2026
+//    https://www.europeanpaymentscouncil.eu/
+//  - ECB / Payments Market Practice Group, vzorový list korporátnym klientom
+//    o prechode na hybridnú adresu (2025-10-22)
+//    https://www.ecb.europa.eu/paym/groups/shared/docs/daba2-industry-template-hybrid-address-communication-to-corporates-pmpg-2025-10-22-.pdf
+//  - BNP Paribas, "Structured address in payments: the new rules in force from November 2026" (07/2026)
+//  - Komerční banka, "Nová pravidla pro vyplňování strukturované adresy u SEPA
+//    a zahraničních plateb" (pain.001.001.03 sa od 15. 11. 2026 prestane používať)
+//    https://www.kb.cz/cs/podpora/ucty-a-platby/nova-pravidla-pro-vyplnovani-strukturovane-adresy-u-sepa-a-zahranicnich-plateb-multicash
+//
+// Kontrola je zámerne opatrná: hlási len to, čo v súbore naozaj je. Súbor bez
+// adries neoznačuje za chybný, lebo adresa je v SEPA nepovinná a súbor bez nej
+// prejde aj po termíne.
+export const TERMIN_ADRESY = '2026-11-15';
+
+/** Cesta k prvku, napr. "Document/CstmrCdtTrfInitn/PmtInf/Cdtr/PstlAdr".
+ *  Pozor: funkcia path() vyssie je v skutocnosti firstChild, nie cesta. */
+function cestaK(node) {
+  const kusy = [];
+  for (let n = node; n && n.tag; n = n.parent) kusy.unshift(n.tag);
+  return kusy.filter((k) => k !== '#root').join('/');
+}
+
+/**
+ * Kód banky z <FinInstnId>. V pain.001.001.03 sa prvok volá <BIC>
+ * (FinancialInstitutionIdentification8), v .09 <BICFI>
+ * (FinancialInstitutionIdentification18). Je to ten istý údaj, len iný
+ * názov, tak vraciame aj hodnotu, aj názov, aby sme v hlásení menovali
+ * prvok, ktorý v súbore naozaj je.
+ */
+function bicZFinInstnId(finInstnId) {
+  if (!finInstnId) return { hodnota: '', znacka: 'BIC' };
+  const stary = firstChild(finInstnId, 'BIC');
+  if (stary) return { hodnota: textOf(stary), znacka: 'BIC' };
+  const novy = firstChild(finInstnId, 'BICFI');
+  if (novy) return { hodnota: textOf(novy), znacka: 'BICFI' };
+  return { hodnota: '', znacka: 'BIC' };
+}
+
+/** Ktora strana platby to je, podla predkov prvku. */
+function ktoraStrana(node) {
+  for (let n = node; n && n.tag; n = n.parent) {
+    if (n.tag === 'Cdtr') return 'príjemcu';
+    if (n.tag === 'Dbtr') return 'platiteľa';
+    if (n.tag === 'UltmtCdtr') return 'konečného príjemcu';
+    if (n.tag === 'UltmtDbtr') return 'konečného platiteľa';
+    if (n.tag === 'InitgPty') return 'zadávateľa súboru';
+  }
+  return 'strany platby';
+}
+
+/** Rozoberie jeden <PstlAdr> na to, čo v ňom je. */
+function rozborAdresy(pstlAdr) {
+  const polia = {};
+  for (const ch of elementChildren(pstlAdr)) polia[ch.tag] = (polia[ch.tag] || []).concat(textOf(ch).trim());
+  const adrLine = (polia.AdrLine || []).filter(Boolean);
+  const struktura = ['Dept', 'SubDept', 'StrtNm', 'BldgNb', 'BldgNm', 'Flr', 'PstBx', 'Room', 'PstCd', 'TwnNm', 'TwnLctnNm', 'DstrctNm', 'CtrySubDvsn', 'Ctry']
+    .filter((k) => (polia[k] || []).some(Boolean));
+  const mesto = (polia.TwnNm || [])[0] || '';
+  const krajina = (polia.Ctry || [])[0] || '';
+  return { adrLine, struktura, mesto, krajina, prazdna: adrLine.length === 0 && struktura.length === 0 };
+}
+
+/**
+ * @param {object} documentEl koreň <Document>
+ * @param {function} addProblem
+ * @param {string} dnes ISO dátum, kvôli testovateľnosti; po termíne sa mení
+ *   závažnosť z "stredná" (ešte je čas) na "vysoká" (banka to už odmieta)
+ */
+function skontrolujAdresy(documentEl, addProblem, dnes) {
+  const vsetky = [];
+  findAll(documentEl, 'PstlAdr', vsetky);
+  if (!vsetky.length) return { spolu: 0, zle: 0 };
+
+  const poTermine = String(dnes || '') >= TERMIN_ADRESY;
+  const zavaznost = poTermine ? 'high' : 'medium';
+  let zle = 0;
+  const uzHlasene = new Set();
+
+  for (const adr of vsetky) {
+    const a = rozborAdresy(adr);
+    if (a.prazdna) continue;
+    const kde = cestaK(adr);
+    const cieCast = ktoraStrana(adr);
+
+    if (a.adrLine.length && !a.struktura.length) {
+      zle++;
+      if (uzHlasene.has('cela_nestruktura')) continue;
+      uzHlasene.add('cela_nestruktura');
+      addProblem({
+        code: 'adresa_nestrukturovana',
+        severity: zavaznost,
+        message: 'Adresa ' + cieCast + ' je zapísaná ako voľný text v <AdrLine>. ' +
+          (poTermine
+            ? 'Od 15. novembra 2026 banka takýto súbor odmieta: adresa musí mať aspoň mesto a kód krajiny vo vlastných poliach.'
+            : 'Od 15. novembra 2026 banka takýto súbor odmietne. Adresa musí mať aspoň mesto a kód krajiny vo vlastných poliach; dovtedy prejde, potom nie.'),
+        path: kde,
+        value: a.adrLine.join(' | '),
+        fix: '<PstlAdr><TwnNm>Bratislava</TwnNm><Ctry>SK</Ctry></PstlAdr>',
+      });
+      continue;
+    }
+
+    if (!a.mesto || !a.krajina) {
+      zle++;
+      const chyba = !a.mesto && !a.krajina ? 'mesto (TwnNm) ani kód krajiny (Ctry)' : !a.mesto ? 'mesto (TwnNm)' : 'kód krajiny (Ctry)';
+      if (uzHlasene.has('chyba_' + chyba)) continue;
+      uzHlasene.add('chyba_' + chyba);
+      addProblem({
+        code: 'adresa_bez_mesta_alebo_krajiny',
+        severity: zavaznost,
+        message: 'Adresa ' + cieCast + ' má štruktúrované polia, ale chýba v nej ' + chyba + '. ' +
+          'To je od 15. novembra 2026 povinné minimum pre každú adresu v SEPA platbe.',
+        path: kde,
+        value: a.struktura.join(', '),
+        fix: !a.mesto ? '<TwnNm>Bratislava</TwnNm>' : '<Ctry>SK</Ctry>',
+      });
+      continue;
+    }
+
+    if (a.adrLine.length > 2) {
+      zle++;
+      if (uzHlasene.has('vela_riadkov')) continue;
+      uzHlasene.add('vela_riadkov');
+      addProblem({
+        code: 'adresa_prilis_vela_riadkov',
+        severity: 'low',
+        message: 'Hybridná adresa smie mať najviac dva riadky <AdrLine>, tento má ' + a.adrLine.length + '. ' +
+          'Ulicu a číslo presuňte do <StrtNm> a <BldgNb>.',
+        path: kde,
+        value: a.adrLine.join(' | '),
+        fix: '<StrtNm>Ivanská cesta</StrtNm><BldgNb>32E</BldgNb>',
+      });
+    }
+
+    if (a.krajina && !/^[A-Z]{2}$/.test(a.krajina)) {
+      zle++;
+      addProblem({
+        code: 'adresa_zly_kod_krajiny',
+        severity: 'high',
+        message: 'Kód krajiny "' + a.krajina + '" nie je dvojpísmenový kód podľa ISO 3166-1. Banka ho odmietne.',
+        path: kde + '/Ctry',
+        value: a.krajina,
+        fix: '<Ctry>SK</Ctry>',
+      });
+    }
+  }
+  return { spolu: vsetky.length, zle: zle };
+}
+
 const PAIN_NAMESPACE = 'urn:iso:std:iso:20022:tech:xsd:pain.001.001.03';
+const PAIN_NAMESPACE_09 = 'urn:iso:std:iso:20022:tech:xsd:pain.001.001.09';
 const SEVERITY_ORDER = { high: 0, medium: 1, low: 2 };
 
 function sortProblems(problems) {
@@ -480,6 +653,10 @@ export function diagnose(input) {
   const bankKey = ['tatrabanka', 'slsp', 'vub', 'csob', 'generic'].includes(cfg.bank) ? cfg.bank : 'generic';
   const bank = bankInfo(bankKey);
   const expectedTxCount = isNum(cfg.expectedTxCount) ? cfg.expectedTxCount : null;
+  // Dátum sa vyhodnocuje raz na začiatku: rozhoduje o očakávanej verzii
+  // správy aj o závažnosti adresných nálezov (pozri TERMIN_ADRESY).
+  const dnes = cfg.dnes || new Date().toISOString().slice(0, 10);
+  const poTermine = String(dnes) >= TERMIN_ADRESY;
 
   const problems = [];
   const checklist = [];
@@ -492,7 +669,7 @@ export function diagnose(input) {
     bank: bankKey,
     bankLabel: bank.label,
     bankBic: bank.bic,
-    schemaNamespace: PAIN_NAMESPACE,
+    schemaNamespace: poTermine ? PAIN_NAMESPACE_09 : PAIN_NAMESPACE,
     execWindowDays: bank.execWindowDays,
     nbOfTxsShouldBe: null,
     ctrlSumShouldBe: null,
@@ -539,15 +716,42 @@ export function diagnose(input) {
       path: 'Document',
       fix: `xmlns="${PAIN_NAMESPACE}"`,
     });
+  } else if (ns === PAIN_NAMESPACE_09) {
+    // pain.001.001.09 je platná verzia správy, nie chyba. Do 15. 11. 2026 ju
+    // však slovenské banky pri hromadnom importe zväčša ešte nečakajú, preto
+    // je to poznámka, nie problém, a po termíne mizne úplne.
+    if (!poTermine) {
+      addProblem({
+        code: 'schema_namespace_09_skoro',
+        severity: 'low',
+        message: 'Súbor je pain.001.001.09. Je to správna a novšia verzia, ale slovenské banky pri importe hromadného príkazu k dnešnému dňu bežne očakávajú pain.001.001.03. Ak vám import neprejde, pošlite ten istý súbor vo verzii .03; od 15. 11. 2026 to bude naopak.',
+        path: 'Document',
+        value: ns,
+      });
+    }
   } else if (ns !== PAIN_NAMESPACE) {
     const looksNewer = /pain\.001\.001\.0[4-9]|pain\.001\.001\.1\d/.test(ns);
     addProblem({
       code: 'schema_namespace_unexpected',
       severity: 'medium',
-      message: `Menný priestor "${ns}" nie je pain.001.001.03. ${looksNewer ? 'Vyzerá to na novšiu verziu pain.001, ktorú tieto banky pri importe hromadného príkazu nepodporujú' : 'Tatra banka, SLSP, VÚB aj ČSOB pri importe hromadného príkazu spracúvajú pain.001.001.03'}: súbor s iným menným priestorom banka odmietne alebo import zlyhá bez jasnej príčiny.`,
+      message: `Menný priestor "${ns}" nie je pain.001.001.03 ani .09. ${looksNewer ? 'Vyzerá to na inú verziu pain.001, ktorú tieto banky pri importe hromadného príkazu nepodporujú' : 'Tatra banka, SLSP, VÚB aj ČSOB pri importe hromadného príkazu spracúvajú pain.001.001.03, od 15. 11. 2026 postupne .09'}: súbor s iným menným priestorom banka odmietne alebo import zlyhá bez jasnej príčiny.`,
       path: 'Document',
       value: ns,
-      fix: `xmlns="${PAIN_NAMESPACE}"`,
+      fix: `xmlns="${poTermine ? PAIN_NAMESPACE_09 : PAIN_NAMESPACE}"`,
+    });
+  } else if (poTermine) {
+    // ns === .03 po termíne. Zámerne stredná závažnosť, nie vysoká: termín
+    // 15. 11. 2026 zo schém SEPA hovorí o adrese, nie o verzii správy medzi
+    // klientom a bankou. Verziu si určuje každá banka sama. Komerční banka
+    // zverejnila, že .03 prestane prijímať; pre všetky štyri slovenské banky
+    // to overené nemáme, preto to hlásime ako "over si to", nie ako istotu.
+    addProblem({
+      code: 'schema_namespace_03_po_termine',
+      severity: 'medium',
+      message: 'Súbor je pain.001.001.03. Adresné pravidlá platné od 15. 11. 2026 v nej splniť viete, ale časť bánk k tomuto termínu prechádza na pain.001.001.09 a staršiu verziu prestáva prijímať. Overte si v internetbankingu, ktorú verziu vaša banka ešte berie.',
+      path: 'Document',
+      value: ns,
+      fix: `xmlns="${PAIN_NAMESPACE_09}"`,
     });
   }
 
@@ -718,8 +922,14 @@ export function diagnose(input) {
     const pmtInfSvcLvl = pmtTpInf ? textOf(path(pmtTpInf, 'SvcLvl') && firstChild(path(pmtTpInf, 'SvcLvl'), 'Cd')) : '';
     const pmtInfChrgBr = textOf(firstChild(pmtInf, 'ChrgBr'));
 
+    // V pain.001.001.03 je dátum priamo v <ReqdExctnDt>. V .09 je ten prvok
+    // typu DateAndDateTime2Choice, takže dátum je zabalený v <Dt> (alebo
+    // presný čas v <DtTm>). Bez tejto vetvy by sme každý súbor vo verzii .09
+    // označili za súbor s nečitateľným dátumom splatnosti.
     const reqdExctnDtEl = firstChild(pmtInf, 'ReqdExctnDt');
-    const reqdExctnDtRaw = reqdExctnDtEl ? textOf(reqdExctnDtEl) : '';
+    const reqdExctnDtDt = reqdExctnDtEl && (firstChild(reqdExctnDtEl, 'Dt') || firstChild(reqdExctnDtEl, 'DtTm'));
+    const reqdExctnDtRaw = reqdExctnDtDt ? textOf(reqdExctnDtDt).slice(0, 10)
+      : (reqdExctnDtEl ? textOf(reqdExctnDtEl) : '');
     if (!reqdExctnDtEl || !reqdExctnDtRaw) {
       addProblem({ code: 'exec_date_missing', severity: 'high', message: `PmtInf[${pmtIdx + 1}]/ReqdExctnDt chýba. Toto pole je povinné.`, path: `${pmtPath}/ReqdExctnDt` });
     } else {
@@ -727,7 +937,9 @@ export function diagnose(input) {
       if (!d) {
         addProblem({ code: 'exec_date_invalid_format', severity: 'high', message: `PmtInf[${pmtIdx + 1}]/ReqdExctnDt "${reqdExctnDtRaw}" nie je platný dátum vo formáte YYYY-MM-DD.`, path: `${pmtPath}/ReqdExctnDt`, value: reqdExctnDtRaw });
       } else {
-        const now = new Date();
+        // Porovnáva sa s cfg.dnes, nie s hodinami: rovnaký súbor musí dať
+        // rovnaký výsledok aj v teste, aj o mesiac.
+        const now = parseIsoDate(dnes) || new Date();
         const diffDays = daysBetweenUtcDates(now, d);
         if (diffDays < 0) {
           addProblem({ code: 'exec_date_in_past', severity: 'medium', message: `PmtInf[${pmtIdx + 1}]/ReqdExctnDt (${reqdExctnDtRaw}) je v minulosti. Banky spätný dátum požadovanej splatnosti neakceptujú.`, path: `${pmtPath}/ReqdExctnDt`, value: reqdExctnDtRaw });
@@ -768,13 +980,15 @@ export function diagnose(input) {
       recordDetectedBank(ibanCheck.value);
     }
 
-    const dbtrAgtBic = textOf(path(path(pmtInf, 'DbtrAgt'), 'FinInstnId') && firstChild(path(path(pmtInf, 'DbtrAgt'), 'FinInstnId'), 'BIC'));
+    const dbtrAgtBicPole = bicZFinInstnId(path(path(pmtInf, 'DbtrAgt'), 'FinInstnId'));
+    const dbtrAgtBic = dbtrAgtBicPole.hodnota;
+    const dbtrBicTag = dbtrAgtBicPole.znacka;
     if (!dbtrAgtBic) {
-      addProblem({ code: 'dbtr_bic_missing', severity: 'medium', message: `PmtInf[${pmtIdx + 1}]/DbtrAgt/FinInstnId/BIC chýba. ${bank.bic ? `${bank.label} vyžaduje presne "${bank.bic}".` : 'Odporúčame BIC banky platiteľa vyplniť.'}`, path: `${pmtPath}/DbtrAgt/FinInstnId/BIC`, fix: bank.bic || undefined });
+      addProblem({ code: 'dbtr_bic_missing', severity: 'medium', message: `PmtInf[${pmtIdx + 1}]/DbtrAgt/FinInstnId/${dbtrBicTag} chýba. ${bank.bic ? `${bank.label} vyžaduje presne "${bank.bic}".` : 'Odporúčame BIC banky platiteľa vyplniť.'}`, path: `${pmtPath}/DbtrAgt/FinInstnId/${dbtrBicTag}`, fix: bank.bic || undefined });
     } else if (bank.bic && dbtrAgtBic.toUpperCase() !== bank.bic) {
-      addProblem({ code: 'dbtr_bic_mismatch', severity: 'high', message: `PmtInf[${pmtIdx + 1}]/DbtrAgt/FinInstnId/BIC je "${dbtrAgtBic}", ale pre ${bank.label} musí byť presne "${bank.bic}". Súbor s účtom vedeným v inej banke bude bankou pri importe zamietnutý.`, path: `${pmtPath}/DbtrAgt/FinInstnId/BIC`, value: dbtrAgtBic, fix: bank.bic });
+      addProblem({ code: 'dbtr_bic_mismatch', severity: 'high', message: `PmtInf[${pmtIdx + 1}]/DbtrAgt/FinInstnId/${dbtrBicTag} je "${dbtrAgtBic}", ale pre ${bank.label} musí byť presne "${bank.bic}". Súbor s účtom vedeným v inej banke bude bankou pri importe zamietnutý.`, path: `${pmtPath}/DbtrAgt/FinInstnId/${dbtrBicTag}`, value: dbtrAgtBic, fix: bank.bic });
     } else if (!bicFormatOk(dbtrAgtBic)) {
-      addProblem({ code: 'dbtr_bic_format_invalid', severity: 'medium', message: `PmtInf[${pmtIdx + 1}]/DbtrAgt/FinInstnId/BIC "${dbtrAgtBic}" nemá platný formát BIC (8 alebo 11 znakov).`, path: `${pmtPath}/DbtrAgt/FinInstnId/BIC`, value: dbtrAgtBic });
+      addProblem({ code: 'dbtr_bic_format_invalid', severity: 'medium', message: `PmtInf[${pmtIdx + 1}]/DbtrAgt/FinInstnId/${dbtrBicTag} "${dbtrAgtBic}" nemá platný formát BIC (8 alebo 11 znakov).`, path: `${pmtPath}/DbtrAgt/FinInstnId/${dbtrBicTag}`, value: dbtrAgtBic });
     }
 
     if (txList.length === 0) {
@@ -907,13 +1121,15 @@ export function diagnose(input) {
       }
 
       const cdtrAgt = firstChild(tx, 'CdtrAgt');
-      const cdtrAgtBic = textOf(path(cdtrAgt, 'FinInstnId') && firstChild(path(cdtrAgt, 'FinInstnId'), 'BIC'));
+      const cdtrAgtBicPole = bicZFinInstnId(path(cdtrAgt, 'FinInstnId'));
+      const cdtrAgtBic = cdtrAgtBicPole.hodnota;
+      const cdtrBicTag = cdtrAgtBicPole.znacka;
       if (!cdtrAgtBic) {
         if (bank.cdtrBicPolicy === 'mandatory') {
-          addProblem({ code: 'cdtr_bic_missing_required', severity: 'high', message: `${txPath}: CdtrAgt/FinInstnId/BIC chýba. VÚB vo vlastnej špecifikácii (Creditor Agent BIC, AT23) označuje toto pole ako povinné (Mandatory): na rozdiel od Tatra banky, ktorá ho vie odvodiť z IBAN.`, path: `${txPath}/CdtrAgt/FinInstnId/BIC` });
+          addProblem({ code: 'cdtr_bic_missing_required', severity: 'high', message: `${txPath}: CdtrAgt/FinInstnId/${cdtrBicTag} chýba. VÚB vo vlastnej špecifikácii (Creditor Agent BIC, AT23) označuje toto pole ako povinné (Mandatory): na rozdiel od Tatra banky, ktorá ho vie odvodiť z IBAN.`, path: `${txPath}/CdtrAgt/FinInstnId/${cdtrBicTag}` });
         } else if (bank.cdtrBicPolicy === 'derivable') {
           if (cdtrIbanCheck && cdtrIbanCheck.formatOk && !cdtrIbanCheck.isSepaCountry) {
-            addProblem({ code: 'cdtr_bic_missing_required', severity: 'high', message: `${txPath}: CdtrAgt/FinInstnId/BIC chýba a IBAN príjemcu nepatrí do SEPA priestoru. Tatra banka BIC odvodí z IBAN len ak IBAN patrí banke zo SEPA priestoru: inak platbu zamietne.`, path: `${txPath}/CdtrAgt/FinInstnId/BIC` });
+            addProblem({ code: 'cdtr_bic_missing_required', severity: 'high', message: `${txPath}: CdtrAgt/FinInstnId/${cdtrBicTag} chýba a IBAN príjemcu nepatrí do SEPA priestoru. Tatra banka BIC odvodí z IBAN len ak IBAN patrí banke zo SEPA priestoru: inak platbu zamietne.`, path: `${txPath}/CdtrAgt/FinInstnId/${cdtrBicTag}` });
           } else {
             checklist.push(`${bank.label} vie CdtrAgt/BIC odvodiť z platného SEPA IBAN príjemcu (${txPath}): chýbajúci BIC tu nie je chyba, len uistite sa, že IBAN je správny.`);
           }
@@ -922,13 +1138,13 @@ export function diagnose(input) {
         }
       } else {
         if (!bicFormatOk(cdtrAgtBic)) {
-          addProblem({ code: 'cdtr_bic_format_invalid', severity: 'medium', message: `${txPath}: CdtrAgt/FinInstnId/BIC "${cdtrAgtBic}" nemá platný formát BIC (8 alebo 11 znakov).`, path: `${txPath}/CdtrAgt/FinInstnId/BIC`, value: cdtrAgtBic });
+          addProblem({ code: 'cdtr_bic_format_invalid', severity: 'medium', message: `${txPath}: CdtrAgt/FinInstnId/${cdtrBicTag} "${cdtrAgtBic}" nemá platný formát BIC (8 alebo 11 znakov).`, path: `${txPath}/CdtrAgt/FinInstnId/${cdtrBicTag}`, value: cdtrAgtBic });
         } else if (cdtrIbanCheck && cdtrIbanCheck.country === 'SK') {
           const bban = cdtrIbanCheck.value.slice(4);
           const bankCode = bban.slice(0, 4);
           const derivedBic = SK_BANK_CODE_TO_BIC[bankCode];
           if (derivedBic && derivedBic.slice(0, 6) !== cdtrAgtBic.toUpperCase().slice(0, 6)) {
-            addProblem({ code: 'cdtr_bic_mismatch_iban', severity: 'medium', message: `${txPath}: CdtrAgt/FinInstnId/BIC "${cdtrAgtBic}" sa nezhoduje s bankou odvodenou z IBAN (kód banky ${bankCode} → ${derivedBic}). Tatra banka porovnáva prvých 6 znakov zadaného a vypočítaného BIC: pri nezhode platbu zamietne.`, path: `${txPath}/CdtrAgt/FinInstnId/BIC`, value: cdtrAgtBic, fix: derivedBic });
+            addProblem({ code: 'cdtr_bic_mismatch_iban', severity: 'medium', message: `${txPath}: CdtrAgt/FinInstnId/${cdtrBicTag} "${cdtrAgtBic}" sa nezhoduje s bankou odvodenou z IBAN (kód banky ${bankCode} → ${derivedBic}). Tatra banka porovnáva prvých 6 znakov zadaného a vypočítaného BIC: pri nezhode platbu zamietne.`, path: `${txPath}/CdtrAgt/FinInstnId/${cdtrBicTag}`, value: cdtrAgtBic, fix: derivedBic });
           }
         }
       }
@@ -997,6 +1213,12 @@ export function diagnose(input) {
   if (bankKey === 'generic') {
     checklist.push('Bez vybranej konkrétnej banky sa neoverujú BIC banky, limit počtu transakcií ani okno dátumu splatnosti: vyberte banku pre presnejšiu diagnózu.');
   }
+
+  // Termín 15. 11. 2026: štruktúrovaná adresa. Beží až tu, aby sa hlásil
+  // po chybách, ktoré blokujú import už dnes.
+  const adresy = skontrolujAdresy(documentEl, addProblem, dnes);
+  stats.adriesSpolu = adresy.spolu;
+  stats.adriesZlych = adresy.zle;
 
   return finish();
 

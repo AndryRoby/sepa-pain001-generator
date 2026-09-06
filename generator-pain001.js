@@ -268,7 +268,14 @@ export function parseRows(text) {
 // for every profile (PmtId/EndToEndId), but the "sk" profile keeps building
 // it from vs/ss/ks (buildEndToEndId(), unchanged), so a mapped column here
 // is only consulted by resolveEndToEndId() when profile === 'de'.
-const FIELD_LIST = ['iban', 'amount', 'name', 'vs', 'ss', 'ks', 'message', 'date', 'bic', 'endToEndId'];
+// Adresné stĺpce pribudli kvôli termínu 15. 11. 2026 (pozri TERMIN_ADRESY
+// nižšie): od neho SEPA schémy neprijmú platbu s čisto neštruktúrovanou
+// adresou. Sú nepovinné a nemapujú sa, keď v hárku nie sú. Buď sa použijú
+// samostatné stĺpce (street/buildingNumber/postCode/town/country), alebo
+// jeden spoločný stĺpec "address", ktorý rozoberie parseAddressLine();
+// samostatný stĺpec má vždy prednosť pred tým, čo sa vyčítalo zo spoločného.
+const FIELD_LIST = ['iban', 'amount', 'name', 'vs', 'ss', 'ks', 'message', 'date', 'bic', 'endToEndId',
+  'street', 'buildingNumber', 'postCode', 'town', 'country', 'address'];
 
 function foldLower(s) {
   const str = safeStr(s);
@@ -282,7 +289,8 @@ function foldLower(s) {
 // Tested in this order per column (first match wins); order matters so the
 // narrow VS/ŠS/KS/EndToEndId codes are checked before the broader
 // name/message ones.
-const FIELD_DETECT_ORDER = ['iban', 'bic', 'endToEndId', 'vs', 'ss', 'ks', 'date', 'amount', 'message', 'name'];
+const FIELD_DETECT_ORDER = ['iban', 'bic', 'endToEndId', 'vs', 'ss', 'ks', 'date', 'amount',
+  'postCode', 'buildingNumber', 'street', 'town', 'country', 'address', 'message', 'name'];
 
 // Header vocabulary covers Slovak (the "sk" profile's own export headers),
 // German (Deutsche Kreditwirtschaft / Excel-DE headers: IBAN, Betrag, Name,
@@ -302,6 +310,14 @@ const FIELD_PATTERNS = {
   date: /datum|date|splatnost/,
   message: /sprava|poznamk|message|\binfo\b|popis|referenc|verwendungszweck/,
   name: /nazov|meno|prijemc|name|dodavat|odberat|firma|empfanger|beneficiary/,
+  // Adresné stĺpce. Krátke slová sú zámerne ukotvené na celý názov stĺpca
+  // (^...$), inak by /ort/ chytilo "Sortiment" a /str/ hocijaké "Stredisko".
+  street: /ulica|street|strasse|strase|^str$|^ul$/,
+  buildingNumber: /cislo\s*domu|^cd$|supisn|orientacn|hausnummer|hausnr|building\s*(number|no|nr)|house\s*(number|no|nr)|^bldgnb$/,
+  postCode: /^psc$|^zip$|zip\s*code|postal\s*code|postcode|^plz$|^pstcd$/,
+  town: /mesto|obec|^town$|^city$|^ort$|ortschaft|^stadt$|^twnnm$/,
+  country: /krajina|^stat$|^staat$|^country$|^land$|^ctry$/,
+  address: /^adresa$|^address$|^anschrift$|^sidlo$|^adr$/,
 };
 
 function emptyMapping() {
@@ -459,7 +475,10 @@ function buildPaymentRow(cells, mapping, rowNumber, profile) {
   const dateRaw = get('date');
   const dateIso = dateRaw ? parseFlexibleDate(dateRaw) : null;
 
+  const address = zostavAdresu(get);
+
   const errors = [];
+  const warnings = [];
   if (!ibanRaw) errors.push('Chýba IBAN.');
   else if (!checkIban(iban).valid) errors.push('Neplatný IBAN.');
   if (!amountRaw) errors.push('Chýba suma.');
@@ -501,10 +520,58 @@ function buildPaymentRow(cells, mapping, rowNumber, profile) {
     if (ks.length > 4) errors.push(`KS má ${ks.length} číslice, maximum je 4.`);
   }
 
+  if (address.hasAny) {
+    if (address.countryRaw && !address.country) {
+      errors.push(`Krajinu „${address.countryRaw}" nevieme priradiť ku kódu podľa ISO 3166-1. Napíšte dvojpísmenový kód, napríklad SK.`);
+    } else if (!address.country) {
+      // Krajinu nikto neuviedol. Dopĺňame ju z IBAN-u príjemcu, lebo adresa
+      // bez <Ctry> je po 15. 11. 2026 dôvod na odmietnutie celej platby a
+      // krajina banky je pri bežnom SEPA príkaze tá istá ako krajina
+      // príjemcu. Isté to nie je, preto to hlásime a v tabuľke to vidno.
+      address.country = countryFromIban(iban);
+      if (address.country) warnings.push(`Krajina adresy nebola uvedená, doplnili sme ${address.country} podľa IBAN-u. Skontrolujte to.`);
+    }
+    for (const pole of ['street', 'buildingNumber', 'postCode', 'town']) {
+      const dlzka = address[pole].length;
+      if (dlzka > ADRESA_LIMITY[pole]) {
+        errors.push(`${ADRESA_NAZVY[pole]} má ${dlzka} znakov, maximum je ${ADRESA_LIMITY[pole]}.`);
+      }
+    }
+    if (!address.town) warnings.push('Adresa nemá mesto. Od 15. 11. 2026 banka platbu s takouto adresou odmietne.');
+    if (!address.country) warnings.push('Adresa nemá kód krajiny. Od 15. 11. 2026 banka platbu s takouto adresou odmietne.');
+    if (address.addressRaw && !address.parsedAddress && !address.town) {
+      warnings.push(`Adresu „${address.addressRaw}" sa nepodarilo rozobrať na mesto a krajinu. Rozdeľte ju do stĺpcov, alebo píšte „Ulica 1, 821 04 Mesto, SK".`);
+    }
+  }
+
   return {
     row: rowNumber, iban, ibanRaw, amount, amountRaw, name, vs, ss, ks, message, bic, endToEndId,
-    date: dateRaw, dateIso, errors, hasError: errors.length > 0,
+    date: dateRaw, dateIso, address, errors, hasError: errors.length > 0,
+    warnings, hasWarning: warnings.length > 0,
   };
+}
+
+/**
+ * Poskladá adresu príjemcu z jedného riadka hárku. Samostatný stĺpec má
+ * prednosť pred tým, čo sa vyčítalo zo spoločného stĺpca "address".
+ */
+function zostavAdresu(get) {
+  const spojenaRaw = get('address');
+  const spojena = spojenaRaw ? parseAddressLine(spojenaRaw) : null;
+  const vyber = (pole) => get(pole) || (spojena ? spojena[pole] : '') || '';
+  const countryRaw = get('country') || (spojena ? spojena.country : '') || '';
+  const a = {
+    street: vyber('street'),
+    buildingNumber: vyber('buildingNumber'),
+    postCode: vyber('postCode'),
+    town: vyber('town'),
+    countryRaw,
+    country: normalizeCountry(countryRaw),
+    addressRaw: spojenaRaw,
+    parsedAddress: !!(spojena && spojena.parsed),
+  };
+  a.hasAny = !!(a.street || a.buildingNumber || a.postCode || a.town || countryRaw);
+  return a;
 }
 
 /**
@@ -545,9 +612,182 @@ export function mapColumns(rows, overrides, profile) {
   return { hasHeader, headerLabels, columnCount, detectedMapping, mapping, payments, rowCount: dataRows.length, profile: prof };
 }
 
+// ────────────────────────────── poštová adresa ─────────────────────────────
+//
+// Od 15. 11. 2026 platí v SEPA schémach (SCT, SCT Inst, SDD Core aj B2B), že
+// keď je v správe uvedená poštová adresa, nesmie byť čisto neštruktúrovaná:
+// musí mať aspoň mesto (TwnNm) a kód krajiny (Ctry). Adresa samotná zostáva
+// nepovinná, takže súbor úplne bez adries prejde aj po termíne.
+//
+// Upresnenie, ktoré sa na internete píše často nesprávne: pain.001.001.03
+// štruktúrovanú adresu unesie. Jej PostalAddress6 má StrtNm, BldgNb, PstCd,
+// TwnNm, CtrySubDvsn aj Ctry. Novšia PostalAddress24 z pain.001.001.09
+// pridáva len jemnejšie polia (BldgNm, Flr, PstBx, Room, TwnLctnNm, DstrctNm)
+// a obmedzuje AdrLine na dva riadky. Dôvod prechodu na .09 teda nie je "03 to
+// neunesie", ale to, že banky k termínu prestávajú .03 prijímať. Preto vieme
+// štruktúrovanú adresu zapísať do oboch verzií a verziu si vyberá používateľ.
+//
+// Poradie prvkov StrtNm, BldgNb, PstCd, TwnNm, Ctry je v PostalAddress6 aj
+// PostalAddress24 rovnaké, takže buildPstlAdr() stačí jedna.
+//
+// Zdroje overené 6. 9. 2026: European Payments Council (zosúladenie schém na
+// 15. 11. 2026), ECB/PMPG vzorový list o hybridnej adrese (2025-10-22),
+// Komerční banka (pain.001.001.03 sa od 15. 11. 2026 prestane používať).
+export const TERMIN_ADRESY = '2026-11-15';
+
+// Dĺžky podľa ISO 20022. Prekročenie hlásime ako chybu riadka, netichým
+// orezaním: skrátená adresa je nesprávna adresa.
+const ADRESA_LIMITY = { street: 70, buildingNumber: 16, postCode: 16, town: 35 };
+const ADRESA_NAZVY = { street: 'Ulica', buildingNumber: 'Číslo domu', postCode: 'PSČ', town: 'Mesto' };
+
+// Kódy alpha-3 a názvy krajín, ktoré sa v slovenských, českých a nemeckých
+// exportoch reálne objavia. Čokoľvek iné musí prísť ako dvojpísmenový kód.
+// Kľúče sú už prehnané cez foldLower(), takže bez diakritiky a malými
+// písmenami: "Německo" aj "Nemecko" vyjdú na to isté "nemecko".
+const KRAJINY = {
+  svk: 'SK', cze: 'CZ', aut: 'AT', deu: 'DE', hun: 'HU', pol: 'PL', ukr: 'UA',
+  gbr: 'GB', usa: 'US', fra: 'FR', ita: 'IT', esp: 'ES', nld: 'NL', bel: 'BE',
+  che: 'CH', svn: 'SI', hrv: 'HR', rou: 'RO', bgr: 'BG', irl: 'IE', prt: 'PT',
+  dnk: 'DK', swe: 'SE', fin: 'FI', nor: 'NO', est: 'EE', lva: 'LV', ltu: 'LT',
+  lux: 'LU', grc: 'GR', cyp: 'CY', mlt: 'MT', isl: 'IS', srb: 'RS',
+  slovensko: 'SK', 'slovenska republika': 'SK', slovakia: 'SK', slowakei: 'SK',
+  cesko: 'CZ', 'ceska republika': 'CZ', czechia: 'CZ', 'czech republic': 'CZ', tschechien: 'CZ',
+  rakusko: 'AT', rakousko: 'AT', austria: 'AT', osterreich: 'AT',
+  nemecko: 'DE', germany: 'DE', deutschland: 'DE',
+  madarsko: 'HU', hungary: 'HU', ungarn: 'HU',
+  polsko: 'PL', poland: 'PL', polen: 'PL',
+  svajciarsko: 'CH', svycarsko: 'CH', switzerland: 'CH', schweiz: 'CH',
+  holandsko: 'NL', nizozemsko: 'NL', netherlands: 'NL', niederlande: 'NL',
+  'velka britania': 'GB', 'united kingdom': 'GB', 'great britain': 'GB', grossbritannien: 'GB',
+  slovinsko: 'SI', slovenia: 'SI', chorvatsko: 'HR', croatia: 'HR',
+  taliansko: 'IT', italy: 'IT', italien: 'IT',
+  francuzsko: 'FR', francie: 'FR', france: 'FR', frankreich: 'FR',
+  spanielsko: 'ES', spain: 'ES', spanien: 'ES',
+  belgicko: 'BE', belgium: 'BE', belgien: 'BE',
+  rumunsko: 'RO', romania: 'RO', bulharsko: 'BG', bulgaria: 'BG',
+  ukrajina: 'UA', ukraine: 'UA', srbsko: 'RS', serbia: 'RS',
+};
+
+/**
+ * Prevedie zápis krajiny na dvojpísmenový kód podľa ISO 3166-1 alpha-2.
+ * Vráti '' keď to nevie, aby volajúci mohol rozlíšiť "nezadané" od "nezrozumiteľné".
+ */
+export function normalizeCountry(value) {
+  const raw = safeStr(value).trim();
+  if (!raw) return '';
+  if (/^[A-Za-z]{2}$/.test(raw)) return raw.toUpperCase();
+  const key = foldLower(raw).replace(/[.\-,]/g, ' ').replace(/\s+/g, ' ').trim();
+  return KRAJINY[key] || '';
+}
+
+/** Krajina podľa prvých dvoch písmen IBAN-u. Použije sa len ako záloha. */
+export function countryFromIban(iban) {
+  const s = normalizeIban(iban);
+  return /^[A-Z]{2}/.test(s) ? s.slice(0, 2) : '';
+}
+
+// PSČ: slovenské a české "821 04" aj "82104", nemecké päťmiestne, poľské
+// "00-950" a všeobecne štyri až šesť číslic.
+const PSC_VZOR = /^(?:\d{3}\s?\d{2}|\d{2}-\d{3}|\d{4,6})$/;
+
+/**
+ * Rozoberie jeden spoločný stĺpec s adresou, napríklad
+ * "Ivanská cesta 32E, 821 04 Bratislava, SK".
+ *
+ * Zámerne konzervatívne: rozoznáva len tvar oddelený čiarkami, kde PSČ stojí
+ * pred mestom (alebo za ním, ako sa píše v nemecky hovoriacich krajinách).
+ * Keď tvar nesedí, vráti parsed:false a zvyšok sa nedopĺňa. Hádanie by tu
+ * bolo horšie než nič: zle rozobratá adresa prejde ticho až do banky.
+ *
+ * @returns {{street:string, buildingNumber:string, postCode:string, town:string, country:string, parsed:boolean}}
+ */
+export function parseAddressLine(value) {
+  const prazdna = { street: '', buildingNumber: '', postCode: '', town: '', country: '', parsed: false };
+  const raw = safeStr(value).trim();
+  if (!raw) return prazdna;
+
+  const casti = raw.split(',').map((c) => c.trim()).filter(Boolean);
+  if (casti.length === 0) return prazdna;
+
+  let country = '';
+  if (casti.length > 1) {
+    const kod = normalizeCountry(casti[casti.length - 1]);
+    if (kod) { country = kod; casti.pop(); }
+  }
+
+  let postCode = '';
+  let town = '';
+  for (let i = casti.length - 1; i >= 0; i--) {
+    const c = casti[i];
+    let m = c.match(/^(\d{3}\s?\d{2}|\d{2}-\d{3}|\d{4,6})\s+(.{2,})$/);
+    if (m) { postCode = m[1]; town = m[2].trim(); casti.splice(i, 1); break; }
+    m = c.match(/^(.{2,}?)\s+(\d{3}\s?\d{2}|\d{2}-\d{3}|\d{4,6})$/);
+    if (m) { town = m[1].trim(); postCode = m[2]; casti.splice(i, 1); break; }
+  }
+  if (!town && casti.length > 1 && !PSC_VZOR.test(casti[casti.length - 1])) {
+    town = casti.pop();
+  }
+
+  let street = casti.join(' ').trim();
+  let buildingNumber = '';
+  if (street) {
+    // Číslo domu je posledný kus s číslicou: "32E", "12/4", "1234/56a".
+    const m = street.match(/^(.+?)[\s,]+(\d+[A-Za-z]?(?:\s?\/\s?\d+[A-Za-z]?)?)$/);
+    if (m) { street = m[1].trim(); buildingNumber = m[2].replace(/\s/g, ''); }
+  }
+
+  return { street, buildingNumber, postCode, town, country, parsed: !!town };
+}
+
+/**
+ * Poskladá <PstlAdr>. Vráti '' keď nie je čo zapísať, aby sa prázdny prvok
+ * do súboru nedostal: prázdny <PstlAdr> je podľa schémy chyba.
+ */
+function buildPstlAdr(addr, indent) {
+  if (!addr) return '';
+  const riadky = [];
+  const pridaj = (tag, v) => {
+    const t = safeStr(v).trim();
+    if (t) riadky.push(indent + '  <' + tag + '>' + xmlEscape(t) + '</' + tag + '>');
+  };
+  pridaj('StrtNm', addr.street);
+  pridaj('BldgNb', addr.buildingNumber);
+  pridaj('PstCd', addr.postCode);
+  pridaj('TwnNm', addr.town);
+  pridaj('Ctry', addr.country);
+  if (!riadky.length) return '';
+  return '\n' + indent + '<PstlAdr>\n' + riadky.join('\n') + '\n' + indent + '</PstlAdr>';
+}
+
+/** Prepíše adresu do znakovej sady SEPA (pre ČSOB, rovnako ako názvy). */
+function transliterateAddress(addr) {
+  if (!addr) return addr;
+  return {
+    street: transliterate(safeStr(addr.street)),
+    buildingNumber: transliterate(safeStr(addr.buildingNumber)),
+    postCode: transliterate(safeStr(addr.postCode)),
+    town: transliterate(safeStr(addr.town)),
+    country: safeStr(addr.country),
+  };
+}
+
 // ──────────────────────────────── XML building ─────────────────────────────
 
-const PAIN_NAMESPACE = 'urn:iso:std:iso:20022:tech:xsd:pain.001.001.03';
+// Dve verzie správy, medzi ktorými sa vyberá. Rozdiely, ktoré sa nás týkajú,
+// nie sú len v mennom priestore, preto ich nesie celý generátor:
+//   1. <ReqdExctnDt> je v .09 typu DateAndDateTime2Choice, čiže dátum musí byť
+//      zabalený do <Dt>. Toto je najčastejšia príčina odmietnutého .09 súboru.
+//   2. Kód banky sa v .09 volá <BICFI>, nie <BIC>
+//      (FinancialInstitutionIdentification18 oproti ...8).
+//   3. Poštová adresa je v .09 PostalAddress24 namiesto PostalAddress6, ale
+//      polia, ktoré zapisujeme, majú v oboch rovnaké názvy aj poradie.
+// Zvyšok súboru je pre naše potreby zhodný: poradie prvkov v GrpHdr, PmtInf aj
+// CdtTrfTxInf je v oboch verziách rovnaké.
+export const PAIN_NAMESPACES = {
+  '03': 'urn:iso:std:iso:20022:tech:xsd:pain.001.001.03',
+  '09': 'urn:iso:std:iso:20022:tech:xsd:pain.001.001.09',
+};
+const PAIN_NAMESPACE = PAIN_NAMESPACES['03'];
 export const MAX_PAYMENTS = 5000;
 
 /**
@@ -597,8 +837,34 @@ function groupByDate(payments, fallbackDate) {
     .map(([date, pays]) => ({ date, payments: pays }));
 }
 
-function buildTx(p, transliterateValues, profile) {
+/** V .09 sa kód banky volá BICFI, v .03 BIC. Inak je to ten istý údaj. */
+function bicTag(schema) {
+  return schema === '09' ? 'BICFI' : 'BIC';
+}
+
+/**
+ * Adresa platiteľa z formulára. Krajinu prevedie na kód, a keď ju
+ * používateľ nevyplnil, doplní ju z IBAN-u platiteľa — bez <Ctry> by bola
+ * adresa po 15. 11. 2026 dôvodom na odmietnutie celého súboru.
+ */
+function normalizePayerAddress(address, payerIban, csob) {
+  if (!address || typeof address !== 'object') return null;
+  const a = {
+    street: safeStr(address.street).trim(),
+    buildingNumber: safeStr(address.buildingNumber).trim(),
+    postCode: safeStr(address.postCode).trim(),
+    town: safeStr(address.town).trim(),
+    country: normalizeCountry(address.country),
+  };
+  if (!a.street && !a.buildingNumber && !a.postCode && !a.town && !a.country) return null;
+  if (!a.country) a.country = countryFromIban(payerIban);
+  return csob ? transliterateAddress(a) : a;
+}
+
+function buildTx(p, transliterateValues, profile, schema) {
   const name = transliterateValues ? transliterate(safeStr(p.name)) : safeStr(p.name);
+  const address = transliterateValues ? transliterateAddress(p.address) : p.address;
+  const pstlAdr = buildPstlAdr(address, '          ');
   const message = transliterateValues ? transliterate(safeStr(p.message)) : safeStr(p.message);
   const amount = isNum(p.amount) ? p.amount : 0;
   const bic = (safeStr(p.bic).toUpperCase() || bicFromIban(p.iban) || '').trim();
@@ -615,14 +881,14 @@ function buildTx(p, transliterateValues, profile) {
     xml += `
         <CdtrAgt>
           <FinInstnId>
-            <BIC>${xmlEscape(bic)}</BIC>
+            <${bicTag(schema)}>${xmlEscape(bic)}</${bicTag(schema)}>
           </FinInstnId>
         </CdtrAgt>`;
   }
-  if (name) {
+  if (name || pstlAdr) {
     xml += `
-        <Cdtr>
-          <Nm>${xmlEscape(name)}</Nm>
+        <Cdtr>${name ? `
+          <Nm>${xmlEscape(name)}</Nm>` : ''}${pstlAdr}
         </Cdtr>`;
   }
   xml += `
@@ -654,8 +920,9 @@ function buildTx(p, transliterateValues, profile) {
 // file already uses for a missing EndToEndId (see buildEndToEndId()) —
 // every child of FinancialInstitutionIdentification7 is itself optional, so
 // this still validates, whereas omitting the element outright does not.
-function buildPmtInf({ index, msgId, date, payerName, payerIban, payerBic, txXml }) {
+function buildPmtInf({ index, msgId, date, payerName, payerIban, payerBic, payerAddress, txXml, schema }) {
   const pmtInfId = `${msgId}-P${index + 1}`;
+  const pstlAdr = buildPstlAdr(payerAddress, '        ');
   let xml = `    <PmtInf>
       <PmtInfId>${xmlEscape(pmtInfId)}</PmtInfId>
       <PmtMtd>TRF</PmtMtd>
@@ -664,9 +931,11 @@ function buildPmtInf({ index, msgId, date, payerName, payerIban, payerBic, txXml
           <Cd>SEPA</Cd>
         </SvcLvl>
       </PmtTpInf>
-      <ReqdExctnDt>${date}</ReqdExctnDt>
+      ${schema === '09' ? `<ReqdExctnDt>
+        <Dt>${date}</Dt>
+      </ReqdExctnDt>` : `<ReqdExctnDt>${date}</ReqdExctnDt>`}
       <Dbtr>
-        <Nm>${xmlEscape(payerName)}</Nm>
+        <Nm>${xmlEscape(payerName)}</Nm>${pstlAdr}
       </Dbtr>
       <DbtrAcct>
         <Id>
@@ -675,7 +944,7 @@ function buildPmtInf({ index, msgId, date, payerName, payerIban, payerBic, txXml
       </DbtrAcct>
       <DbtrAgt>
         <FinInstnId>${payerBic ? `
-          <BIC>${xmlEscape(payerBic)}</BIC>` : `
+          <${bicTag(schema)}>${xmlEscape(payerBic)}</${bicTag(schema)}>` : `
           <Othr>
             <Id>NOTPROVIDED</Id>
           </Othr>`}
@@ -688,17 +957,18 @@ ${txXml}
 }
 
 /**
- * Builds the full pain.001.001.03 XML document.
+ * Builds the full pain.001 XML document, in version .03 or .09.
  * @param {{
- *   payer: {name:string, iban:string, bic?:string},
+ *   payer: {name:string, iban:string, bic?:string, address?:{street?:string, buildingNumber?:string, postCode?:string, town?:string, country?:string}},
+ *   schema?: '03'|'09', // verzia správy; predvolene '03'. Po 15. 11. 2026 chcú banky '09' — dátum vyhodnocuje volajúci, aby táto funkcia zostala bez hodín
  *   bank?: 'tatrabanka'|'slsp'|'vub'|'csob'|'generic',
  *   profile?: 'sk'|'de', // country profile for PmtId/EndToEndId (see resolveEndToEndId()); default 'sk'
  *   execDate?: string,   // YYYY-MM-DD fallback for rows with no usable date
  *   msgId?: string,      // auto-generated (ARL-YYYYMMDD-HHMMSS) if omitted
  *   now?: Date,          // for deterministic tests; defaults to current time
- *   payments: Array<{iban:string, amount:number|null, name:string, vs?:string, ss?:string, ks?:string, message?:string, bic?:string, endToEndId?:string, dateIso?:string|null}>
+ *   payments: Array<{iban:string, amount:number|null, name:string, vs?:string, ss?:string, ks?:string, message?:string, bic?:string, endToEndId?:string, dateIso?:string|null, address?:object}>
  * }} config
- * @returns {string} pain.001.001.03 XML
+ * @returns {string} pain.001 XML
  */
 export function buildXml(config) {
   const cfg = config && typeof config === 'object' ? config : {};
@@ -706,6 +976,7 @@ export function buildXml(config) {
   const payments = Array.isArray(cfg.payments) ? cfg.payments : [];
   const bankKey = ['tatrabanka', 'slsp', 'vub', 'csob', 'generic'].includes(cfg.bank) ? cfg.bank : 'generic';
   const profile = cfg.profile === 'de' ? 'de' : 'sk';
+  const schema = cfg.schema === '09' ? '09' : '03';
 
   if (payments.length === 0) throw new Error('Žiadne platby na spracovanie. Vložte aspoň jeden riadok s platbou.');
   if (payments.length > MAX_PAYMENTS) throw new Error(`Príliš veľa platieb (${payments.length}). Maximum je ${MAX_PAYMENTS} v jednom súbore: rozdeľte platby do viacerých súborov.`);
@@ -715,6 +986,7 @@ export function buildXml(config) {
   const payerName = csob ? transliterate(payerNameRaw) : payerNameRaw;
   const payerIban = normalizeIban(payer.iban);
   const payerBic = (safeStr(payer.bic).toUpperCase() || bicFromIban(payerIban) || '').trim();
+  const payerAddress = normalizePayerAddress(payer.address, payerIban, csob);
 
   const fallbackDate = isValidIsoDateStr(cfg.execDate) ? cfg.execDate : defaultExecDate(cfg.now);
   const msgId = safeStr(cfg.msgId).trim() || autoMsgId(cfg.now);
@@ -727,9 +999,9 @@ export function buildXml(config) {
     const txXml = g.payments.map((p) => {
       totalCount++;
       if (isNum(p.amount)) totalSum += p.amount;
-      return buildTx(p, csob, profile);
+      return buildTx(p, csob, profile, schema);
     }).join('\n');
-    return buildPmtInf({ index: gi, msgId, date: g.date, payerName, payerIban, payerBic, txXml });
+    return buildPmtInf({ index: gi, msgId, date: g.date, payerName, payerIban, payerBic, payerAddress, txXml, schema });
   }).join('\n');
 
   const creDtTm = nowCreDtTm(cfg.now);
@@ -743,7 +1015,7 @@ export function buildXml(config) {
   // first built for tolerate its absence. Modelled as the payer/debtor
   // initiating their own payment, i.e. the same party as Dbtr.
   return `<?xml version="1.0" encoding="UTF-8"?>
-<Document xmlns="${PAIN_NAMESPACE}">
+<Document xmlns="${PAIN_NAMESPACES[schema]}">
   <CstmrCdtTrfInitn>
     <GrpHdr>
       <MsgId>${xmlEscape(msgId)}</MsgId>
@@ -762,5 +1034,6 @@ ${pmtInfBlocks}
 
 // Also expose as a plain browser global when loaded via <script type="module">.
 if (typeof window !== 'undefined') {
-  window.SepaGenerator = { parseRows, mapColumns, buildXml, bicFromIban, resolveEndToEndId, isSepaCharset, sepaCharsetViolations };
+  window.SepaGenerator = { parseRows, mapColumns, buildXml, bicFromIban, resolveEndToEndId, isSepaCharset, sepaCharsetViolations,
+    normalizeCountry, countryFromIban, parseAddressLine, TERMIN_ADRESY, PAIN_NAMESPACES };
 }

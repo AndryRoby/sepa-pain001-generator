@@ -4,7 +4,7 @@
 <script src="/style/vzhlad.js?v=93c2659f"></script>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://homelab.tailbf8f27.ts.net 'sha256-F4tKIijTjy2n3af4h4fZJfC44GT+vq6Pv7Ok7/dgVRk=' 'sha256-d3QhCC0zuRNwcNMlIhWVEh4s/oNe+JBCp3krKv3sJ1k=' 'sha256-SldR0dhj4X8fAA09CtYHnQ8iKnefvYk2pBSwAI5+91I=' 'sha256-xJwFEuNW98hRmVB4DhvaYDl63XJrfzBCM1jVCEilCKU=' 'sha256-strbyq1BpI+7BIJr0ChKiwrudallB9cNlc0wfYdMxCM='; connect-src 'self' https://homelab.tailbf8f27.ts.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://homelab.tailbf8f27.ts.net 'sha256-F4tKIijTjy2n3af4h4fZJfC44GT+vq6Pv7Ok7/dgVRk=' 'sha256-d3QhCC0zuRNwcNMlIhWVEh4s/oNe+JBCp3krKv3sJ1k=' 'sha256-0bhUyDzlrt3K3EhFaTEpPPLASGDcbC16k5IBSFq2nd0=' 'sha256-xJwFEuNW98hRmVB4DhvaYDl63XJrfzBCM1jVCEilCKU=' 'sha256-strbyq1BpI+7BIJr0ChKiwrudallB9cNlc0wfYdMxCM='; connect-src 'self' https://homelab.tailbf8f27.ts.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <script>try{localStorage.setItem("arling_lang","de")}catch(e){}</script>
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0a0908">
@@ -335,6 +335,10 @@
   .pay-table th { font-family:var(--ui); font-size:10px; background:var(--paper-deep); white-space:nowrap; }
   .pay-table td { max-width:200px; overflow-wrap:anywhere; }
   .pay-table tr.row-err td { color:var(--accent); }
+  /* Upozornenie nie je chyba: riadok sa spracuje, len ho treba vidieť. Preto
+     tlmenejšie než row-err a bez farby na celom riadku. */
+  .pay-table tr.row-warn td { color:var(--ink); }
+  .pay-table tr.row-warn td.err-cell { color:var(--accent-light); }
   .pay-table td.err-cell { font-family:var(--ui); font-size:11.5px; white-space:normal; }
   .pay-table td.num { text-align:right; white-space:nowrap; }
   @media (max-width:600px) {
@@ -608,6 +612,30 @@
                     <input type="text" id="f-payer-bic" placeholder="wird aus der IBAN abgeleitet" data-i18n-placeholder="s2.payer.bic.placeholder" />
                     <span class="hint" id="payer-bic-hint" data-i18n="s2.payer.bic.hint">Bei einer slowakischen IBAN wird das automatisch aus dem 4-stelligen Bankleitzahl-Code abgeleitet. Bei einer IBAN aus einem anderen Land tragen Sie sie bitte manuell ein. Seit Februar 2016 ist der BIC bei IBANs aus EWR-/SEPA-Ländern ohnehin optional.</span>
                   </div>
+                  <div class="field full">
+                    <label for="f-payer-street" data-i18n="s2.payer.address.label">Adresse des Zahlers</label>
+                    <span class="hint" id="payer-address-hint" data-i18n="s2.payer.address.hint">Optional. Wenn Sie sie ausfüllen, muss sie ab dem 15. November 2026 mindestens Ort und Länderkennzeichen enthalten, sonst weist die Bank die Zahlung zurück. Das Land leiten wir aus der IBAN ab, wenn Sie es leer lassen.</span>
+                  </div>
+                  <div class="field">
+                    <label for="f-payer-street" data-i18n="s2.payer.street.label">Straße</label>
+                    <input type="text" id="f-payer-street" placeholder="Ivanská cesta" />
+                  </div>
+                  <div class="field">
+                    <label for="f-payer-bldgnb" data-i18n="s2.payer.bldgnb.label">Hausnummer</label>
+                    <input type="text" id="f-payer-bldgnb" placeholder="32E" />
+                  </div>
+                  <div class="field">
+                    <label for="f-payer-postcode" data-i18n="s2.payer.postcode.label">PLZ</label>
+                    <input type="text" id="f-payer-postcode" placeholder="821 04" />
+                  </div>
+                  <div class="field">
+                    <label for="f-payer-town" data-i18n="s2.payer.town.label">Ort</label>
+                    <input type="text" id="f-payer-town" placeholder="Bratislava" />
+                  </div>
+                  <div class="field">
+                    <label for="f-payer-country" data-i18n="s2.payer.country.label">Land</label>
+                    <input type="text" id="f-payer-country" placeholder="SK" />
+                  </div>
                 </div>
               </div>
 
@@ -635,6 +663,14 @@
                   <div class="field">
                     <label for="f-execdate" data-i18n="s2.execdate.label">Ausführungsdatum</label>
                     <input type="date" id="f-execdate" />
+                  </div>
+                  <div class="field">
+                    <label for="f-schema" data-i18n="s2.schema.label">Nachrichtenversion</label>
+                    <select id="f-schema">
+                      <option value="03">pain.001.001.03</option>
+                      <option value="09">pain.001.001.09</option>
+                    </select>
+                    <span class="hint" id="schema-hint" data-i18n="s2.schema.hint">Slowakische Banken erwarten für den Sammelimport derzeit .03. Ab dem 15. November 2026 stellt ein Teil von ihnen auf .09 um. Eine strukturierte Adresse tragen beide Versionen.</span>
                   </div>
                   <div class="field">
                     <label for="f-msgid" data-i18n="s2.msgid.label">MsgId (optional)</label>
@@ -673,6 +709,12 @@
                   <div class="field"><label for="map-date" data-i18n="s2.map.date">Datum</label><select id="map-date"></select></div>
                   <div class="field"><label for="map-bic" data-i18n="s2.map.bic">BIC</label><select id="map-bic"></select></div>
                   <div class="field" data-profile-field="de" hidden><label for="map-endtoend" data-i18n="s2.map.endtoend">EndToEndId</label><select id="map-endtoend"></select></div>
+                  <div class="field"><label for="map-street" data-i18n="s2.map.street">Straße</label><select id="map-street"></select></div>
+                  <div class="field"><label for="map-buildingnb" data-i18n="s2.map.buildingnb">Hausnummer</label><select id="map-buildingnb"></select></div>
+                  <div class="field"><label for="map-postcode" data-i18n="s2.map.postcode">PLZ</label><select id="map-postcode"></select></div>
+                  <div class="field"><label for="map-town" data-i18n="s2.map.town">Ort</label><select id="map-town"></select></div>
+                  <div class="field"><label for="map-country" data-i18n="s2.map.country">Land</label><select id="map-country"></select></div>
+                  <div class="field"><label for="map-address" data-i18n="s2.map.address">Ganze Adresse</label><select id="map-address"></select></div>
                 </div>
 
                 <div class="pro-blocks">
@@ -923,7 +965,7 @@
 
 <!-- Scripts -->
 <script type="module">
-  import { parseRows, mapColumns, buildXml, bicFromIban, defaultExecDate, autoMsgId } from '../generator-pain001.js';
+  import { parseRows, mapColumns, buildXml, bicFromIban, defaultExecDate, autoMsgId, TERMIN_ADRESY } from '../generator-pain001.js';
   import { diagnose } from '../doctor-pain001.js';
   import { isValid as licenceIsValid, load as licenceLoad, save as licenceSave, clear as licenceClear, claim as licenceClaim } from '../licence.js';
   import { applyTemplate, loadProfiles, addProfile, removeProfile, mergeBlockPayments, blockTotals, loadHistory, addHistoryEntry } from '../pro.js';
@@ -935,7 +977,8 @@
   // active (see currentProfile()/applyCountryProfileUI() below); it is
   // always part of MAPPING_FIELDS so refreshMapping()'s auto-detect pass
   // always considers it, matching generator-pain001.js's own FIELD_LIST.
-  const MAPPING_FIELDS = ['iban', 'amount', 'name', 'vs', 'ss', 'ks', 'message', 'date', 'bic', 'endToEndId'];
+  const MAPPING_FIELDS = ['iban', 'amount', 'name', 'vs', 'ss', 'ks', 'message', 'date', 'bic', 'endToEndId',
+    'street', 'buildingNumber', 'postCode', 'town', 'country', 'address'];
   const BANK_OPTIONS = ['tatrabanka', 'slsp', 'vub', 'csob', 'generic'];
   const COUNTRY_PROFILES = ['sk', 'de'];
 
@@ -943,22 +986,40 @@
     return t('bank.' + key);
   }
 
+  // Predvolená verzia správy sa mení sama v deň termínu. Do 15. 11. 2026 chcú
+  // slovenské banky pri hromadnom importe .03, po ňom časť z nich prechádza
+  // na .09, tak nech nikto nemusí prepínať ručne. Prepnúť sa dá vždy.
+  function defaultSchema() {
+    return new Date().toISOString().slice(0, 10) >= TERMIN_ADRESY ? '09' : '03';
+  }
+
   // generator-pain001.js's mapping field key is "endToEndId" (matches its
   // FIELD_LIST), but the mapping-grid <select> for it is id="map-endtoend"
   // (see index.html markup) to keep every element id lowercase like its
   // siblings; this is the one place that distinction is bridged.
+  // Prvky majú id malými písmenami, kľúče polí sú v generator-pain001.js
+  // písané zmiešane (endToEndId, buildingNumber, postCode). Toto je jediné
+  // miesto, kde sa tie dva zápisy prekladajú.
+  const MAP_SELECT_ID = { endToEndId: 'endtoend', buildingNumber: 'buildingnb', postCode: 'postcode' };
+
   function mapSelectId(field) {
-    return 'map-' + (field === 'endToEndId' ? 'endtoend' : field);
+    return 'map-' + (MAP_SELECT_ID[field] || field);
   }
 
   // Sample data: 3 rows, one with a deliberately invalid IBAN (bad MOD-97
   // checksum) so pressing "Generovať" immediately shows a real problem.
-  const SAMPLE_PAYER = { name: 'Moja firma s. r. o.', iban: 'SK2811000000191000000005', bic: '' };
+  const SAMPLE_PAYER = {
+    name: 'Moja firma s. r. o.', iban: 'SK2811000000191000000005', bic: '',
+    address: { street: 'Ivanská cesta', buildingNumber: '32E', postCode: '821 04', town: 'Bratislava', country: 'SK' },
+  };
+  // Ukážka má adresné stĺpce naschvál: od 15. 11. 2026 je to tá časť súboru,
+  // pre ktorú ľudia prichádzajú. Tretí riadok má adresu bez mesta, aby bolo
+  // vidieť, ako sa taký riadok označí.
   const SAMPLE_PAYMENTS_TEXT =
-    'IBAN\tSuma\tNázov\tVS\tSpráva\n' +
-    'SK0502000000272000000018\t450.00\tJozef Šťastný\t123\tFaktúra č. 2026-0912\n' +
-    'SK0502000000272000000099\t120.50\tMária Nováková\t456\tFaktúra č. 2026-0913\n' +
-    'SK8709000000002000000018\t89.90\tFirma Novák s.r.o.\t789\tPreplatok';
+    'IBAN\tSuma\tNázov\tVS\tSpráva\tUlica\tČíslo domu\tPSČ\tMesto\tKrajina\n' +
+    'SK0502000000272000000018\t450.00\tJozef Šťastný\t123\tFaktúra č. 2026-0912\tHlavná\t12\t811 01\tBratislava\tSK\n' +
+    'SK0502000000272000000099\t120.50\tMária Nováková\t456\tFaktúra č. 2026-0913\tŠtúrova\t5\t040 01\tKošice\tSlovensko\n' +
+    'SK8709000000002000000018\t89.90\tFirma Novák s.r.o.\t789\tPreplatok\tNámestie SNP\t7\t\t\t';
 
   const tabFormBtn = $('tab-form');
   const tabJsonBtn = $('tab-json');
@@ -1117,6 +1178,14 @@
       payerName: $('f-payer-name').value,
       payerIban: $('f-payer-iban').value,
       payerBic: $('f-payer-bic').value,
+      payerAddress: {
+        street: $('f-payer-street').value,
+        buildingNumber: $('f-payer-bldgnb').value,
+        postCode: $('f-payer-postcode').value,
+        town: $('f-payer-town').value,
+        country: $('f-payer-country').value,
+      },
+      schema: $('f-schema').value,
       bank: $('f-bank').value,
       profile: currentProfile(),
       execDate: $('f-execdate').value,
@@ -1132,6 +1201,14 @@
     $('f-payer-name').value = typeof payer.name === 'string' ? payer.name : (typeof cfg.payerName === 'string' ? cfg.payerName : '');
     $('f-payer-iban').value = typeof payer.iban === 'string' ? payer.iban : (typeof cfg.payerIban === 'string' ? cfg.payerIban : '');
     $('f-payer-bic').value = typeof payer.bic === 'string' ? payer.bic : (typeof cfg.payerBic === 'string' ? cfg.payerBic : '');
+    const adr = (payer.address && typeof payer.address === 'object') ? payer.address
+      : (cfg.payerAddress && typeof cfg.payerAddress === 'object' ? cfg.payerAddress : {});
+    $('f-payer-street').value = typeof adr.street === 'string' ? adr.street : '';
+    $('f-payer-bldgnb').value = typeof adr.buildingNumber === 'string' ? adr.buildingNumber : '';
+    $('f-payer-postcode').value = typeof adr.postCode === 'string' ? adr.postCode : '';
+    $('f-payer-town').value = typeof adr.town === 'string' ? adr.town : '';
+    $('f-payer-country').value = typeof adr.country === 'string' ? adr.country : '';
+    $('f-schema').value = cfg.schema === '09' ? '09' : (cfg.schema === '03' ? '03' : defaultSchema());
     if (COUNTRY_PROFILES.includes(cfg.profile)) { countryProfileSelect.value = cfg.profile; profileTouched = true; }
     applyCountryProfileUI();
     $('f-bank').value = (currentProfile() === 'sk' && BANK_OPTIONS.includes(cfg.bank)) ? cfg.bank : $('f-bank').value;
@@ -1150,15 +1227,17 @@
     if (currentProfile() === 'sk' && BANK_OPTIONS.includes(settings.bank)) $('f-bank').value = settings.bank;
     if (typeof settings.execDate === 'string' && settings.execDate) $('f-execdate').value = settings.execDate;
     if (typeof settings.msgId === 'string') $('f-msgid').value = settings.msgId;
+    if (settings.schema === '03' || settings.schema === '09') $('f-schema').value = settings.schema;
   }
 
   // ── mode toggle ──────────────────────────────────────────────────────
   function formConfigAsJsonObj() {
     const cfg = formToConfig();
     return {
-      payer: { name: cfg.payerName, iban: cfg.payerIban, bic: cfg.payerBic },
+      payer: { name: cfg.payerName, iban: cfg.payerIban, bic: cfg.payerBic, address: cfg.payerAddress },
       bank: cfg.bank,
       profile: cfg.profile,
+      schema: cfg.schema,
       execDate: cfg.execDate,
       msgId: cfg.msgId,
       paymentsText: cfg.paymentsText,
@@ -1230,22 +1309,30 @@
       row: esc(t('js.table.row')), iban: esc(t('js.table.iban')), amount: esc(t('js.table.amount')),
       name: esc(t('js.table.name')), symbols: esc(t('js.table.symbols')),
       message: esc(t('js.table.message')), errors: esc(t('js.table.errors')),
+      address: esc(t('js.table.address')),
     };
     const rows = payments.map((p) => {
       const symbols = [p.vs && 'VS' + p.vs, p.ss && 'ŠS' + p.ss, p.ks && 'KS' + p.ks, p.endToEndId && 'E2E:' + p.endToEndId].filter(Boolean).join(' ');
       const amountText = p.amount === null ? (p.amountRaw || '') : formatAmountForLang(p.amount, lang);
-      return `<tr class="${p.hasError ? 'row-err' : ''}">
+      // Adresa sa v prehľade ukazuje skrátene: mesto a krajina sú jediné dve
+      // polia, na ktorých od 15. 11. 2026 záleží.
+      const a = p.address || {};
+      const adresaText = a.hasAny ? [a.town, a.country].filter(Boolean).join(', ') || '?' : '';
+      // Upozornenie nie je chyba: riadok sa spracuje, len ho treba vidieť.
+      const poznamky = (p.errors || []).concat(p.warnings || []);
+      return `<tr class="${p.hasError ? 'row-err' : (p.hasWarning ? 'row-warn' : '')}">
         <td data-th="${h.row}">${p.row}</td>
         <td data-th="${h.iban}">${esc(p.iban || p.ibanRaw || '')}</td>
         <td class="num" data-th="${h.amount}">${esc(amountText)}</td>
         <td data-th="${h.name}">${esc(p.name)}</td>
         <td data-th="${h.symbols}">${esc(symbols)}</td>
         <td data-th="${h.message}">${esc(p.message)}</td>
-        <td class="err-cell" data-th="${h.errors}">${p.errors.length ? esc(p.errors.join(' ')) : '-'}</td>
+        <td data-th="${h.address}">${esc(adresaText)}</td>
+        <td class="err-cell" data-th="${h.errors}">${poznamky.length ? esc(poznamky.join(' ')) : '-'}</td>
       </tr>`;
     }).join('');
     return `<div class="tablewrap"><table class="pay-table">
-      <thead><tr><th>${h.row}</th><th>${h.iban}</th><th>${h.amount}</th><th>${h.name}</th><th>${h.symbols}</th><th>${h.message}</th><th>${h.errors}</th></tr></thead>
+      <thead><tr><th>${h.row}</th><th>${h.iban}</th><th>${h.amount}</th><th>${h.name}</th><th>${h.symbols}</th><th>${h.message}</th><th>${h.address}</th><th>${h.errors}</th></tr></thead>
       <tbody>${rows}</tbody>
     </table></div>`;
   }
@@ -1444,8 +1531,9 @@
 
     const t0 = performance.now();
     const payerBic = (cfg.payerBic || '').trim().toUpperCase() || bicFromIban(cfg.payerIban) || '';
-    const payer = { name: cfg.payerName, iban: cfg.payerIban, bic: payerBic };
+    const payer = { name: cfg.payerName, iban: cfg.payerIban, bic: payerBic, address: cfg.payerAddress };
     const profile = COUNTRY_PROFILES.includes(cfg.profile) ? cfg.profile : 'sk';
+    const schema = cfg.schema === '09' ? '09' : '03';
 
     const mainMapped = mapColumns(parseRows(cfg.paymentsText), cfg.mapping, profile);
     const proBlocksActive = licenceState.valid && extraBlocks.length > 0;
@@ -1459,19 +1547,19 @@
     try {
       if (proBlocksActive && extraMapped.length > 0 && $('pro-merge-checkbox').checked) {
         const merged = mergeBlockPayments([{ payments: mainMapped.payments }, ...extraMapped.map((m) => ({ payments: m.payments }))]);
-        const xml = buildXml({ bank: cfg.bank, profile, payer, execDate: cfg.execDate, msgId: cfg.msgId, payments: merged });
+        const xml = buildXml({ bank: cfg.bank, profile, schema, payer, execDate: cfg.execDate, msgId: cfg.msgId, payments: merged });
         entries = [{ xml, mapped: { payments: merged }, doctorResult: diagnose({ xml, bank: cfg.bank }), filename: downloadFilename(), label: tf('js.mergedfile.label', { n: 1 + extraMapped.length }) }];
         track('pro_feature', { name: 'multi_block_merge', blocks: 1 + extraMapped.length });
       } else if (proBlocksActive && extraMapped.length > 0) {
         const blocks = [mainMapped, ...extraMapped];
         const baseMsgId = (cfg.msgId && cfg.msgId.trim()) || autoMsgId();
         entries = blocks.map((m, i) => {
-          const xml = buildXml({ bank: cfg.bank, profile, payer, execDate: cfg.execDate, msgId: `${baseMsgId}-B${i + 1}`, payments: m.payments });
+          const xml = buildXml({ bank: cfg.bank, profile, schema, payer, execDate: cfg.execDate, msgId: `${baseMsgId}-B${i + 1}`, payments: m.payments });
           return { xml, mapped: m, doctorResult: diagnose({ xml, bank: cfg.bank }), filename: downloadFilename('-blok' + (i + 1)), label: tf('js.blockfile.label', { i: i + 1, n: blocks.length }) };
         });
         track('pro_feature', { name: 'multi_block_separate', blocks: blocks.length });
       } else {
-        const xml = buildXml({ bank: cfg.bank, profile, payer, execDate: cfg.execDate, msgId: cfg.msgId, payments: mainMapped.payments });
+        const xml = buildXml({ bank: cfg.bank, profile, schema, payer, execDate: cfg.execDate, msgId: cfg.msgId, payments: mainMapped.payments });
         entries = [{ xml, mapped: mainMapped, doctorResult: diagnose({ xml, bank: cfg.bank }), filename: downloadFilename() }];
       }
     } catch (e) {
