@@ -4,7 +4,7 @@
 <script src="/style/vzhlad.js?v=93c2659f"></script>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://homelab.tailbf8f27.ts.net 'sha256-F4tKIijTjy2n3af4h4fZJfC44GT+vq6Pv7Ok7/dgVRk=' 'sha256-d3QhCC0zuRNwcNMlIhWVEh4s/oNe+JBCp3krKv3sJ1k=' 'sha256-E1mat20H6/1d187GddiHN1b4lmF0hNVlUxis9dbqPfk=' 'sha256-ay+1+rvME+Zd0jekRZ0zCs/atq5QcMLAb063a2fWXm0=' 'sha256-strbyq1BpI+7BIJr0ChKiwrudallB9cNlc0wfYdMxCM='; connect-src 'self' https://homelab.tailbf8f27.ts.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://homelab.tailbf8f27.ts.net 'sha256-F4tKIijTjy2n3af4h4fZJfC44GT+vq6Pv7Ok7/dgVRk=' 'sha256-d3QhCC0zuRNwcNMlIhWVEh4s/oNe+JBCp3krKv3sJ1k=' 'sha256-SFL6XGD5JIR24hoqMi0s7CQEOj0HKcENLJ6WK0wqS/Y=' 'sha256-ay+1+rvME+Zd0jekRZ0zCs/atq5QcMLAb063a2fWXm0=' 'sha256-strbyq1BpI+7BIJr0ChKiwrudallB9cNlc0wfYdMxCM='; connect-src 'self' https://homelab.tailbf8f27.ts.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0a0908">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -1015,11 +1015,16 @@
   // Ukážka má adresné stĺpce naschvál: od 15. 11. 2026 je to tá časť súboru,
   // pre ktorú ľudia prichádzajú. Tretí riadok má adresu bez mesta, aby bolo
   // vidieť, ako sa taký riadok označí.
+  // Hlavicka sa berie z prekladu: plnia sa z nej rozbalovacie zoznamy
+  // priradenia stlpcov, ktore su na stranke este pred prvym kliknutim.
+  // Mena, mesta a IBAN ostavaju slovenske zamerne, lebo prave na nich ukazka
+  // predvadza dva nalezy, kvoli ktorym clovek prisiel: diakritiku a slovo
+  // "Slovensko" namiesto dvojpismenoveho kodu v poli Krajina.
   const SAMPLE_PAYMENTS_TEXT =
-    'IBAN\tSuma\tNázov\tVS\tSpráva\tUlica\tČíslo domu\tPSČ\tMesto\tKrajina\n' +
-    'SK0502000000272000000018\t450.00\tJozef Šťastný\t123\tFaktúra č. 2026-0912\tHlavná\t12\t811 01\tBratislava\tSK\n' +
-    'SK0502000000272000000099\t120.50\tMária Nováková\t456\tFaktúra č. 2026-0913\tŠtúrova\t5\t040 01\tKošice\tSlovensko\n' +
-    'SK8709000000002000000018\t89.90\tFirma Novák s.r.o.\t789\tPreplatok\tNámestie SNP\t7\t\t\t';
+    t('js.sample.header') + '\n' +
+    'SK0502000000272000000018\t450.00\tJozef Šťastný\t123\t' + t('js.sample.invoice') + ' 2026-0912\tHlavná\t12\t811 01\tBratislava\tSK\n' +
+    'SK0502000000272000000099\t120.50\tMária Nováková\t456\t' + t('js.sample.invoice') + ' 2026-0913\tŠtúrova\t5\t040 01\tKošice\tSlovensko\n' +
+    'SK8709000000002000000018\t89.90\tFirma Novák s.r.o.\t789\t' + t('js.sample.overpaid') + '\tNámestie SNP\t7\t\t\t';
 
   const tabFormBtn = $('tab-form');
   const tabJsonBtn = $('tab-json');
