@@ -5,6 +5,11 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://homelab.tailbf8f27.ts.net 'sha256-F4tKIijTjy2n3af4h4fZJfC44GT+vq6Pv7Ok7/dgVRk=' 'sha256-d3QhCC0zuRNwcNMlIhWVEh4s/oNe+JBCp3krKv3sJ1k=' 'sha256-SldR0dhj4X8fAA09CtYHnQ8iKnefvYk2pBSwAI5+91I=' 'sha256-xJwFEuNW98hRmVB4DhvaYDl63XJrfzBCM1jVCEilCKU=' 'sha256-strbyq1BpI+7BIJr0ChKiwrudallB9cNlc0wfYdMxCM='; connect-src 'self' https://homelab.tailbf8f27.ts.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="theme-color" content="#0a0908">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.ico" sizes="48x48">
+<link rel="apple-touch-icon" href="icon-180.png">
 <title>SEPA pain.001 Generátor (slovenské banky)</title>
 <meta name="description" content="Vložte platby skopírované z Excelu alebo CSV a vygenerujte SEPA pain.001 XML hromadný príkaz pre Tatra banku, SLSP, VÚB alebo ČSOB. Súbor sa hneď skontroluje. Zadarmo, priamo v prehliadači, nič sa neodosiela." />
 <meta property="og:type" content="website" />
@@ -18,9 +23,9 @@
 <link rel="alternate" hreflang="de" href="https://arling.sk/sepa-pain001-generator/de/" />
 <link rel="alternate" hreflang="x-default" href="https://arling.sk/sepa-pain001-generator/" />
 <meta property="og:image" content="https://arling.sk/sepa-pain001-generator/icon-512.png" />
-<link rel="icon" href="favicon.svg" type="image/svg+xml" />
+
 <link rel="alternate icon" href="favicon.ico" />
-<link rel="apple-touch-icon" href="icon-192.png" />
+
 <link rel="manifest" href="manifest.json" />
 <!-- Vzhľad: jediný zdroj je /style/paper.css (Paper v2), fonty ARLing sú hostené u nás, žiadne externé CDN. -->
 <link rel="preload" href="/fonts/arling-sans.woff2" as="font" type="font/woff2" crossorigin>
@@ -487,33 +492,22 @@
   @media print { .sticky-cta, .wash { display:none !important; } }
 </style>
 </head>
-<body>
+<body class="noc">
 <div class="wash" aria-hidden="true"><i></i><i></i></div>
 
 <a class="skip" href="#playground" data-i18n="skip">Skočiť na generátor</a>
-<header class="top">
+<header>
   <div class="wrap bar">
-    <div class="brand">
-      <a class="mark" href="https://arling.sk/" aria-label="ARLing">
-        <svg viewBox="0 0 488 215" width="38" height="15" aria-hidden="true" focusable="false"><path fill="#f4f4f7" fill-rule="evenodd" d="M0.00,213.00L74.00,214.00L181.00,85.00L285.00,214.00L360.00,214.00L206.00,21.00L185.00,4.00L164.00,10.00Z M221.00,0.00L263.00,50.00L395.00,50.00L409.00,55.00L419.00,76.00L401.00,96.00L313.00,98.00L411.00,214.00L487.00,214.00L422.00,139.00L457.00,123.00L482.00,88.00L482.00,48.00L463.00,19.00L417.00,0.00Z"/><path fill="#f2643c" d="M269.00,66.00L269.00,67.00L268.00,68.00L268.00,70.00L267.00,71.00L267.00,76.00L268.00,77.00L268.00,79.00L270.00,81.00L270.00,82.00L271.00,82.00L273.00,84.00L274.00,84.00L277.00,86.00L279.00,86.00L280.00,87.00L287.00,87.00L288.00,86.00L290.00,86.00L291.00,85.00L294.00,84.00L298.00,80.00L298.00,79.00L299.00,78.00L299.00,75.00L300.00,74.00L300.00,72.00L299.00,71.00L299.00,69.00L298.00,68.00L297.00,65.00L295.00,63.00L294.00,63.00L289.00,60.00L278.00,60.00L277.00,61.00L276.00,61.00L275.00,62.00L272.00,63.00Z"/></svg>
-        <b>ARLing</b>
-      </a>
-      <a class="part" href="https://arling.sk/sepa-pain001-generator/" data-i18n="wordmark">SEPA pain.001 Generátor</a>
-    </div>
-    <div class="headnav">
-      <nav class="main" aria-label="Stránka">
-        <a href="#problem" data-i18n="nav.how">Ako to funguje</a>
-        <a href="#playground" data-i18n="nav.convert">Generátor</a>
-        <a href="#endpoint" data-i18n="nav.api">API</a>
-        <a href="#pro" data-i18n="nav.pro">Pro</a>
-        <a href="#faq" data-i18n="nav.faq">Otázky</a>
-      </nav>
-      <div class="lang-switch" role="group" aria-label="Jazyk stránky" data-i18n-aria-label="lang.switch.aria">
+    <a class="brand" href="https://arling.sk/">
+      <svg viewBox="0 0 488 215" width="38" height="15" aria-hidden="true" focusable="false"><path fill="#f4f4f7" fill-rule="evenodd" d="M0.00,213.00L74.00,214.00L181.00,85.00L285.00,214.00L360.00,214.00L206.00,21.00L185.00,4.00L164.00,10.00Z M221.00,0.00L263.00,50.00L395.00,50.00L409.00,55.00L419.00,76.00L401.00,96.00L313.00,98.00L411.00,214.00L487.00,214.00L422.00,139.00L457.00,123.00L482.00,88.00L482.00,48.00L463.00,19.00L417.00,0.00Z"/><path fill="#f2643c" d="M269.00,66.00L269.00,67.00L268.00,68.00L268.00,70.00L267.00,71.00L267.00,76.00L268.00,77.00L268.00,79.00L270.00,81.00L270.00,82.00L271.00,82.00L273.00,84.00L274.00,84.00L277.00,86.00L279.00,86.00L280.00,87.00L287.00,87.00L288.00,86.00L290.00,86.00L291.00,85.00L294.00,84.00L298.00,80.00L298.00,79.00L299.00,78.00L299.00,75.00L300.00,74.00L300.00,72.00L299.00,71.00L299.00,69.00L298.00,68.00L297.00,65.00L295.00,63.00L294.00,63.00L289.00,60.00L278.00,60.00L277.00,61.00L276.00,61.00L275.00,62.00L272.00,63.00Z"/></svg>
+      <b>ARLing</b>
+    </a>
+    <nav aria-label="Site"><a href="https://arling.sk/#tools">Nástroje</a><a href="https://arling.sk/notes/">Notes</a><a href="https://arling.sk/how-we-work/">Ako pracujeme</a><a href="mailto:andrej@arling.sk">Kontakt</a></nav>
+    <div class="lang-switch" role="group" aria-label="Jazyk stránky" data-i18n-aria-label="lang.switch.aria">
         <a href="./" class="lang-active" aria-current="true" data-set-lang="sk" hreflang="sk" aria-label="Slovenčina" data-i18n-aria-label="lang.sk.aria">SK</a>
         <a href="en/" data-set-lang="en" hreflang="en" aria-label="English" data-i18n-aria-label="lang.en.aria">EN</a>
         <a href="de/" data-set-lang="de" hreflang="de" aria-label="Deutsch" data-i18n-aria-label="lang.de.aria">DE</a>
       </div>
-    </div>
   </div>
 </header>
 
@@ -906,12 +900,11 @@
 </main>
 
 <footer>
-  <div class="wrap cols">
-    <div><b>ARLing s. r. o.</b><br>Ivanská cesta 32E<br>821 04 Bratislava, <span data-i18n="footer.country">Slovensko</span></div>
+  <div class="wrap foot">
+    <div><b>ARLing s. r. o.</b><br>Ivanská cesta 32E<br>821 04 Bratislava, Slovensko</div>
     <div>IČO 56583486<br>IČ DPH SK2122352100<br><a href="mailto:andrej@arling.sk">andrej@arling.sk</a></div>
-    <div><span data-i18n="footer.sisters.label">Ďalšie nástroje:</span> <a href="https://arling.sk/sepa-pain001-doctor/" data-i18n="footer.tool.doctor">SEPA pain.001 Doctor</a> · <a href="https://arling.sk/camt053-to-excel/" data-i18n="footer.tool.camt">camt.053 do Excelu</a> · <a href="https://arling.sk/parovac-platieb/" data-i18n="footer.tool.matcher">Párovač platieb</a><br><span data-i18n="footer.bundle.label">Pro pre všetky štyri:</span> <a href="https://arling.sk/bankove-nastroje/" data-i18n="footer.bundle.name">Bankové nástroje pre účtovníkov</a><br><a href="https://arling.sk/" data-i18n="footer.all.tools">Všetky nástroje ARLing</a> · <a href="llms.txt">llms.txt</a> · <a href="https://github.com/AndryRoby/sepa-pain001-generator" target="_blank" rel="noopener">GitHub</a> · <a href="https://arling.sk/privacy/" data-i18n="footer.privacy">Súkromie</a></div>
+    <div><a href="https://arling.sk/privacy/">ochrana údajov</a> · <a href="https://arling.sk/podmienky/">podmienky</a> · <a href="https://arling.sk/gdpr/">GDPR</a> · <a href="https://arling.sk/impressum/">Impressum</a> · <a href="https://arling.sk/llms.txt">llms.txt</a> · <a href="https://arling.sk/sitemap-index.xml">mapa stránky</a><br>Nástroje sú poskytované tak, ako sú, bez záruky. Anonymné počty návštev cez vlastné Umami.</div>
   </div>
-  <p class="wrap footer-note" data-i18n="footer.note">Nič neopúšťa váš prehliadač okrem anonymných počtov použitia cez self-hosted Umami (a e-mailu, ak sa prihlásite na odber nižšie).</p>
 </footer>
 
 <div class="sticky-cta" id="sticky-cta" hidden>
