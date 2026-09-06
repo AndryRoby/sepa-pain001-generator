@@ -35,6 +35,9 @@ export const DICT = {
   'nav.api': { sk: 'API', en: 'API', de: 'API' },
   'nav.pro': { sk: 'Pro', en: 'Pro', de: 'Pro' },
   'nav.faq': { sk: 'Otázky', en: 'FAQ', de: 'FAQ' },
+  'nav.tools': { sk: 'Nástroje', en: 'Tools', de: 'Werkzeuge' },
+  'nav.work': { sk: 'Ako pracujeme', en: 'How we work', de: 'Wie wir arbeiten' },
+  'nav.contact': { sk: 'Kontakt', en: 'Contact', de: 'Kontakt' },
   'lang.switch.aria': { sk: 'Jazyk stránky', en: 'Page language', de: 'Sprache der Seite' },
   'lang.sk.aria': { sk: 'Slovenčina', en: 'Slovak', de: 'Slowakisch' },
   'lang.en.aria': { sk: 'English', en: 'English', de: 'Englisch' },
@@ -54,7 +57,7 @@ export const DICT = {
   'hero.cta': { sk: 'Vytvoriť súbor', en: 'Create a file', de: 'Datei erstellen' },
   'hero.source': { sk: 'Zdrojový kód na GitHube', en: 'Source code on GitHub', de: 'Quellcode auf GitHub' },
   'hero.fact.banks': { sk: '4 banky: Tatra banka, SLSP, VÚB, ČSOB', en: '4 Slovak banks, plus a generic DE (Deutsche Kreditwirtschaft) profile', de: '4 slowakische Banken, plus generisches DE-Profil (Deutsche Kreditwirtschaft)' },
-  'hero.fact.tests': { sk: '277 automatizovaných testov', en: '277 automated tests', de: '277 automatisierte Tests' },
+  'hero.fact.tests': { sk: '456 automatizovaných testov', en: '456 automated tests', de: '456 automatisierte Tests' },
   'hero.fact.maxpayments': { sk: 'max. 5000 platieb', en: 'max. 5000 payments', de: 'max. 5000 Zahlungen' },
   'hero.fact.free': { sk: '0 €, bez účtu', en: '€0, no account', de: '0 €, ohne Konto' },
   'hero.fact.browser': { sk: 'beží vo vašom prehliadači', en: 'runs in your browser', de: 'läuft im Browser' },
@@ -408,6 +411,19 @@ export const DICT = {
     en: 'Nothing leaves your browser except anonymous usage counts via self-hosted Umami (and an email address, if you sign up for updates below).',
     de: 'Nichts verlässt Ihren Browser außer anonymen Nutzungszahlen über das selbst gehostete Umami (und einer E-Mail-Adresse, falls Sie sich unten anmelden).',
   },
+  // Samostatné kľúče pre spodnú pätičku stránky (odkazy na právne stránky a
+  // veta o zárukách/Umami). Nepoužívať existujúci 'footer.privacy' vyššie -
+  // ten patrí inému bloku (odkaz na iné podstránky) a má iný text ("Súkromie"),
+  // preplietlo by sa to. GDPR/Impressum/llms.txt necháme bez prekladu, sú
+  // jazykovo neutrálne (skratka, nemecký právny pojem, meno súboru).
+  'footer.legal.privacy': { sk: 'ochrana údajov', en: 'privacy', de: 'Datenschutz' },
+  'footer.legal.terms': { sk: 'podmienky', en: 'terms', de: 'AGB' },
+  'footer.legal.sitemap': { sk: 'mapa stránky', en: 'sitemap', de: 'Sitemap' },
+  'footer.legal.disclaimer': {
+    sk: 'Nástroje sú poskytované tak, ako sú, bez záruky. Anonymné počty návštev cez vlastné Umami.',
+    en: 'Tools are provided as-is, without warranty. Anonymous visit counts via our own Umami.',
+    de: 'Die Tools werden ohne Gewähr bereitgestellt. Anonyme Besuchszahlen über unser eigenes Umami.',
+  },
 
   // ── meta / SEO ───────────────────────────────────────────────────────
   'meta.title': {
@@ -419,6 +435,16 @@ export const DICT = {
     sk: 'Vložte platby skopírované z Excelu alebo CSV a vygenerujte SEPA pain.001 XML hromadný príkaz pre Tatra banku, SLSP, VÚB alebo ČSOB. Súbor sa hneď skontroluje. Zadarmo, priamo v prehliadači, nič sa neodosiela.',
     en: 'Paste payments copied from Excel or CSV and generate a SEPA pain.001 XML batch payment file for a Slovak bank, or a generic German (DK) profile with Verwendungszweck instead of VS/SS/KS. The file is checked right away. Free, runs in your browser, nothing is uploaded.',
     de: 'Fügen Sie aus Excel oder CSV kopierte Zahlungen ein und erstellen Sie eine SEPA-pain.001-XML-Sammelüberweisung für eine slowakische Bank, oder ein generisches deutsches (DK-)Profil mit Verwendungszweck statt VS/SS/KS. Die Datei wird sofort geprüft. Kostenlos, läuft im Browser, nichts wird hochgeladen.',
+  },
+  // Dlhší popis len pre JSON-LD (SoftwareApplication.description), samostatný
+  // od meta.description vyššie. Statický <script type="application/ld+json">
+  // v index.html a build-i18n.mjs nesmieme meniť (mimo povoleného rozsahu
+  // tejto opravy), preto ho tu len prepisujeme za behu v applyI18n() nižšie -
+  // rovnako, ako sa už za behu prepisuje meta description a og:description.
+  'jsonld.description': {
+    sk: 'Bezplatný nástroj, ktorý priamo v prehliadači vytvorí zo skopírovaných alebo nahraných platieb z Excelu či CSV SEPA pain.001.001.03 XML hromadný príkaz na úhradu, pripravený na import do internetbankingu Tatra banky, Slovenskej sporiteľne (SLSP), VÚB alebo ČSOB, prípadne všeobecný nemecký (Deutsche Kreditwirtschaft, profil „de“) pain.001 súbor s poľom Verwendungszweck namiesto VS/ŠS/KS. Na každý vygenerovaný súbor automaticky beží aj engine SEPA pain.001 Doctor. Dostupné po slovensky, anglicky a nemecky.',
+    en: 'Free, client-side tool that builds a SEPA pain.001.001.03 XML batch payment file (hromadný príkaz na úhradu) from payments pasted or uploaded from Excel or CSV, ready for import into Tatra banka, Slovenská sporiteľňa (SLSP), VÚB, or ČSOB internet banking, or a generic German (Deutsche Kreditwirtschaft, "de" country profile) pain.001 file with Verwendungszweck instead of VS/SS/KS. Runs the sibling SEPA pain.001 Doctor engine on every generated file automatically. Available in Slovak, English and German.',
+    de: 'Kostenloses Tool im Browser, das aus eingefügten oder aus Excel/CSV hochgeladenen Zahlungen eine SEPA-pain.001.001.03-XML-Sammelüberweisung (hromadný príkaz na úhradu) erstellt, bereit zum Import ins Online-Banking von Tatra banka, Slovenská sporiteľňa (SLSP), VÚB oder ČSOB, oder wahlweise eine generische deutsche (Deutsche Kreditwirtschaft, Länderprofil „de“) pain.001-Datei mit Verwendungszweck statt VS/SS/KS. Für jede erzeugte Datei läuft automatisch dieselbe Engine wie bei SEPA pain.001 Doctor. Verfügbar auf Slowakisch, Englisch und Deutsch.',
   },
 
   // ── dynamic JS strings (status pills, errors, dynamic labels) ──────────
@@ -442,7 +468,7 @@ export const DICT = {
   'js.table.iban': { sk: 'IBAN', en: 'IBAN', de: 'IBAN' },
   'js.table.amount': { sk: 'Suma', en: 'Amount', de: 'Betrag' },
   'js.table.name': { sk: 'Názov', en: 'Name', de: 'Name' },
-  'js.table.symbols': { sk: 'Symboly', en: 'References', de: 'Verwendungszweck' },
+  'js.table.symbols': { sk: 'Symboly', en: 'References', de: 'Referenzsymbole' },
   'js.table.message': { sk: 'Správa', en: 'Message', de: 'Nachricht' },
   'js.table.address': { sk: 'Adresa', en: 'Address', de: 'Adresse' },
   'js.table.errors': { sk: 'Chyby', en: 'Errors', de: 'Fehler' },
@@ -507,6 +533,9 @@ export const DICT = {
   'js.block.placeholder': { sk: 'Ďalší blok platieb (rovnaké mapovanie stĺpcov ako vyššie).', en: 'Another payment block (same column mapping as above).', de: 'Ein weiterer Zahlungsblock (gleiche Spaltenzuordnung wie oben).' },
   'js.mergedfile.label': { sk: 'Zlúčený súbor ({n} bloky)', en: 'Merged file ({n} blocks)', de: 'Zusammengeführte Datei ({n} Blöcke)' },
   'js.blockfile.label': { sk: 'Blok {i} z {n}', en: 'Block {i} of {n}', de: 'Block {i} von {n}' },
+  // Predpona názvu stiahnutého XML súboru; bez prípony a dátumu, tie si
+  // pridáva downloadFilename() v index.html.
+  'js.filename.prefix': { sk: 'hromadny-prikaz', en: 'sepa-payments', de: 'sepa-sammelauftrag' },
 
   'js.history.empty': { sk: 'Zatiaľ žiadna história. Vygenerujte prvý súbor.', en: 'No history yet. Generate your first file.', de: 'Noch kein Verlauf. Erstellen Sie Ihre erste Datei.' },
   'js.history.redownload': { sk: 'stiahnuť znova', en: 'download again', de: 'erneut herunterladen' },
@@ -717,6 +746,22 @@ export function applyI18n(lang) {
   setMetaByProperty('og:title', t('meta.title', l));
   setMetaByProperty('og:description', t('meta.description', l));
   setMetaByProperty('og:locale', ogLocaleForLang(l));
+
+  // JSON-LD description je statická v HTML (build-i18n.mjs ju pre "en" zámerne
+  // necháva netknutú, aby zostala zhodná so slovenským zdrojom pri stavaní) -
+  // na koreňovej sk stránke preto bez tohto prepisu ostáva po anglicky.
+  // Rovnako ako meta description vyššie, prepíšeme ju tu za behu pre všetky
+  // tri jazyky, nech čítačka structured data vidí jazyk, v akom sa stránka
+  // skutočne zobrazuje.
+  document.querySelectorAll('script[type="application/ld+json"]').forEach((el) => {
+    try {
+      const data = JSON.parse(el.textContent);
+      if (data['@type'] === 'SoftwareApplication') {
+        data.description = t('jsonld.description', l);
+        el.textContent = JSON.stringify(data, null, 2);
+      }
+    } catch (e) {}
+  });
 
   document.querySelectorAll('[data-set-lang]').forEach((btn) => {
     const active = btn.getAttribute('data-set-lang') === l;
