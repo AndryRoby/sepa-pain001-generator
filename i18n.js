@@ -203,6 +203,19 @@ export const DICT = {
     de: 'Einstellungen (Bank, Ausführungsdatum, MsgId) werden nach der Erstellung im Seitenlink gespeichert. Zahler und Zahlungen werden nie im Link gespeichert, das Ergebnis lässt sich also nicht per URL teilen. Zum Teilen nutzen Sie die Schaltfläche „Bericht kopieren“ oder die heruntergeladene XML-Datei.',
   },
 
+  // Platena kontrola suboru. Odkaz je cely v prekladovom retazci, lebo
+  // nemecka verzia ma vlastnu stranku a data-i18n adresu prepisat nedokaze.
+  's2.kontrola.p': {
+    sk: 'Nechcete to riešiť sami? Pošlete nám súbor a do 24 hodín dostanete písomnú správu, čo po 15. novembri neprejde, a opravený súbor. 149 €',
+    en: 'Would you rather not deal with this yourself? Send us the file and within 24 hours you get a written report on what will be rejected after 15 November, and the corrected file. 149 €',
+    de: 'Sie möchten das nicht selbst machen? Senden Sie uns die Datei, und innerhalb von 24 Stunden bekommen Sie einen schriftlichen Bericht, was nach dem 15. November abgelehnt wird, und die korrigierte Datei. 149 €',
+  },
+  's2.kontrola.cta': {
+    sk: '<a class="btn btn-solid" href="https://arling.sk/kontrola-suboru/" data-umami-event="kontrola_click" data-umami-event-place="generator">Nechať skontrolovať súbor</a>',
+    en: '<a class="btn btn-solid" href="https://arling.sk/kontrola-suboru/" data-umami-event="kontrola_click" data-umami-event-place="generator">Get the file checked</a>',
+    de: '<a class="btn btn-solid" href="https://arling.sk/kontrola-suboru/de/" data-umami-event="kontrola_click" data-umami-event-place="generator">Datei prüfen lassen</a>',
+  },
+
   // ── section 03: endpoint / API ───────────────────────────────────────
   's3.h2': {
     sk: 'Dve funkcie. Platby dnu, XML von, hneď skontrolované.',
