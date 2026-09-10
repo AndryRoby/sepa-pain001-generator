@@ -212,7 +212,7 @@ export const DICT = {
   },
   's2.kontrola.cta': {
     sk: '<a class="btn btn-solid" href="https://arling.sk/kontrola-suboru/" data-umami-event="kontrola_click" data-umami-event-place="generator">Nechať skontrolovať súbor</a>',
-    en: '<a class="btn btn-solid" href="https://arling.sk/kontrola-suboru/" data-umami-event="kontrola_click" data-umami-event-place="generator">Get the file checked</a>',
+    en: '<a class="btn btn-solid" href="https://arling.sk/kontrola-suboru/en/" data-umami-event="kontrola_click" data-umami-event-place="generator">Get the file checked</a>',
     de: '<a class="btn btn-solid" href="https://arling.sk/kontrola-suboru/de/" data-umami-event="kontrola_click" data-umami-event-place="generator">Datei prüfen lassen</a>',
   },
 
