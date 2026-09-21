@@ -47,18 +47,18 @@ export const DICT = {
   'hero.h1': {
     sk: 'Zoznam platieb z Excelu na XML pre banku. Skontrolovaný, za minútu.',
     en: 'A payment list from Excel to a bank XML file. Checked, in a minute.',
-    de: 'Zahlungsliste aus Excel zur Bank-XML. Geprüft, in einer Minute.',
+    de: 'SEPA-XML aus Excel erstellen, geprüft.',
   },
   'hero.lead': {
     sk: 'Vložte platby skopírované z Excelu alebo CSV, vyplňte IBAN platiteľa a stiahnite pain.001 hromadný príkaz. Súbor sa hneď po vygenerovaní skontroluje cez ten istý engine ako SEPA pain.001 Doctor.',
     en: 'Paste payments copied from Excel or CSV, fill in the payer’s IBAN, and download a pain.001 batch payment file. The file is checked right after generation by the same engine as SEPA pain.001 Doctor.',
-    de: 'Fügen Sie aus Excel oder CSV kopierte Zahlungen ein, tragen Sie die IBAN des Zahlers ein und laden Sie eine pain.001-Sammelüberweisung herunter. Die Datei wird direkt nach der Erstellung mit derselben Engine wie SEPA pain.001 Doctor geprüft.',
+    de: 'Zahlungen aus Excel oder CSV einfügen, IBAN des Zahlers eintragen, fertige pain.001-Datei herunterladen. Jede Datei wird sofort mit derselben Engine wie SEPA pain.001 Doctor geprüft.',
   },
-  'hero.cta': { sk: 'Vytvoriť súbor', en: 'Create a file', de: 'Datei erstellen' },
+  'hero.cta': { sk: 'Vytvoriť súbor', en: 'Create a file', de: 'Zahlungen einfügen' },
   'hero.source': { sk: 'Zdrojový kód na GitHube', en: 'Source code on GitHub', de: 'Quellcode auf GitHub' },
-  'hero.fact.banks': { sk: '4 banky: Tatra banka, SLSP, VÚB, ČSOB', en: '4 Slovak banks, plus a generic DE (Deutsche Kreditwirtschaft) profile', de: '4 slowakische Banken, plus generisches DE-Profil (Deutsche Kreditwirtschaft)' },
+  'hero.fact.banks': { sk: '4 banky: Tatra banka, SLSP, VÚB, ČSOB', en: '4 Slovak banks, plus a generic DE (Deutsche Kreditwirtschaft) profile', de: 'Länderprofil Deutschland (DK): Verwendungszweck statt VS/SS/KS' },
   'hero.fact.tests': { sk: '456 automatizovaných testov', en: '456 automated tests', de: '456 automatisierte Tests' },
-  'hero.fact.maxpayments': { sk: 'max. 5000 platieb', en: 'max. 5000 payments', de: 'max. 5000 Zahlungen' },
+  'hero.fact.maxpayments': { sk: 'max. 5000 platieb', en: 'max. 5000 payments', de: 'pain.001.001.03 oder .09, max. 5000 Zahlungen' },
   'hero.fact.free': { sk: '0 €, bez účtu', en: '€0, no account', de: '0 €, ohne Konto' },
   'hero.fact.browser': { sk: 'beží vo vašom prehliadači', en: 'runs in your browser', de: 'läuft im Browser' },
 
@@ -142,7 +142,7 @@ export const DICT = {
   's2.schema.hint': {
     sk: 'Slovenské banky dnes pri hromadnom importe čakajú .03. Od 15. 11. 2026 časť z nich prechádza na .09. Štruktúrovanú adresu zvládnu obe.',
     en: 'Slovak banks currently expect .03 for bulk import. From 15 November 2026 some of them switch to .09. Both versions can carry a structured address.',
-    de: 'Slowakische Banken erwarten für den Sammelimport derzeit .03. Ab dem 15. November 2026 stellt ein Teil von ihnen auf .09 um. Eine strukturierte Adresse tragen beide Versionen.',
+    de: 'Das Profil Deutschland (DK) folgt den Regeln für .03. Zum 15. November 2026 stellen die SEPA-Schemata auf .09 um; welche Version Ihre Bank beim Import erwartet, sagt Ihnen im Zweifel die Bank selbst. Eine strukturierte Adresse tragen beide Versionen.',
   },
   's2.execdate.label': { sk: 'dátum splatnosti', en: 'execution date', de: 'Ausführungsdatum' },
   's2.msgid.label': { sk: 'MsgId (nepovinné)', en: 'MsgId (optional)', de: 'MsgId (optional)' },
@@ -252,18 +252,18 @@ export const DICT = {
   },
 
   // ── section 04: Pro ──────────────────────────────────────────────────
-  's4.h2': { sk: 'Pro pre účtovníka, ktorý to robí každý mesiac.', en: 'Pro for a bookkeeper who does this every month.', de: 'Pro für Buchhalter, die das jeden Monat machen.' },
+  's4.h2': { sk: 'Pro pre účtovníka, ktorý to robí každý mesiac.', en: 'Pro for a bookkeeper who does this every month.', de: 'Pro: optionaler Komfort, wenn Sie das jeden Monat machen.' },
   's4.sub': {
     sk: 'Bezplatná verzia ostáva bez limitov navždy, na počet platieb, súborov aj stiahnutí. Pro je pohodlie pri opakovanom mesačnom spracovaní, nie odomknutá funkčnosť.',
     en: 'The free version stays unlimited forever: no cap on payments, files, or downloads. Pro is convenience for repeat monthly use, not unlocked core functionality.',
-    de: 'Die kostenlose Version bleibt für immer ohne Limits, bei Zahlungen, Dateien und Downloads. Pro ist Komfort für die wiederkehrende monatliche Nutzung, keine freigeschaltete Kernfunktion.',
+    de: 'Alles auf dieser Seite ist und bleibt kostenlos: keine Grenze bei Zahlungen, Dateien oder Downloads, kein Konto. Pro schaltet nichts frei, es spart Tipparbeit bei der monatlichen Wiederholung. Für eine einzelne Sammelüberweisung brauchen Sie es nicht.',
   },
   's4.r1.title': { sk: 'Uložené profily platiteľov.', en: 'Saved payer profiles.', de: 'Gespeicherte Zahlerprofile.' },
   's4.r1.body': { sk: 'Názov firmy, IBAN, BIC aj banka na jeden klik z výberu, bez prepisovania pri každom hromadnom príkaze.', en: 'Company name, IBAN, BIC and bank in one click from a dropdown, no retyping for every batch.', de: 'Firmenname, IBAN, BIC und Bank mit einem Klick aus der Auswahl, kein erneutes Eintippen bei jeder Sammelüberweisung.' },
   's4.r2.title': { sk: 'Viac súborov naraz.', en: 'Several files at once.', de: 'Mehrere Dateien gleichzeitig.' },
   's4.r2.body': { sk: 'Pridajte viac blokov platieb (napríklad z troch hárkov) a vygenerujte buď samostatný XML pre každý blok, alebo jeden zlúčený súbor.', en: 'Add several payment blocks (e.g. from three spreadsheets) and generate either a separate XML per block, or one merged file.', de: 'Fügen Sie mehrere Zahlungsblöcke hinzu (z. B. aus drei Tabellen) und erstellen Sie entweder eine separate XML je Block oder eine zusammengeführte Datei.' },
   's4.r3.title': { sk: 'Šablóny mapovania stĺpcov.', en: 'Column-mapping templates.', de: 'Vorlagen für Spaltenzuordnung.' },
-  's4.r3.body': { sk: 'Predvolené názvy stĺpcov pre exporty z Pohody, Omegy (KROS) alebo Money S3. Mapovanie sa dá aj tak vždy ručne skontrolovať a opraviť.', en: 'Preset column names for exports from Pohoda, Omega (KROS) or Money S3. The mapping can still always be checked and fixed by hand.', de: 'Voreingestellte Spaltennamen für Exporte aus Pohoda, Omega (KROS) oder Money S3. Die Zuordnung lässt sich trotzdem jederzeit manuell prüfen und korrigieren.' },
+  's4.r3.body': { sk: 'Predvolené názvy stĺpcov pre exporty z Pohody, Omegy (KROS) alebo Money S3. Mapovanie sa dá aj tak vždy ručne skontrolovať a opraviť.', en: 'Preset column names for exports from Pohoda, Omega (KROS) or Money S3. The mapping can still always be checked and fixed by hand.', de: 'Voreingestellte Spaltennamen für Exporte aus Pohoda, Omega (KROS) und Money S3, also aus slowakischen und tschechischen Buchhaltungsprogrammen. Bei einer deutschen Excel- oder CSV-Liste erkennt der Generator die Spalten IBAN, Betrag, Name und Verwendungszweck ohnehin selbst, dafür ist keine Vorlage nötig.' },
   's4.cta.p': {
     sk: '<b>Jedna licencia pre štyri nástroje.</b> Pro pre SEPA pain.001 Generátor sa aktivuje rovnakou licenciou ako SEPA pain.001 Doctor, camt.053 do Excelu a Párovač platieb: 9&nbsp;€ mesačne alebo 79&nbsp;€ ročne pre všetky štyri nástroje, DPH v cene, faktúru pošle Stripe.',
     en: '<b>One licence for four tools.</b> Pro for SEPA pain.001 Generator is activated by the same licence as SEPA pain.001 Doctor, camt.053 to Excel and Payment matcher: €9/month or €79/year for all four tools, VAT included, Stripe sends the invoice.',
@@ -403,7 +403,7 @@ export const DICT = {
   'faq.a12': {
     sk: 'Profil „Nemecko (DK)“ (Deutsche Kreditwirtschaft, pravidlá pre pain.001.001.03 platné v nemeckom bankovníctve) skryje stĺpce VS/ŠS/KS a namiesto nich ponúkne jeden voľný text Verwendungszweck (max. 140 znakov, znaková sada SEPA) a voliteľný stĺpec EndToEndId. Zoznam bánk sa zjednoduší na jednu všeobecnú predlohu „Bank nach DK-Regelwerk (pain.001.001.03)“ namiesto štyroch slovenských bánk, keďže per-bankové pravidlá Tatra banky, SLSP, VÚB a ČSOB sa naň nevzťahujú. BIC zostáva nepovinný, ako pri každom IBAN z krajiny EHP/SEPA.',
     en: 'The “Germany (DK)” profile (Deutsche Kreditwirtschaft, the pain.001.001.03 rules used in German banking) hides the VS/SS/KS columns and offers one free-text Verwendungszweck instead (max. 140 characters, SEPA character set) plus an optional EndToEndId column. The bank list collapses to one generic “Bank nach DK-Regelwerk (pain.001.001.03)” preset instead of the four Slovak banks, since Tatra banka/SLSP/VÚB/ČSOB’s own per-bank rules don’t apply to it. BIC stays optional, as for any IBAN from an EEA/SEPA country.',
-    de: 'Das Profil „Deutschland (DK)“ (Deutsche Kreditwirtschaft, die im deutschen Bankwesen geltenden pain.001.001.03-Regeln) blendet die Spalten VS/SS/KS aus und bietet stattdessen einen freien Verwendungszweck (max. 140 Zeichen, SEPA-Zeichensatz) sowie eine optionale EndToEndId-Spalte. Die Bankliste reduziert sich auf eine generische Vorlage „Bank nach DK-Regelwerk (pain.001.001.03)“ statt der vier slowakischen Banken, da die bankspezifischen Regeln von Tatra banka/SLSP/VÚB/ČSOB dafür nicht gelten. Der BIC bleibt optional, wie bei jeder IBAN aus einem EWR-/SEPA-Land.',
+    de: 'Das Profil „Deutschland (DK)“ (Deutsche Kreditwirtschaft, die im deutschen Bankwesen geltenden pain.001.001.03-Regeln) blendet die Spalten VS/SS/KS aus und bietet stattdessen einen freien Verwendungszweck (max. 140 Zeichen, SEPA-Zeichensatz) sowie eine optionale EndToEndId-Spalte. Die Bankliste reduziert sich auf eine generische Vorlage „Bank nach DK-Regelwerk (pain.001.001.03)“ statt der vier slowakischen Banken, da die bankspezifischen Regeln von Tatra banka/SLSP/VÚB/ČSOB dafür nicht gelten. Der BIC bleibt optional, wie bei jeder IBAN aus einem EWR-/SEPA-Land. Die Datei ist eine generische SEPA-Sammelüberweisung nach DK-Regelwerk: Sie importieren sie im Online-Banking, etwa bei einer Sparkasse, Volksbank, Commerzbank oder Deutschen Bank. Eine eigene Vorlage je deutscher Bank gibt es hier nicht und wir haben den Import nicht bei jeder Bank selbst getestet, deshalb laden Sie das erste Mal am besten eine Datei mit ein oder zwei Zahlungen hoch.',
   },
 
   // ── footer ───────────────────────────────────────────────────────────
