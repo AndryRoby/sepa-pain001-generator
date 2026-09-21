@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="de" data-lang-static="de">
 <head>
-<script src="/style/vzhlad.js?v=dc0ce8df"></script>
+<script src="/style/vzhlad.js?v=2fa7f462"></script>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://homelab.tailbf8f27.ts.net 'sha256-1hk7wqxJiY6oCgMZbrSuzQl9EJtVEw+vJ7MiUtUcm54=' 'sha256-McLTwUhJFOdS3Y1xrJWJ7hRbFd2fbtguO7ML1QYHqfs=' 'sha256-owJWZNeSwYnRVA2TkbTkzwznnjt0PzIQ4bmq88o+muE=' 'sha256-ukIAY6iioYXHmnBf6LYS1zMZ9WXWlMI3PqiydmcY3W4=' 'sha256-ay+1+rvME+Zd0jekRZ0zCs/atq5QcMLAb063a2fWXm0=' 'sha256-strbyq1BpI+7BIJr0ChKiwrudallB9cNlc0wfYdMxCM='; connect-src 'self' https://homelab.tailbf8f27.ts.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://homelab.tailbf8f27.ts.net 'sha256-1hk7wqxJiY6oCgMZbrSuzQl9EJtVEw+vJ7MiUtUcm54=' 'sha256-McLTwUhJFOdS3Y1xrJWJ7hRbFd2fbtguO7ML1QYHqfs=' 'sha256-zpM0y75BFG7sN3w3E0IIYkrA0tIzk0rJHmVf1JOTGCs=' 'sha256-VHJXb8ifLImLmZPSvVrXv7B8zsimiHL5DCoRGMleQPA=' 'sha256-ay+1+rvME+Zd0jekRZ0zCs/atq5QcMLAb063a2fWXm0=' 'sha256-strbyq1BpI+7BIJr0ChKiwrudallB9cNlc0wfYdMxCM='; connect-src 'self' https://homelab.tailbf8f27.ts.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <script>try{localStorage.setItem("arling_lang","de")}catch(e){}</script>
 <meta name="color-scheme" content="dark">
 <link rel="preconnect" href="https://homelab.tailbf8f27.ts.net" crossorigin>
@@ -32,7 +32,7 @@
 <!-- Vzhľad: jediný zdroj je /style/paper.css (Paper v2), fonty ARLing sú hostené u nás, žiadne externé CDN. -->
 <link rel="preload" href="/fonts/arling-sans.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/arling-serif.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/style/paper.css?v=2ebf5aa4">
+<link rel="stylesheet" href="/style/paper.css?v=4ee4d148">
 <script src="/style/prepinac.js?v=668e98c9" defer></script>
 <noscript><style>.r,.w{opacity:1 !important;transform:none !important;filter:none !important}</style></noscript>
 <script defer src="https://homelab.tailbf8f27.ts.net/script.js" data-website-id="eea965a2-3702-404f-b914-9dc007dcdbc2"></script>
@@ -188,7 +188,7 @@
       "name": "Wie unterscheidet sich das Profil „Deutschland (DK)“ von „Slowakei“?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Das Profil „Deutschland (DK)“ (Deutsche Kreditwirtschaft, die im deutschen Bankwesen geltenden pain.001.001.03-Regeln) blendet die Spalten VS/SS/KS aus und bietet stattdessen einen freien Verwendungszweck (max. 140 Zeichen, SEPA-Zeichensatz) sowie eine optionale EndToEndId-Spalte. Die Bankliste reduziert sich auf eine generische Vorlage „Bank nach DK-Regelwerk (pain.001.001.03)“ statt der vier slowakischen Banken, da die bankspezifischen Regeln von Tatra banka/SLSP/VÚB/ČSOB dafür nicht gelten. Der BIC bleibt optional, wie bei jeder IBAN aus einem EWR-/SEPA-Land."
+        "text": "Das Profil „Deutschland (DK)“ (Deutsche Kreditwirtschaft, die im deutschen Bankwesen geltenden pain.001.001.03-Regeln) blendet die Spalten VS/SS/KS aus und bietet stattdessen einen freien Verwendungszweck (max. 140 Zeichen, SEPA-Zeichensatz) sowie eine optionale EndToEndId-Spalte. Die Bankliste reduziert sich auf eine generische Vorlage „Bank nach DK-Regelwerk (pain.001.001.03)“ statt der vier slowakischen Banken, da die bankspezifischen Regeln von Tatra banka/SLSP/VÚB/ČSOB dafür nicht gelten. Der BIC bleibt optional, wie bei jeder IBAN aus einem EWR-/SEPA-Land. Die Datei ist eine generische SEPA-Sammelüberweisung nach DK-Regelwerk: Sie importieren sie im Online-Banking, etwa bei einer Sparkasse, Volksbank, Commerzbank oder Deutschen Bank. Eine eigene Vorlage je deutscher Bank gibt es hier nicht und wir haben den Import nicht bei jeder Bank selbst getestet, deshalb laden Sie das erste Mal am besten eine Datei mit ein oder zwei Zahlungen hoch."
       }
     }
   ]
@@ -515,66 +515,47 @@
       <svg viewBox="0 0 488 215" width="38" height="15" aria-hidden="true" focusable="false"><path fill="#f4f4f7" fill-rule="evenodd" d="M0.00,213.00L74.00,214.00L181.00,85.00L285.00,214.00L360.00,214.00L206.00,21.00L185.00,4.00L164.00,10.00Z M221.00,0.00L263.00,50.00L395.00,50.00L409.00,55.00L419.00,76.00L401.00,96.00L313.00,98.00L411.00,214.00L487.00,214.00L422.00,139.00L457.00,123.00L482.00,88.00L482.00,48.00L463.00,19.00L417.00,0.00Z"/><path fill="#f2643c" d="M269.00,66.00L269.00,67.00L268.00,68.00L268.00,70.00L267.00,71.00L267.00,76.00L268.00,77.00L268.00,79.00L270.00,81.00L270.00,82.00L271.00,82.00L273.00,84.00L274.00,84.00L277.00,86.00L279.00,86.00L280.00,87.00L287.00,87.00L288.00,86.00L290.00,86.00L291.00,85.00L294.00,84.00L298.00,80.00L298.00,79.00L299.00,78.00L299.00,75.00L300.00,74.00L300.00,72.00L299.00,71.00L299.00,69.00L298.00,68.00L297.00,65.00L295.00,63.00L294.00,63.00L289.00,60.00L278.00,60.00L277.00,61.00L276.00,61.00L275.00,62.00L272.00,63.00Z"/></svg>
       <b>ARLing</b>
     </a>
-    <details class="site-menu" open>
-      <summary class="site-menu-toggle"><svg viewBox="0 0 18 12" fill="none" aria-hidden="true"><path d="M1 1h16M1 6h16M1 11h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span data-site-label="menu">Menu</span></summary>
-      <div class="site-menu-panel"><nav id="hlavne-menu" class="site-main-nav" aria-label="Hlavná navigácia" data-site-aria="nav"><a href="https://arling.sk/shop/" data-site-nav="0">Obchod</a><a href="https://arling.sk/#tools" data-site-nav="1">Nástroje</a><a href="https://arling.sk/games/" data-site-nav="2">Hry</a><a href="https://arling.sk/notes/" data-site-nav="3">Články</a><a href="https://arling.sk/ucet/" data-site-nav="4">Účet</a></nav><div class="site-page-links"><p data-site-label="stranka">Na tejto stránke</p><nav aria-label="Na tejto stránke" data-site-aria="stranka"><a href="#problem" data-i18n="nav.how">So funktioniert es</a><a href="#playground" data-i18n="nav.convert">Generator</a><a href="#endpoint" data-i18n="nav.api">API</a><a href="#pro" data-i18n="nav.pro">Pro</a><a href="#faq" data-i18n="nav.faq">FAQ</a></nav></div><div class="site-locales"><div class="lang-switch" role="group" aria-label="Sprache der Seite" data-i18n-aria-label="lang.switch.aria">
+    <details class="site-menu">
+      <summary class="site-menu-toggle"><span class="site-menu-text" data-site-label="produkty">Produkty</span><span class="site-menu-bars" aria-hidden="true"><i></i><i></i><i></i></span><span class="site-menu-word" data-site-label="menu">Menu</span></summary>
+      <div class="site-menu-panel" role="navigation" aria-label="Produkty" data-site-aria="produkty"><div class="site-cols"><div class="site-col"><p>Firemný softvér</p><ul><li><a href="https://arling.sk/proof/sk/"><b>Proof</b><span>Schválenie zákazníkom pred tlačou</span></a></li><li><a href="https://arling.sk/renewals/sk/"><b>Renewals</b><span>Doklady dodávateľov a termíny obnov</span></a></li><li><a href="https://arling.sk/asistent/"><b>Asistent</b><span>Predajný asistent pre e-shop</span></a></li></ul></div><div class="site-col"><p>Faktúry a platby</p><ul><li><a href="https://arling.sk/efaktura/"><b>E-faktúra</b><span>Kontrola, náhľad a tvorba XML</span></a></li><li><a href="https://arling.sk/sepa-pain001-doctor/"><b>Kontrola pain.001</b><span>Prečo banka odmietla súbor</span></a></li><li><a href="https://arling.sk/sepa-pain001-generator/de/"><b>Generátor pain.001</b><span>Hromadný príkaz z tabuľky</span></a></li><li><a href="https://arling.sk/camt053-to-excel/"><b>Výpis do Excelu</b><span>camt.053 a MT940 do tabuľky</span></a></li><li><a href="https://arling.sk/parovac-platieb/"><b>Párovač platieb</b><span>Výpis proti faktúram</span></a></li><li><a href="https://arling.sk/kontrola-suboru/"><b>Kontrola SEPA súboru</b><span>Pred zmenou v novembri 2026</span></a></li><li><a href="https://arling.sk/bankove-nastroje/"><b>Bankové nástroje Pro</b><span>Jedna licencia, štyri nástroje</span></a></li></ul></div><div class="site-col"><p>Dokumenty a firma</p><ul><li><a href="https://arling.sk/gdpr-dokumenty/"><b>GDPR dokumenty</b><span>Pre firmu a e-shop za 10 minút</span></a></li><li><a href="https://arling.sk/vzory-zmluv/"><b>Vzory zmlúv</b><span>Podľa slovenského práva, zadarmo</span></a></li><li><a href="https://arling.sk/zivotopis/"><b>Životopis</b><span>Hotové CV bez registrácie</span></a></li><li><a href="https://arling.sk/feed-doctor/"><b>Feed Doctor</b><span>Kontrola produktového feedu</span></a></li><li><a href="https://arling.sk/mail-doctor/"><b>Mail Doctor</b><span>SPF, DKIM a DMARC domény</span></a></li></ul></div><div class="site-col"><p>Vydavateľstvo</p><ul><li><a href="https://arling.sk/shop/"><b>Obchod</b><span>Knihy, hlavolamy a darčeky</span></a></li><li><a href="https://arling.sk/classics/"><b>Klasika pre e-ink</b><span>Knihy pripravené pre čítačku</span></a></li><li><a href="https://arling.sk/morning-quiet/"><b>Ranné ticho</b><span>Denné vydania na e-ink</span></a></li><li><a href="https://arling.sk/games/"><b>Hry v prehliadači</b><span>Denná logická hra zadarmo</span></a></li><li><a href="https://arling.sk/puzzle-post/"><b>Puzzle Post</b><span>Hlavolamy poštou</span></a></li><li><a href="https://arling.sk/memory-post/"><b>Memory Post</b><span>Spomienky na papieri</span></a></li></ul></div></div><p class="site-dev"><span>Pre vývojárov</span><a href="https://arling.sk/cors-doctor/">CORS</a><a href="https://arling.sk/jwt-doctor/">JWT</a><a href="https://arling.sk/cookie-samesite-doctor/">Cookie SameSite</a><a href="https://arling.sk/redirect-loop-doctor/">Redirect loop</a><a href="https://arling.sk/stripe-webhook-doctor/">Stripe webhook</a><a href="https://arling.sk/firebase-auth-domain-doctor/">Firebase auth</a><a href="https://arling.sk/google-oauth-redirect-doctor/">Google OAuth</a><a href="https://arling.sk/supabase-redirect-doctor/">Supabase redirect</a><a href="https://arling.sk/flutter-supabase-doctor/">Flutter + Supabase</a><a href="https://arling.sk/expo-universal-links-doctor/">Expo links</a><a href="https://arling.sk/expo-supabase-auth-doctor/">Expo + Supabase</a><a href="https://arling.sk/api/">Puzzle API</a></p><div class="site-col site-firma"><p>Firma</p><ul><li><a href="https://arling.sk/#nastroje"><b>Nástroje</b></a></li><li><a href="https://arling.sk/#piloty"><b>Piloty</b></a></li><li><a href="https://arling.sk/how-we-work/"><b>Ako pracujeme</b></a></li><li><a href="https://arling.sk/notes/"><b>Návody</b></a></li><li><a href="https://arling.sk/kontakt/"><b>Kontakt</b></a></li><li><a href="https://arling.sk/ucet/"><b>Účet</b></a></li><li><a href="https://arling.sk/brand/"><b>Značka</b></a></li><li><a href="https://arling.sk/podmienky/"><b>Podmienky</b></a></li><li><a href="https://arling.sk/privacy/"><b>Ochrana údajov</b></a></li><li><a href="https://arling.sk/impressum/"><b>Impressum</b></a></li></ul></div><p class="site-menu-cta"><a class="site-cta" href="https://arling.sk/proof/sk/" data-site-cta data-site-label="cta" data-umami-event="shell_cta_menu">Vyskúšať Proof zadarmo</a></p></div>
+    </details>
+    <nav id="hlavne-menu" class="site-main-nav" aria-label="Hlavná navigácia" data-site-aria="nav"><a href="https://arling.sk/#nastroje" data-site-nav="0">Nástroje</a><a href="https://arling.sk/#piloty" data-site-nav="1">Piloty</a><a href="https://arling.sk/notes/" data-site-nav="2">Návody</a><a href="https://arling.sk/how-we-work/" data-site-nav="3">O firme</a></nav>
+    <a class="site-cta" href="https://arling.sk/proof/sk/" data-site-cta data-site-label="cta" data-umami-event="shell_cta">Vyskúšať Proof zadarmo</a>
+    <div class="site-locales"><div class="lang-switch" role="group" aria-label="Sprache der Seite" data-i18n-aria-label="lang.switch.aria">
         <a href="../" data-set-lang="sk" hreflang="sk" aria-label="Slowakisch" data-i18n-aria-label="lang.sk.aria">SK</a>
         <a href="../en/" data-set-lang="en" hreflang="en" aria-label="Englisch" data-i18n-aria-label="lang.en.aria">EN</a>
         <a href="../de/" data-set-lang="de" hreflang="de" aria-label="Deutsch" data-i18n-aria-label="lang.de.aria" class="lang-active" aria-current="true">DE</a>
-      </div></div></div>
-    </details>
+      </div></div>
   </div>
+  <div class="site-page-links"><div class="wrap"><p data-site-label="stranka">Na tejto stránke</p><nav aria-label="Na tejto stránke" data-site-aria="stranka"><a href="#problem" data-i18n="nav.how">So funktioniert es</a><a href="#playground" data-i18n="nav.convert">Generator</a><a href="#endpoint" data-i18n="nav.api">API</a><a href="#pro" data-i18n="nav.pro">Pro</a><a href="#faq" data-i18n="nav.faq">FAQ</a></nav></div></div>
 </header>
 
 <main id="arling-obsah" tabindex="-1">
   <div class="wrap hero" id="hero">
     <div class="hero-copy">
-      <h1 id="hero-h1" data-i18n="hero.h1">Zahlungsliste aus Excel zur Bank-XML. Geprüft, in einer Minute.</h1>
-      <p class="lead r d1" data-i18n="hero.lead">Fügen Sie aus Excel oder CSV kopierte Zahlungen ein, tragen Sie die IBAN des Zahlers ein und laden Sie eine pain.001-Sammelüberweisung herunter. Die Datei wird direkt nach der Erstellung mit derselben Engine wie SEPA pain.001 Doctor geprüft.</p>
-      <div class="cta r d2"><a class="btn btn-solid" href="#playground" data-umami-event="hero_generator" data-i18n="hero.cta">Datei erstellen</a><a class="btn btn-line" href="https://github.com/AndryRoby/sepa-pain001-generator" target="_blank" rel="noopener" data-umami-event="hero_source" data-i18n="hero.source">Quellcode auf GitHub</a></div>
+      <h1 id="hero-h1" data-i18n="hero.h1">SEPA-XML aus Excel erstellen, geprüft.</h1>
+      <p class="lead r d1" data-i18n="hero.lead">Zahlungen aus Excel oder CSV einfügen, IBAN des Zahlers eintragen, fertige pain.001-Datei herunterladen. Jede Datei wird sofort mit derselben Engine wie SEPA pain.001 Doctor geprüft.</p>
+      <div class="cta r d2"><a class="btn btn-solid" href="#playground" data-umami-event="hero_generator" data-i18n="hero.cta">Zahlungen einfügen</a><a class="btn btn-line" href="https://github.com/AndryRoby/sepa-pain001-generator" target="_blank" rel="noopener" data-umami-event="hero_source" data-i18n="hero.source">Quellcode auf GitHub</a></div>
       <ul class="facts proof r d3">
-        <li data-i18n="hero.fact.banks">4 slowakische Banken, plus generisches DE-Profil (Deutsche Kreditwirtschaft)</li>
+        <li data-i18n="hero.fact.banks">Länderprofil Deutschland (DK): Verwendungszweck statt VS/SS/KS</li>
         <li data-i18n="hero.fact.tests">456 automatisierte Tests</li>
-        <li data-i18n="hero.fact.maxpayments">max. 5000 Zahlungen</li>
+        <li data-i18n="hero.fact.maxpayments">pain.001.001.03 oder .09, max. 5000 Zahlungen</li>
         <li data-i18n="hero.fact.free">0 €, ohne Konto</li>
         <li data-i18n="hero.fact.browser">läuft im Browser</li>
       </ul>
     </div>
     <div class="index hero-index r d4">
-      <a href="#problem" data-umami-event="index-ako"><span class="n">[1]</span><span class="t" data-i18n="nav.how">So funktioniert es</span><span class="dots"></span></a>
-      <a href="#playground" data-umami-event="index-generator"><span class="n">[2]</span><span class="t" data-i18n="nav.convert">Generator</span><span class="dots"></span></a>
+      <a href="#playground" data-umami-event="index-generator"><span class="n">[1]</span><span class="t" data-i18n="nav.convert">Generator</span><span class="dots"></span></a>
+      <a href="#problem" data-umami-event="index-ako"><span class="n">[2]</span><span class="t" data-i18n="nav.how">So funktioniert es</span><span class="dots"></span></a>
       <a href="#endpoint" data-umami-event="index-api"><span class="n">[3]</span><span class="t" data-i18n="nav.api">API</span><span class="dots"></span></a>
       <a href="#pro" data-umami-event="index-pro"><span class="n">[4]</span><span class="t" data-i18n="nav.pro">Pro</span><span class="dots"></span></a>
       <a href="#faq" data-umami-event="index-otazky"><span class="n">[5]</span><span class="t" data-i18n="nav.faq">FAQ</span><span class="dots"></span></a>
     </div>
   </div>
 
-  <section id="problem">
-    <div class="wrap">
-      <p class="kicker r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>01</p>
-      <h2 class="r" data-i18n="s1.h2">Drei Dinge, die eine handgebaute XML-Datei am häufigsten ungültig machen.</h2>
-      <p class="sub r d1" data-i18n="s1.sub">Eine pain.001-XML von Hand in einem Texteditor oder einer Excel-Formel zu bauen, ist möglich, aber eine Kleinigkeit genügt, und die Bank lehnt die Datei ohne Erklärung ab.</p>
-      <div class="rule"></div>
-      <ol class="rules">
-        <li class="r d1">
-          <b data-i18n="s1.r1.title">Spalten werden anhand des Namens erkannt, nicht der Reihenfolge.</b>
-          <p data-i18n-html="s1.r1.body">Der Generator sucht automatisch nach Spaltenüberschriften wie „IBAN“, „Betrag“, „Name“, auf Slowakisch, Englisch oder Deutsch. Bei einem ungewöhnlichen Excel prüfen Sie die Zuordnung und korrigieren Sie sie bei Bedarf manuell in den Auswahlfeldern über der Vorschau.</p>
-        </li>
-        <li class="r d2">
-          <b data-i18n="s1.r2.title">VS/SS/KS haben in der XML kein eigenes Feld.</b>
-          <p data-i18n-html="s1.r2.body">Sie müssen in genauer Reihenfolge <code>/VS.../SS.../KS...</code> in <code>EndToEndId</code> geschrieben werden (das Länderprofil „sk“ erledigt das automatisch). Das Profil „de“ verzichtet ganz auf VS/SS/KS und nutzt stattdessen einen unstrukturierten Verwendungszweck, da deutsche Banken diese slowakischen Referenzsymbole nicht verwenden.</p>
-        </li>
-        <li class="r d3">
-          <b data-i18n="s1.r3.title">Das Format ist die eine Sache, die Regeln der Bank die andere.</b>
-          <p data-i18n-html="s1.r3.body">Nach der Erstellung läuft dieselbe Engine wie bei <a href="https://arling.sk/sepa-pain001-doctor/">SEPA pain.001 Doctor</a> über die Datei: BIC, Ausführungsdatum, Sonderzeichen und das Transaktionslimit der gewählten Bank.</p>
-        </li>
-      </ol>
-    </div>
-  </section>
-
   <section id="playground" class="deep">
     <div class="wrap">
-      <p class="kicker r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M9 10v9M15 10v9"/></svg>02</p>
+      <p class="kicker r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M9 10v9M15 10v9"/></svg>01</p>
       <h2 class="r" data-i18n="s2.h2">Zahlungen einfügen, Zahler ausfüllen. Sie erhalten die fertige XML.</h2>
       <p class="sub r d1" data-i18n="s2.sub">Nichts von dem, was Sie einfügen, wird versendet. Erstellung und Prüfung laufen im Browser.</p>
       <div class="rule"></div>
@@ -676,7 +657,7 @@
                       <option value="03">pain.001.001.03</option>
                       <option value="09">pain.001.001.09</option>
                     </select>
-                    <span class="hint" id="schema-hint" data-i18n="s2.schema.hint">Slowakische Banken erwarten für den Sammelimport derzeit .03. Ab dem 15. November 2026 stellt ein Teil von ihnen auf .09 um. Eine strukturierte Adresse tragen beide Versionen.</span>
+                    <span class="hint" id="schema-hint" data-i18n="s2.schema.hint">Das Profil Deutschland (DK) folgt den Regeln für .03. Zum 15. November 2026 stellen die SEPA-Schemata auf .09 um; welche Version Ihre Bank beim Import erwartet, sagt Ihnen im Zweifel die Bank selbst. Eine strukturierte Adresse tragen beide Versionen.</span>
                   </div>
                   <div class="field">
                     <label for="f-msgid" data-i18n="s2.msgid.label">MsgId (optional)</label>
@@ -772,6 +753,30 @@
     </div>
   </section>
 
+  <section id="problem">
+    <div class="wrap">
+      <p class="kicker r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>02</p>
+      <h2 class="r" data-i18n="s1.h2">Drei Dinge, die eine handgebaute XML-Datei am häufigsten ungültig machen.</h2>
+      <p class="sub r d1" data-i18n="s1.sub">Eine pain.001-XML von Hand in einem Texteditor oder einer Excel-Formel zu bauen, ist möglich, aber eine Kleinigkeit genügt, und die Bank lehnt die Datei ohne Erklärung ab.</p>
+      <div class="rule"></div>
+      <ol class="rules">
+        <li class="r d1">
+          <b data-i18n="s1.r1.title">Spalten werden anhand des Namens erkannt, nicht der Reihenfolge.</b>
+          <p data-i18n-html="s1.r1.body">Der Generator sucht automatisch nach Spaltenüberschriften wie „IBAN“, „Betrag“, „Name“, auf Slowakisch, Englisch oder Deutsch. Bei einem ungewöhnlichen Excel prüfen Sie die Zuordnung und korrigieren Sie sie bei Bedarf manuell in den Auswahlfeldern über der Vorschau.</p>
+        </li>
+        <li class="r d2">
+          <b data-i18n="s1.r2.title">VS/SS/KS haben in der XML kein eigenes Feld.</b>
+          <p data-i18n-html="s1.r2.body">Sie müssen in genauer Reihenfolge <code>/VS.../SS.../KS...</code> in <code>EndToEndId</code> geschrieben werden (das Länderprofil „sk“ erledigt das automatisch). Das Profil „de“ verzichtet ganz auf VS/SS/KS und nutzt stattdessen einen unstrukturierten Verwendungszweck, da deutsche Banken diese slowakischen Referenzsymbole nicht verwenden.</p>
+        </li>
+        <li class="r d3">
+          <b data-i18n="s1.r3.title">Das Format ist die eine Sache, die Regeln der Bank die andere.</b>
+          <p data-i18n-html="s1.r3.body">Nach der Erstellung läuft dieselbe Engine wie bei <a href="https://arling.sk/sepa-pain001-doctor/">SEPA pain.001 Doctor</a> über die Datei: BIC, Ausführungsdatum, Sonderzeichen und das Transaktionslimit der gewählten Bank.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+
   <section id="endpoint" class="band">
     <div class="wrap">
       <p class="kicker r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 17a8.5 8.5 0 1 1 15 0"/><path d="M12 13.5l3.5-3.2"/><circle cx="12" cy="14.5" r="1"/></svg>03</p>
@@ -818,8 +823,8 @@
   <section id="pro">
     <div class="wrap">
       <p class="kicker r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="12" r="3.5"/><path d="M11.5 12H21M18 12v3M15 12v2.2"/></svg>04</p>
-      <h2 class="r" data-i18n="s4.h2">Pro für Buchhalter, die das jeden Monat machen.</h2>
-      <p class="sub r d1" data-i18n="s4.sub">Die kostenlose Version bleibt für immer ohne Limits, bei Zahlungen, Dateien und Downloads. Pro ist Komfort für die wiederkehrende monatliche Nutzung, keine freigeschaltete Kernfunktion.</p>
+      <h2 class="r" data-i18n="s4.h2">Pro: optionaler Komfort, wenn Sie das jeden Monat machen.</h2>
+      <p class="sub r d1" data-i18n="s4.sub">Alles auf dieser Seite ist und bleibt kostenlos: keine Grenze bei Zahlungen, Dateien oder Downloads, kein Konto. Pro schaltet nichts frei, es spart Tipparbeit bei der monatlichen Wiederholung. Für eine einzelne Sammelüberweisung brauchen Sie es nicht.</p>
       <div class="rule"></div>
 
       <ol class="rules">
@@ -833,7 +838,7 @@
         </li>
         <li class="r d3">
           <b data-i18n="s4.r3.title">Vorlagen für Spaltenzuordnung.</b>
-          <p data-i18n="s4.r3.body">Voreingestellte Spaltennamen für Exporte aus Pohoda, Omega (KROS) oder Money S3. Die Zuordnung lässt sich trotzdem jederzeit manuell prüfen und korrigieren.</p>
+          <p data-i18n="s4.r3.body">Voreingestellte Spaltennamen für Exporte aus Pohoda, Omega (KROS) und Money S3, also aus slowakischen und tschechischen Buchhaltungsprogrammen. Bei einer deutschen Excel- oder CSV-Liste erkennt der Generator die Spalten IBAN, Betrag, Name und Verwendungszweck ohnehin selbst, dafür ist keine Vorlage nötig.</p>
         </li>
       </ol>
 
@@ -948,17 +953,19 @@
       </details>
       <details class="r d2">
         <summary data-i18n="faq.q12">Wie unterscheidet sich das Profil „Deutschland (DK)“ von „Slowakei“?</summary>
-        <p data-i18n-html="faq.a12">Das Profil „Deutschland (DK)“ (Deutsche Kreditwirtschaft, die im deutschen Bankwesen geltenden pain.001.001.03-Regeln) blendet die Spalten VS/SS/KS aus und bietet stattdessen einen freien Verwendungszweck (max. 140 Zeichen, SEPA-Zeichensatz) sowie eine optionale EndToEndId-Spalte. Die Bankliste reduziert sich auf eine generische Vorlage „Bank nach DK-Regelwerk (pain.001.001.03)“ statt der vier slowakischen Banken, da die bankspezifischen Regeln von Tatra banka/SLSP/VÚB/ČSOB dafür nicht gelten. Der BIC bleibt optional, wie bei jeder IBAN aus einem EWR-/SEPA-Land.</p>
+        <p data-i18n-html="faq.a12">Das Profil „Deutschland (DK)“ (Deutsche Kreditwirtschaft, die im deutschen Bankwesen geltenden pain.001.001.03-Regeln) blendet die Spalten VS/SS/KS aus und bietet stattdessen einen freien Verwendungszweck (max. 140 Zeichen, SEPA-Zeichensatz) sowie eine optionale EndToEndId-Spalte. Die Bankliste reduziert sich auf eine generische Vorlage „Bank nach DK-Regelwerk (pain.001.001.03)“ statt der vier slowakischen Banken, da die bankspezifischen Regeln von Tatra banka/SLSP/VÚB/ČSOB dafür nicht gelten. Der BIC bleibt optional, wie bei jeder IBAN aus einem EWR-/SEPA-Land. Die Datei ist eine generische SEPA-Sammelüberweisung nach DK-Regelwerk: Sie importieren sie im Online-Banking, etwa bei einer Sparkasse, Volksbank, Commerzbank oder Deutschen Bank. Eine eigene Vorlage je deutscher Bank gibt es hier nicht und wir haben den Import nicht bei jeder Bank selbst getestet, deshalb laden Sie das erste Mal am besten eine Datei mit ein oder zwei Zahlungen hoch.</p>
       </details>
     </div>
   </section>
 </main>
 
-<footer>
+<footer class="site-footer">
   <div class="wrap foot">
-    <div><b>ARLing s. r. o.</b><br>Ivanská cesta 32E<br>821 04 Bratislava, Slovensko</div>
-    <div>IČO 56583486<br>IČ DPH SK2122352100<br><a href="mailto:andrej@arling.sk">andrej@arling.sk</a></div>
-    <div><a href="https://arling.sk/shop/">obchod</a> · <a href="https://arling.sk/privacy/">ochrana údajov</a> · <a href="https://arling.sk/podmienky/">podmienky</a> · <a href="https://arling.sk/gdpr/">GDPR</a> · <a href="https://arling.sk/impressum/">Impressum</a> · <a href="https://arling.sk/llms.txt">llms.txt</a> · <a href="https://arling.sk/sitemap-index.xml">mapa stránky</a><br>Nástroje sú poskytované tak, ako sú, bez záruky. Anonymné počty návštev cez vlastné Umami.</div>
+    <div class="site-foot-top"><div><a class="site-brand" href="https://arling.sk/" aria-label="ARLing: úvod" data-site-home><svg viewBox="0 0 488 215" width="38" height="15" aria-hidden="true" focusable="false"><path fill="#f4f4f7" fill-rule="evenodd" d="M0.00,213.00L74.00,214.00L181.00,85.00L285.00,214.00L360.00,214.00L206.00,21.00L185.00,4.00L164.00,10.00Z M221.00,0.00L263.00,50.00L395.00,50.00L409.00,55.00L419.00,76.00L401.00,96.00L313.00,98.00L411.00,214.00L487.00,214.00L422.00,139.00L457.00,123.00L482.00,88.00L482.00,48.00L463.00,19.00L417.00,0.00Z"/><path fill="#f2643c" d="M269.00,66.00L269.00,67.00L268.00,68.00L268.00,70.00L267.00,71.00L267.00,76.00L268.00,77.00L268.00,79.00L270.00,81.00L270.00,82.00L271.00,82.00L273.00,84.00L274.00,84.00L277.00,86.00L279.00,86.00L280.00,87.00L287.00,87.00L288.00,86.00L290.00,86.00L291.00,85.00L294.00,84.00L298.00,80.00L298.00,79.00L299.00,78.00L299.00,75.00L300.00,74.00L300.00,72.00L299.00,71.00L299.00,69.00L298.00,68.00L297.00,65.00L295.00,63.00L294.00,63.00L289.00,60.00L278.00,60.00L277.00,61.00L276.00,61.00L275.00,62.00L272.00,63.00Z"/></svg><b>ARLing</b></a><p class="site-foot-firma">ARLing s. r. o., IČO <span class="num">56583486</span>, Bratislava. Vlastný server v Európskej únii. Softvér pre firmy, živnostníkov aj jednotlivcov.</p></div><a class="site-cta" href="https://arling.sk/proof/sk/" data-umami-event="shell_footer_cta">Vyskúšať Proof zadarmo<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></a></div>
+    <div class="site-foot-cols"><div><p>Firemný softvér</p><ul><li><a href="https://arling.sk/proof/sk/">Proof</a></li><li><a href="https://arling.sk/renewals/sk/">Renewals</a></li><li><a href="https://arling.sk/asistent/">Asistent</a></li></ul></div><div><p>Faktúry a platby</p><ul><li><a href="https://arling.sk/efaktura/">E-faktúra</a></li><li><a href="https://arling.sk/sepa-pain001-doctor/">Kontrola pain.001</a></li><li><a href="https://arling.sk/sepa-pain001-generator/de/">Generátor pain.001</a></li><li><a href="https://arling.sk/camt053-to-excel/">Výpis do Excelu</a></li><li><a href="https://arling.sk/parovac-platieb/">Párovač platieb</a></li><li><a href="https://arling.sk/kontrola-suboru/">Kontrola SEPA súboru</a></li><li><a href="https://arling.sk/bankove-nastroje/">Bankové nástroje Pro</a></li></ul></div><div><p>Dokumenty a firma</p><ul><li><a href="https://arling.sk/gdpr-dokumenty/">GDPR dokumenty</a></li><li><a href="https://arling.sk/vzory-zmluv/">Vzory zmlúv</a></li><li><a href="https://arling.sk/zivotopis/">Životopis</a></li><li><a href="https://arling.sk/feed-doctor/">Feed Doctor</a></li><li><a href="https://arling.sk/mail-doctor/">Mail Doctor</a></li></ul></div><div><p>Vydavateľstvo</p><ul><li><a href="https://arling.sk/shop/">Obchod</a></li><li><a href="https://arling.sk/classics/">Klasika pre e-ink</a></li><li><a href="https://arling.sk/morning-quiet/">Ranné ticho</a></li><li><a href="https://arling.sk/games/">Hry v prehliadači</a></li><li><a href="https://arling.sk/puzzle-post/">Puzzle Post</a></li><li><a href="https://arling.sk/memory-post/">Memory Post</a></li></ul></div><div><p>Firma</p><ul><li><a href="https://arling.sk/how-we-work/">Ako pracujeme</a></li><li><a href="https://arling.sk/notes/">Návody</a></li><li><a href="https://arling.sk/kontakt/">Kontakt</a></li><li><a href="https://arling.sk/ucet/">Účet</a></li><li><a href="https://arling.sk/brand/">Značka</a></li><li><a href="https://arling.sk/podmienky/">Podmienky</a></li><li><a href="https://arling.sk/privacy/">Ochrana údajov</a></li><li><a href="https://arling.sk/impressum/">Impressum</a></li></ul></div></div>
+    <p class="site-dev"><span>Pre vývojárov</span><a href="https://arling.sk/cors-doctor/">CORS</a><a href="https://arling.sk/jwt-doctor/">JWT</a><a href="https://arling.sk/cookie-samesite-doctor/">Cookie SameSite</a><a href="https://arling.sk/redirect-loop-doctor/">Redirect loop</a><a href="https://arling.sk/stripe-webhook-doctor/">Stripe webhook</a><a href="https://arling.sk/firebase-auth-domain-doctor/">Firebase auth</a><a href="https://arling.sk/google-oauth-redirect-doctor/">Google OAuth</a><a href="https://arling.sk/supabase-redirect-doctor/">Supabase redirect</a><a href="https://arling.sk/flutter-supabase-doctor/">Flutter + Supabase</a><a href="https://arling.sk/expo-universal-links-doctor/">Expo links</a><a href="https://arling.sk/expo-supabase-auth-doctor/">Expo + Supabase</a><a href="https://arling.sk/api/">Puzzle API</a></p>
+    <div class="site-foot-bottom"><p>ARLing s. r. o., Ivanská cesta 32E, 821 04 Bratislava, Slovensko. IČO 56583486, IČ DPH SK2122352100. <a href="mailto:andrej@arling.sk">andrej@arling.sk</a></p><p><a href="https://arling.sk/impressum/">Impressum</a> · <a href="https://arling.sk/llms.txt">llms.txt</a> · <a href="https://arling.sk/sitemap-index.xml">Sitemap</a></p></div>
+    <p class="site-foot-legal">Nástroje sú poskytované tak, ako sú, bez záruky. Anonymné počty návštev cez vlastné Umami. <a href="https://arling.sk/privacy/">Ochrana údajov</a> · <a href="https://arling.sk/podmienky/">Podmienky</a> · <a href="https://arling.sk/gdpr/">GDPR</a></p>
   </div>
 </footer>
 
@@ -1923,15 +1930,34 @@
   renderBlocks();
   refreshLicenceUI().then(handleSessionIdFromUrl);
 
+  // Hlavné tlačidlo nad zálomom sľubuje "vložte platby". Na 390 px je vkladacie
+  // pole 2 900 px od vrchu stránky, teda aj po skoku na #playground ho návštevník
+  // ešte hľadá cez formulár platiteľa. Preto toto jedno tlačidlo skroluje rovno
+  // na blok Platby a nechá v ňom kurzor: jeden dotyk, potom Ctrl+V alebo Vložiť.
+  // Ostatné odkazy na #playground (index v úvode, lišta) mieria ďalej na hlavičku
+  // sekcie, tam ide o orientáciu, nie o okamžitú akciu.
+  const heroGenerator = document.querySelector('.hero .cta a[href="#playground"]');
+  const paymentsBox = document.getElementById('f-payments');
+
   // Smooth-scroll for in-page anchors
   document.querySelectorAll('a[href^="#"]').forEach((a) => {
     a.addEventListener('click', (e) => {
       const id = a.getAttribute('href').slice(1);
       if (!id) return;
-      const el = document.getElementById(id);
+      const doPlatieb = a === heroGenerator && paymentsBox;
+      const el = doPlatieb ? (paymentsBox.closest('.form-section') || paymentsBox) : document.getElementById(id);
       if (!el) return;
       e.preventDefault();
+      // Sekcia sa ešte nemusela "prisunúť": IntersectionObserver na konci stránky
+      // pridáva .in až keď je vidieť, a do priehľadného podstromu prehliadač
+      // kurzor nepustí (overené v Chrome na 390 px, activeElement spadol na body).
+      if (doPlatieb) {
+        const sekcia = document.getElementById('playground');
+        if (sekcia) sekcia.classList.add('in');
+      }
       window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 56, behavior: 'smooth' });
+      // Kurzor až po dobehnutí plynulého posunu, inak ho posun zhodí.
+      if (doPlatieb) setTimeout(() => { try { paymentsBox.focus({ preventScroll: true }); } catch (err) { paymentsBox.focus(); } }, 700);
     });
   });
 </script>
