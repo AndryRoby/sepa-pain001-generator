@@ -129,9 +129,9 @@ export const DICT = {
   's2.bank.label': { sk: 'banka (cieľový import)', en: 'bank (target import)', de: 'Zielbank' },
   's2.payer.address.label': { sk: 'adresa platiteľa', en: 'payer address', de: 'Adresse des Zahlers' },
   's2.payer.address.hint': {
-    sk: 'Nepovinná. Keď ju vyplníte, od 15. 11. 2026 musí obsahovať aspoň mesto a krajinu, inak banka platbu odmietne. Krajinu doplníme z IBAN, ak ju necháte prázdnu.',
-    en: 'Optional. If you fill it in, from 15 November 2026 it must contain at least the town and the country code, otherwise the bank rejects the payment. We derive the country from the IBAN when you leave it empty.',
-    de: 'Optional. Wenn Sie sie ausfüllen, muss sie ab dem 15. November 2026 mindestens Ort und Länderkennzeichen enthalten, sonst weist die Bank die Zahlung zurück. Das Land leiten wir aus der IBAN ab, wenn Sie es leer lassen.',
+    sk: 'Nepovinná. Keď ju vyplníte, musí obsahovať aspoň mesto a krajinu, to je minimum štruktúrovanej adresy podľa pravidiel EPC. Krajinu doplníme z IBAN, ak ju necháte prázdnu.',
+    en: 'Optional. If you fill it in, it must contain at least the town and the country code, the minimum of a structured address under the EPC rules. We derive the country from the IBAN when you leave it empty.',
+    de: 'Optional. Wenn Sie sie ausfüllen, muss sie mindestens Ort und Länderkennzeichen enthalten, das Minimum einer strukturierten Adresse nach den EPC-Regeln. Das Land leiten wir aus der IBAN ab, wenn Sie es leer lassen.',
   },
   's2.payer.street.label': { sk: 'ulica', en: 'street', de: 'Straße' },
   's2.payer.bldgnb.label': { sk: 'číslo domu', en: 'building number', de: 'Hausnummer' },
@@ -140,9 +140,9 @@ export const DICT = {
   's2.payer.country.label': { sk: 'krajina', en: 'country', de: 'Land' },
   's2.schema.label': { sk: 'verzia správy', en: 'message version', de: 'Nachrichtenversion' },
   's2.schema.hint': {
-    sk: 'Slovenské banky dnes pri hromadnom importe čakajú .03. Od 15. 11. 2026 časť z nich prechádza na .09. Štruktúrovanú adresu zvládnu obe.',
-    en: 'Slovak banks currently expect .03 for bulk import. From 15 November 2026 some of them switch to .09. Both versions can carry a structured address.',
-    de: 'Das Profil Deutschland (DK) folgt den Regeln für .03. Zum 15. November 2026 stellen die SEPA-Schemata auf .09 um; welche Version Ihre Bank beim Import erwartet, sagt Ihnen im Zweifel die Bank selbst. Eine strukturierte Adresse tragen beide Versionen.',
+    sk: 'Slovenské banky dnes pri hromadnom importe čakajú .03. Časť bánk prechádza na .09, termín si určuje každá banka sama. Štruktúrovanú adresu zvládnu obe.',
+    en: 'Slovak banks currently expect .03 for bulk import. Some banks are moving to .09, each on its own timetable. Both versions can carry a structured address.',
+    de: 'Das Profil Deutschland (DK) folgt den Regeln für .03. Welche Version Ihre Bank beim Import erwartet, sagt Ihnen im Zweifel die Bank selbst. Eine strukturierte Adresse tragen beide Versionen.',
   },
   's2.execdate.label': { sk: 'dátum splatnosti', en: 'execution date', de: 'Ausführungsdatum' },
   's2.msgid.label': { sk: 'MsgId (nepovinné)', en: 'MsgId (optional)', de: 'MsgId (optional)' },
@@ -206,9 +206,9 @@ export const DICT = {
   // Platena kontrola suboru. Odkaz je cely v prekladovom retazci, lebo
   // nemecka verzia ma vlastnu stranku a data-i18n adresu prepisat nedokaze.
   's2.kontrola.p': {
-    sk: 'Nechcete to riešiť sami? Pošlete nám súbor a do 24 hodín dostanete písomnú správu, čo po 15. novembri neprejde, a opravený súbor. 149 €',
-    en: 'Would you rather not deal with this yourself? Send us the file and within 24 hours you get a written report on what will be rejected after 15 November, and the corrected file. 149 €',
-    de: 'Sie möchten das nicht selbst machen? Senden Sie uns die Datei, und innerhalb von 24 Stunden bekommen Sie einen schriftlichen Bericht, was nach dem 15. November abgelehnt wird, und die korrigierte Datei. 149 €',
+    sk: 'Nechcete to riešiť sami? Pošlete nám súbor a do 24 hodín dostanete písomnú správu, čo v ňom treba opraviť vrátane adries, a opravený súbor. 149 €',
+    en: 'Would you rather not deal with this yourself? Send us the file and within 24 hours you get a written report on what needs fixing in it, addresses included, and the corrected file. 149 €',
+    de: 'Sie möchten das nicht selbst machen? Senden Sie uns die Datei, und innerhalb von 24 Stunden bekommen Sie einen schriftlichen Bericht, was darin zu korrigieren ist, Adressen eingeschlossen, und die korrigierte Datei. 149 €',
   },
   's2.kontrola.cta': {
     sk: '<a class="btn btn-solid" href="https://arling.sk/kontrola-suboru/" data-umami-event="kontrola_click" data-umami-event-place="generator">Nechať skontrolovať súbor</a>',

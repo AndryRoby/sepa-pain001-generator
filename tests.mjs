@@ -60,8 +60,9 @@ function notIncludes(name, haystack, needle) {
   ok(name, cond, cond ? '' : `did not expect string to include ${JSON.stringify(needle)}`);
 }
 // Krížové kontroly Doctorom majú pripnutý dátum. Bez neho by sa správanie
-// suity samo zmenilo 15. 11. 2026, keď Doctor začne k pain.001.001.03
-// pripisovať výhradu k verzii správy (pozri TERMIN_ADRESY).
+// suity samo zmenilo v deň termínu EPC, keď Doctor začne k pain.001.001.03
+// pripisovať výhradu k verzii správy (pozri TERMIN_ADRESY; od 24. 9. 2026
+// null, lebo EPC termín 15. 11. 2026 odložila).
 const DNES_PRED = '2026-10-01';
 
 function throws(name, fn, matcher) {
@@ -1042,10 +1043,10 @@ eq('ogLocaleForLang: en -> en_US', ogLocaleForLang('en'), 'en_US');
 
 // ═════════════════ štruktúrovaná adresa a pain.001.001.09 ═════════════════
 //
-// Termín 15. 11. 2026: keď je v SEPA správe uvedená poštová adresa, musí mať
-// aspoň mesto a kód krajiny. Dovtedy generátor adresu nezapisoval vôbec,
-// takže každý súbor s adresou vyrobený týmto nástrojom by banka po termíne
-// odmietla. Tieto testy strážia, že to platí aj v .03, aj v .09.
+// Keď je v SEPA správe uvedená štruktúrovaná alebo hybridná poštová adresa,
+// musí mať aspoň mesto a kód krajiny. Pôvodne generátor adresu nezapisoval
+// vôbec. Koniec voľnej adresy (pôvodne 15. 11. 2026) EPC 9. 9. 2026 odložila,
+// smer ostáva. Tieto testy strážia, že to platí aj v .03, aj v .09.
 
 const DNES_PO = '2026-11-20';
 
@@ -1142,7 +1143,10 @@ const DNES_PO = '2026-11-20';
     [IBAN_VUB_2, '10', 'Jozef Novak', 'Hlavná 12'],
   ]);
   ok('chýbajúce mesto sa nahlási', r2.payments[0].warnings.join(' ').indexOf('mesto') !== -1);
-  ok('upozornenie spomína termín', r2.payments[0].warnings.join(' ').indexOf('15. 11. 2026') !== -1);
+  // Zmena 24. 9. 2026: pôvodne test čakal vetu s termínom 15. 11. 2026. EPC
+  // termín odložila, upozornenie ho preto nesmie tvrdiť; hovorí o minime EPC.
+  ok('upozornenie netvrdí termín 15. 11. 2026', r2.payments[0].warnings.join(' ').indexOf('15. 11. 2026') === -1);
+  ok('upozornenie vysvetlí minimum EPC', r2.payments[0].warnings.join(' ').indexOf('minimum') !== -1);
 
   // Nezrozumiteľná krajina je chyba riadka, nie tiché zahodenie.
   const r3 = mapColumns([
@@ -1253,10 +1257,14 @@ function xmlSAdresou(schema, bank) {
     eq(`Doctor po termíne nenašiel vysokú závažnosť (.${schema})`,
       r.problems.filter((p) => p.severity === 'high').length, 0);
   }
-  // .09 je po termíne verzia, ktorú Doctor nekomentuje vôbec.
+  // Zmena 24. 9. 2026: pôvodne sa čakalo, že po 15. 11. 2026 Doctor .09
+  // nekomentuje vôbec. EPC termín odložila (TERMIN_ADRESY je null), preto
+  // Doctor aj 20. 11. 2026 pripíše k .09 len nízku poznámku, nič vážnejšie.
   const r09 = diagnose({ xml: xmlSAdresou('09', 'tatrabanka'), bank: 'tatrabanka', dnes: DNES_PO });
-  eq('Doctor po termíne nekomentuje verziu .09',
-    r09.problems.filter((p) => p.code.indexOf('schema_namespace') === 0).length, 0);
+  const verzia09 = r09.problems.filter((p) => p.code.indexOf('schema_namespace') === 0);
+  eq('Doctor pri .09 dá najviac jednu poznámku k verzii', verzia09.length, 1);
+  eq('Doctor pri .09: len poznámka schema_namespace_09_skoro, nízka závažnosť',
+    verzia09.map((p) => p.code + ':' + p.severity).join(), 'schema_namespace_09_skoro:low');
 }
 
 {
@@ -1268,12 +1276,14 @@ function xmlSAdresou(schema, bank) {
     payments: [{ iban: IBAN_VUB_2, amount: 10, name: 'Jozef Novak', vs: '1' }],
   });
   const r = diagnose({ xml: x, bank: 'vub', dnes: DNES_PO });
-  eq('súbor bez adries je po termíne v poriadku',
+  eq('súbor bez adries je po 15. 11. 2026 v poriadku',
     r.problems.filter((p) => p.code.indexOf('adresa') === 0).length, 0);
 }
 
 {
-  eq('termín adresy je 15. 11. 2026', TERMIN_ADRESY, '2026-11-15');
+  // Zmena 24. 9. 2026: pôvodne '2026-11-15'. EPC 9. 9. 2026 termín odložila
+  // a nový určí v októbri 2026, preto null (stránky potom ponúkajú .03).
+  eq('termín adresy je null, kým EPC neurčí nový', TERMIN_ADRESY, null);
 }
 
 // ═══════════════════════════ summary ═══════════════════════════════════
