@@ -268,9 +268,9 @@ export function parseRows(text) {
 // for every profile (PmtId/EndToEndId), but the "sk" profile keeps building
 // it from vs/ss/ks (buildEndToEndId(), unchanged), so a mapped column here
 // is only consulted by resolveEndToEndId() when profile === 'de'.
-// Adresné stĺpce pribudli kvôli termínu 15. 11. 2026 (pozri TERMIN_ADRESY
-// nižšie): od neho SEPA schémy neprijmú platbu s čisto neštruktúrovanou
-// adresou. Sú nepovinné a nemapujú sa, keď v hárku nie sú. Buď sa použijú
+// Adresné stĺpce pribudli kvôli štruktúrovanej adrese (pozri TERMIN_ADRESY
+// nižšie): SEPA schémy chcú čisto neštruktúrovanú adresu ukončiť, termín
+// EPC 9. 9. 2026 odložila a nový určí v októbri 2026. Sú nepovinné a nemapujú sa, keď v hárku nie sú. Buď sa použijú
 // samostatné stĺpce (street/buildingNumber/postCode/town/country), alebo
 // jeden spoločný stĺpec "address", ktorý rozoberie parseAddressLine();
 // samostatný stĺpec má vždy prednosť pred tým, čo sa vyčítalo zo spoločného.
@@ -477,8 +477,8 @@ const HLASKY = {
     krajinaNeznama: (k) => 'Krajinu „' + k + '“ nevieme priradiť ku kódu podľa ISO 3166-1. Napíšte dvojpísmenový kód, napríklad SK.',
     krajinaDoplnena: (k) => 'Krajina adresy nebola uvedená, doplnili sme ' + k + ' podľa IBAN-u. Skontrolujte to.',
     poleDlhe: (pole, n, max) => pole + ' má ' + n + ' znakov, maximum je ' + max + '.',
-    adresaBezMesta: 'Adresa nemá mesto. Od 15. 11. 2026 banka platbu s takouto adresou odmietne.',
-    adresaBezKrajiny: 'Adresa nemá kód krajiny. Od 15. 11. 2026 banka platbu s takouto adresou odmietne.',
+    adresaBezMesta: 'Adresa nemá mesto. Mesto a kód krajiny sú minimum štruktúrovanej adresy podľa pravidiel EPC, doplňte ho.',
+    adresaBezKrajiny: 'Adresa nemá kód krajiny. Mesto a kód krajiny sú minimum štruktúrovanej adresy podľa pravidiel EPC, doplňte ho.',
     adresaNerozobrana: (a) => 'Adresu „' + a + '“ sa nepodarilo rozobrať na mesto a krajinu. Rozdeľte ju do stĺpcov, alebo píšte „Ulica 1, 821 04 Mesto, SK“.',
   },
   en: {
@@ -501,8 +501,8 @@ const HLASKY = {
     krajinaNeznama: (k) => 'We cannot map the country "' + k + '" to an ISO 3166-1 code. Write the two-letter code, for example SK.',
     krajinaDoplnena: (k) => 'The address had no country, we filled in ' + k + ' from the IBAN. Please check it.',
     poleDlhe: (pole, n, max) => pole + ' is ' + n + ' characters, the maximum is ' + max + '.',
-    adresaBezMesta: 'The address has no town. From 15 November 2026 the bank will reject a payment with such an address.',
-    adresaBezKrajiny: 'The address has no country code. From 15 November 2026 the bank will reject a payment with such an address.',
+    adresaBezMesta: 'The address has no town. The town and the country code are the minimum of a structured address under the EPC rules, please add it.',
+    adresaBezKrajiny: 'The address has no country code. The town and the country code are the minimum of a structured address under the EPC rules, please add it.',
     adresaNerozobrana: (a) => 'We could not split the address "' + a + '" into town and country. Put them in separate columns, or write "Street 1, 821 04 Town, SK".',
   },
   de: {
@@ -525,8 +525,8 @@ const HLASKY = {
     krajinaNeznama: (k) => 'Das Land „' + k + '“ lässt sich keinem Code nach ISO 3166-1 zuordnen. Schreiben Sie den zweibuchstabigen Code, zum Beispiel SK.',
     krajinaDoplnena: (k) => 'Die Adresse hatte kein Land, wir haben ' + k + ' aus der IBAN ergänzt. Bitte prüfen Sie das.',
     poleDlhe: (pole, n, max) => pole + ' hat ' + n + ' Zeichen, das Maximum ist ' + max + '.',
-    adresaBezMesta: 'Die Adresse hat keinen Ort. Ab dem 15. November 2026 weist die Bank eine Zahlung mit einer solchen Adresse zurück.',
-    adresaBezKrajiny: 'Die Adresse hat keinen Ländercode. Ab dem 15. November 2026 weist die Bank eine Zahlung mit einer solchen Adresse zurück.',
+    adresaBezMesta: 'Die Adresse hat keinen Ort. Ort und Ländercode sind nach den EPC-Regeln das Minimum einer strukturierten Adresse, bitte ergänzen.',
+    adresaBezKrajiny: 'Die Adresse hat keinen Ländercode. Ort und Ländercode sind nach den EPC-Regeln das Minimum einer strukturierten Adresse, bitte ergänzen.',
     adresaNerozobrana: (a) => 'Die Adresse „' + a + '“ ließ sich nicht in Ort und Land zerlegen. Verteilen Sie sie auf eigene Spalten, oder schreiben Sie „Straße 1, 821 04 Ort, SK“.',
   },
 };
@@ -610,8 +610,8 @@ function buildPaymentRow(cells, mapping, rowNumber, profile, lang) {
     if (address.countryRaw && !address.country) {
       errors.push(H.krajinaNeznama(address.countryRaw));
     } else if (!address.country) {
-      // Krajinu nikto neuviedol. Dopĺňame ju z IBAN-u príjemcu, lebo adresa
-      // bez <Ctry> je po 15. 11. 2026 dôvod na odmietnutie celej platby a
+      // Krajinu nikto neuviedol. Dopĺňame ju z IBAN-u príjemcu, lebo
+      // štruktúrovaná adresa bez <Ctry> nespĺňa minimum pravidiel EPC a
       // krajina banky je pri bežnom SEPA príkaze tá istá ako krajina
       // príjemcu. Isté to nie je, preto to hlásime a v tabuľke to vidno.
       address.country = countryFromIban(iban);
@@ -700,26 +700,32 @@ export function mapColumns(rows, overrides, profile, lang) {
 
 // ────────────────────────────── poštová adresa ─────────────────────────────
 //
-// Od 15. 11. 2026 platí v SEPA schémach (SCT, SCT Inst, SDD Core aj B2B), že
-// keď je v správe uvedená poštová adresa, nesmie byť čisto neštruktúrovaná:
-// musí mať aspoň mesto (TwnNm) a kód krajiny (Ctry). Adresa samotná zostáva
-// nepovinná, takže súbor úplne bez adries prejde aj po termíne.
+// Pravidlá SEPA z roku 2025 mali od 15. 11. 2026 ukončiť čisto neštruktúrovanú
+// poštovú adresu v schémach SCT, SCT Inst, SDD Core aj B2B. EPC tento koniec
+// 9. 9. 2026 odložila a nový termín určí v októbri 2026 (zdroj:
+// https://www.europeanpaymentscouncil.eu/news-insights/news/epc-delays-address-format-migration-timeline).
+// Smer ostáva: štruktúrovaná alebo hybridná adresa, ktorá má aspoň mesto
+// (TwnNm) a kód krajiny (Ctry). Adresa samotná zostáva nepovinná, takže súbor
+// úplne bez adries sa zmena netýka.
 //
 // Upresnenie, ktoré sa na internete píše často nesprávne: pain.001.001.03
 // štruktúrovanú adresu unesie. Jej PostalAddress6 má StrtNm, BldgNb, PstCd,
 // TwnNm, CtrySubDvsn aj Ctry. Novšia PostalAddress24 z pain.001.001.09
 // pridáva len jemnejšie polia (BldgNm, Flr, PstBx, Room, TwnLctnNm, DstrctNm)
 // a obmedzuje AdrLine na dva riadky. Dôvod prechodu na .09 teda nie je "03 to
-// neunesie", ale to, že banky k termínu prestávajú .03 prijímať. Preto vieme
+// neunesie", ale to, že časť bánk prestáva .03 prijímať. Preto vieme
 // štruktúrovanú adresu zapísať do oboch verzií a verziu si vyberá používateľ.
 //
 // Poradie prvkov StrtNm, BldgNb, PstCd, TwnNm, Ctry je v PostalAddress6 aj
 // PostalAddress24 rovnaké, takže buildPstlAdr() stačí jedna.
 //
-// Zdroje overené 6. 9. 2026: European Payments Council (zosúladenie schém na
-// 15. 11. 2026), ECB/PMPG vzorový list o hybridnej adrese (2025-10-22),
-// Komerční banka (pain.001.001.03 sa od 15. 11. 2026 prestane používať).
-export const TERMIN_ADRESY = '2026-11-15';
+// Zdroje overené 6. 9. 2026: European Payments Council (zosúladenie schém,
+// pôvodne na 15. 11. 2026), ECB/PMPG vzorový list o hybridnej adrese
+// (2025-10-22), Komerční banka (pain.001.001.03 sa mala od 15. 11. 2026
+// prestať používať). Odklad EPC overený 24. 9. 2026.
+// null = EPC nový termín zatiaľ neurčila; stránky podľa neho volia predvolenú
+// verziu správy (bez termínu .03). Pôvodná hodnota bola '2026-11-15'.
+export const TERMIN_ADRESY = null;
 
 // Dĺžky podľa ISO 20022. Prekročenie hlásime ako chybu riadka, netichým
 // orezaním: skrátená adresa je nesprávna adresa.
@@ -931,8 +937,8 @@ function bicTag(schema) {
 
 /**
  * Adresa platiteľa z formulára. Krajinu prevedie na kód, a keď ju
- * používateľ nevyplnil, doplní ju z IBAN-u platiteľa — bez <Ctry> by bola
- * adresa po 15. 11. 2026 dôvodom na odmietnutie celého súboru.
+ * používateľ nevyplnil, doplní ju z IBAN-u platiteľa: bez <Ctry> by
+ * štruktúrovaná adresa nespĺňala minimum pravidiel EPC.
  */
 function normalizePayerAddress(address, payerIban, csob) {
   if (!address || typeof address !== 'object') return null;
@@ -1047,7 +1053,7 @@ ${txXml}
  * Builds the full pain.001 XML document, in version .03 or .09.
  * @param {{
  *   payer: {name:string, iban:string, bic?:string, address?:{street?:string, buildingNumber?:string, postCode?:string, town?:string, country?:string}},
- *   schema?: '03'|'09', // verzia správy; predvolene '03'. Po 15. 11. 2026 chcú banky '09' — dátum vyhodnocuje volajúci, aby táto funkcia zostala bez hodín
+ *   schema?: '03'|'09', // verzia správy; predvolene '03'. Prechod na '09' si určuje banka (termín EPC odložený), dátum vyhodnocuje volajúci, aby táto funkcia zostala bez hodín
  *   bank?: 'tatrabanka'|'slsp'|'vub'|'csob'|'generic',
  *   profile?: 'sk'|'de', // country profile for PmtId/EndToEndId (see resolveEndToEndId()); default 'sk'
  *   execDate?: string,   // YYYY-MM-DD fallback for rows with no usable date
