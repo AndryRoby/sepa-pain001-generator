@@ -45,8 +45,8 @@ export const STATIC_LANGS = ['en', 'de'];
 const OFFER_NAMES = {
   'Zadarmo': { en: 'Free', de: 'Kostenlos' },
   'Pro (cez balík Bankové nástroje)': { en: 'Pro (via the Banking Tools bundle)', de: 'Pro (über das Paket Banking Tools)' },
-  'Pro mesačne (balík Bankové nástroje, štyri nástroje)': { en: 'Pro monthly (Banking Tools bundle, four tools)', de: 'Pro monatlich (Paket Banking Tools, vier Tools)' },
-  'Pro ročne (balík Bankové nástroje, štyri nástroje)': { en: 'Pro yearly (Banking Tools bundle, four tools)', de: 'Pro jährlich (Paket Banking Tools, vier Tools)' },
+  'Pro mesačne (balík Bankové nástroje, tri nástroje)': { en: 'Pro monthly (Banking Tools bundle, three tools)', de: 'Pro monatlich (Paket Banking Tools, drei Tools)' },
+  'Pro ročne (balík Bankové nástroje, tri nástroje)': { en: 'Pro yearly (Banking Tools bundle, three tools)', de: 'Pro jährlich (Paket Banking Tools, drei Tools)' },
 };
 
 const I18N_ATTRS = {
