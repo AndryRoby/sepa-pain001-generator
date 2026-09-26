@@ -1,26 +1,20 @@
-# SEPA pain.001 Generátor: hromadné príkazy pre slovenské banky
+# SEPA pain.001 Generator: Excel or CSV to a pain.001 XML batch payment file
+
+SEPA pain.001 Generator turns a list of payments pasted from Excel or a CSV export into a SEPA `pain.001.001.03` XML batch payment file, entirely in your browser, for bookkeepers and small companies whose accounting software has no SEPA export (profiles for Tatra banka, SLSP, VÚB and ČSOB, plus a generic German DK profile). Building and checking files is free, up to 5,000 payments per file; the optional Pro licence costs €9 a month or €79 a year (VAT included) at https://arling.sk/bankove-nastroje/ and the same licence also covers camt.053 to Excel and Payment matcher.
 
 Live: https://arling.sk/sepa-pain001-generator/ (Slovak) · https://arling.sk/sepa-pain001-generator/en/ (English) · https://arling.sk/sepa-pain001-generator/de/ (German)
 
-**English summary:** a free, client-side tool that turns payments
-pasted from Excel or CSV into a SEPA `pain.001.001.03` XML batch
-payment file, entirely in the browser. It has two country profiles:
-**"sk"** (default, current behaviour: Tatra banka/SLSP/VÚB/ČSOB,
+It has two country profiles:
+**"sk"** (default: Tatra banka/SLSP/VÚB/ČSOB,
 variabilný/špecifický/konštantný symbol packed into `EndToEndId` as
 `/VS.../SS.../KS...`) and **"de"** (Deutsche Kreditwirtschaft, no
 VS/ŠS/KS at all: an unstructured Verwendungszweck in `RmtInf/Ustrd`,
 an optional `EndToEndId` column, and a single generic "Bank nach
 DK-Regelwerk (pain.001.001.03)" preset instead of the four Slovak
-banks). The page itself has a language switcher and is fully
-available in Slovak, English and German (SK/EN/DE); the "de" country
-profile is used automatically when the page language is German, and
-can be picked manually in English or Slovak too.
-
-A free, static, client-side tool that builds a **SEPA pain.001.001.03
-XML** batch payment file (hromadný príkaz na úhradu) straight out of
-payments you already have in Excel or a CSV export, so you don't have
-to hand-assemble XML for import into **Tatra banka, Slovenská
-sporiteľňa (SLSP), VÚB, or ČSOB** internet banking.
+banks). The page has a language switcher and is fully available in
+Slovak, English and German; the "de" country profile is used
+automatically when the page language is German, and can be picked
+manually in English or Slovak too.
 
 ## What it's for
 
@@ -128,8 +122,8 @@ remittance-reference handling and the bank preset list differ.
 
 ## How it works (client-side only)
 
-Everything runs in your browser. There is no backend, no account, and
-no payment wall. You paste or upload your payments, fill in the payer
+Everything runs in your browser. There is no backend and no account,
+and generating a file needs no payment. You paste or upload your payments, fill in the payer
 fields, and the page builds the `pain.001.001.03` XML entirely with
 JavaScript and offers it as a download.
 
@@ -155,42 +149,64 @@ fixed values every Slovak bank requires (`PmtMtd = TRF`,
 `SvcLvl/Cd = SEPA`, `ChrgBr = SLEV`), but each bank still layers its
 own extra rules on top: an execution-date window (Tatra banka up to
 31 days ahead, VÚB up to 30), a transaction cap (Tatra banka: 500 per
-file), and stricter handling of diacritics and length limits at ČSOB.
-The sibling tool, **SEPA pain.001 Doctor**
-(https://arling.sk/sepa-pain001-doctor/), checks a finished file
-against exactly those bank-specific rules before you import it: worth
-a quick run, especially the first time you generate a file for a new
-bank.
+payment block, `PmtInf`), and stricter handling of diacritics and
+length limits at ČSOB. Right after generation the page runs the file
+through the same engine as the sibling tool, **SEPA pain.001 Doctor**
+(https://arling.sk/sepa-pain001-doctor/), which checks it against
+exactly those bank-specific rules and shows the findings before you
+import it.
 
-## Pro: 39 EUR for 12 months (optional)
+## Limit
 
-The tool described above (paste/upload payments, generate and check a
-`pain.001` file) is, and stays, entirely free: no cap on the number of
-payments, files, or downloads. An optional **Pro** tier exists for
-someone who runs this every month, not for the one-off user, and adds:
+One generated file holds at most 5,000 payments (`MAX_PAYMENTS = 5000`
+in `generator-pain001.js`); a longer list has to be split into several
+files. The limit is the same with or without Pro.
+
+## Pro (optional): €9 a month or €79 a year, one licence for three tools
+
+The tool described above (paste or upload payments, generate and check
+a `pain.001` file) is free: up to 5,000 payments per file, no cap on
+the number of files or downloads. Pro is convenience for someone who runs this
+every month, not unlocked core functionality, and adds:
 
 - **Saved payer profiles**: company name, IBAN, BIC, and bank, stored
   in the browser (`localStorage`) and picked from a list instead of
   retyped each time.
-- **Multiple files in one session**: add several payment batches and
-  either download one XML per batch, or merge them into a single
-  payment file.
+- **Several files at once**: add several payment batches and either
+  download one XML per batch, or merge them into a single payment
+  file.
 - **Column-mapping templates** for exports from Pohoda, Omega (KROS),
-  and Money S3, on top of the free-tier auto-detection and manual
+  and Money S3, on top of the free auto-detection and manual
   dropdowns.
-- **Order history**: the last 50 generated commands (date, payment
-  count, total, target bank), with one-click re-download.
+- **History**: the last 50 generated files (date, payment count,
+  total, target bank), with one-click re-download.
 - **Priority email support.**
 
-Pricing: 39 EUR, one-time, covering 12 months, VAT included. Checkout
-runs through Stripe (Stripe Checkout / Managed Payments); ARLing s.
-r. o. is the seller of record for the sale, with Stripe as merchant
-of record handling VAT and emailing the invoice after payment. 14-day
-money-back guarantee, no questions asked (andrej@arling.sk).
+Pricing: Pro is the Banking tools licence sold at
+https://arling.sk/bankove-nastroje/ for €9 a month or €79 a year, VAT
+included. One licence activates Pro in three tools: this Generator,
+camt.053 to Excel and Payment matcher. SEPA pain.001 Doctor is free
+and needs no licence.
+
+Who sells and who sends the receipt: the licence is sold through
+Stripe Managed Payments. The merchant of record is Link (Sold through
+Link, LLC, which provides that service for Stripe): the checkout says
+"Sold through Link", Link sends the receipt and the invoice as a PDF,
+and Stripe calculates and remits the VAT. ARLing s. r. o. delivers the
+tool and the licence key and is responsible for its quality.
+
+Cancelling and refunds: cancel or change the subscription at any time
+in the Stripe customer portal
+(https://billing.stripe.com/p/login/3cIaER9M63hNeFcg8B4ko00, log in with
+the e-mail you paid with); it stays active until the end of the paid
+period. For a monthly or yearly subscription, ARLing refunds the
+payment on request within 14 days of purchase, without you giving a
+reason: write to support@arling.sk. Full terms:
+https://arling.sk/podmienky/en/ (sections 4 to 6).
 
 Licence mechanics: after payment, the page fetches a signed licence
-(an Ed25519 signature over a small JSON payload carrying the plan and
-expiry) from ARLing's licence service and stores it in the browser's
+(an Ed25519 signature over a small JSON payload carrying the plan,
+expiry and a hash of the buyer's e-mail) from ARLing's licence service and stores it in the browser's
 `localStorage`. Verification happens entirely client-side with the
 browser's WebCrypto API; there's no server call on ordinary use after
 that, and no account or login is involved. The same licence key can
@@ -255,7 +271,7 @@ payment run.
 ## About
 
 Built by ARLing s. r. o. (Bratislava, Slovakia).
-Contact: andrej@arling.sk
+Contact: support@arling.sk
 
 Sibling tools in the same "Doctor" family:
 - SEPA pain.001 Doctor (checks a finished file against bank-specific rules): https://arling.sk/sepa-pain001-doctor/

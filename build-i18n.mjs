@@ -226,7 +226,7 @@ export function translateMarkup(html, lang, problems) {
     }
     if (tn === 'form' && /\sdata-subscribe\b/.test(attrs)) attrs = setAttr(attrs, 'data-lang', lang);
     if (getAttr(attrs, 'id') === 'business-link') {
-      attrs = setAttr(attrs, 'href', escAttr('mailto:andrej@arling.sk?subject=' + encodeURIComponent(tr('s5.business.subject', lang, problems))));
+      attrs = setAttr(attrs, 'href', escAttr('mailto:' + (lang === 'sk' ? 'podpora' : 'support') + '@arling.sk?subject=' + encodeURIComponent(tr('s5.business.subject', lang, problems))));
     }
     if (getAttr(attrs, 'id') === 'pro-bundle-link') attrs = setAttr(attrs, 'href', `https://arling.sk/bankove-nastroje/?lang=${lang}`);
     const setLangAttr = getAttr(attrs, 'data-set-lang');
@@ -271,6 +271,8 @@ function transformJsonLd(html, lang, problems) {
     if (obj['@type'] === 'SoftwareApplication') {
       obj.name = tr('meta.title', lang, problems);
       obj.url = langUrl(lang);
+      // Contact per language: podpora@ on the Slovak root page, support@ on en/ and de/.
+      if (obj.author && obj.author.email) obj.author.email = lang === 'sk' ? 'podpora@arling.sk' : 'support@arling.sk';
       if (lang !== 'en') obj.description = tr('meta.description', lang, problems);
       if (Array.isArray(obj.offers)) {
         obj.offers.forEach((o) => {

@@ -28,13 +28,19 @@ Static HTML plus one dependency-free JavaScript engine. All parsing and XML gene
 
 Each bank layers its own extra rules on top of the shared schema (execution-date window, transaction cap, diacritics handling). The sibling tool, SEPA pain.001 Doctor, checks a finished file against those bank-specific rules: https://arling.sk/sepa-pain001-doctor/
 
-## Pro (39 EUR / 12 months, optional)
+## Limit
 
-Everything above (generating and checking a `pain.001` file) stays free with no limits: no cap on payments, files, or downloads. A paid Pro tier is optional convenience for an accountant who runs this every month, not a requirement to use the tool. Pro adds: saved payer profiles (name, IBAN, BIC, bank, stored in the browser), building several payment batches in one session and downloading (or merging) more than one file at a time, preset column-mapping templates for exports from Pohoda, Omega (KROS), and Money S3, a local history of the last 50 generated commands with re-download, and priority email support.
+One generated file holds at most 5,000 payments (`MAX_PAYMENTS = 5000` in `generator-pain001.js`); a longer list has to be split into several files. The limit is the same with or without Pro. Tatra banka additionally accepts at most 500 transactions in one payment block (`PmtInf`).
 
-Pricing: 39 EUR, one-time, covers 12 months, VAT included, invoice emailed by Stripe. Purchase via Stripe Checkout; ARLing s. r. o. sells under Stripe Managed Payments, so Stripe is the merchant of record and handles VAT and the invoice. 14-day money-back guarantee, no questions asked (andrej@arling.sk).
+## Pro (9 EUR a month or 79 EUR a year, optional)
 
-Licence delivery: a signed licence key (Ed25519, verified client-side with WebCrypto, no server call on every use) is issued right after payment and stored in the browser via localStorage; the same key can be pasted manually to activate Pro on a different computer. No account and no login are required.
+Everything above (generating and checking a `pain.001` file) is free: up to 5,000 payments per file, no cap on the number of files or downloads, no account. A paid Pro tier is optional convenience for an accountant who runs this every month, not a requirement to use the tool. Pro adds: saved payer profiles (name, IBAN, BIC, bank, stored in the browser), building several payment batches in one session and downloading (or merging) more than one file at a time, preset column-mapping templates for exports from Pohoda, Omega (KROS), and Money S3, a local history of the last 50 generated commands with re-download, and priority email support.
+
+Pricing: Pro is the Banking tools licence (https://arling.sk/bankove-nastroje/), 9 EUR a month or 79 EUR a year, VAT included, a subscription that renews until cancelled. One licence activates Pro in three tools: this generator, camt.053 to Excel and Payment matcher. SEPA pain.001 Doctor is free and needs no licence.
+
+Who sells: the licence is sold through Stripe Managed Payments. The merchant of record is Link (Sold through Link, LLC), which sends the receipt and the invoice as a PDF; Stripe calculates and remits the VAT. ARLing s. r. o. delivers the tool and the licence key. Cancel at any time in the Stripe customer portal (https://billing.stripe.com/p/login/3cIaER9M63hNeFcg8B4ko00); the licence stays active until the end of the paid period. Refund of a monthly or yearly subscription on request within 14 days of purchase, without giving a reason: support@arling.sk. Terms: https://arling.sk/podmienky/en/ (sections 4 to 6).
+
+Licence delivery: a signed licence key (Ed25519, verified client-side with WebCrypto, no server call on every use) appears on the confirmation page right after payment and is stored in the browser via localStorage; the same key can be pasted manually to activate Pro on a different computer. No account and no login are required.
 
 ## Privacy
 
@@ -54,4 +60,4 @@ No account, no login, no cookies for the tool itself, no server-side processing 
 
 ## Contact
 
-Built by ARLing s. r. o. (Bratislava, Slovakia). andrej@arling.sk
+Built by ARLing s. r. o. (Bratislava, Slovakia). support@arling.sk (English, German), podpora@arling.sk (Slovak)
