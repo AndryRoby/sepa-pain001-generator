@@ -142,11 +142,15 @@ Both creditor BICs above were derived from each IBAN's own bank code (`0900` and
 
 ## Before importing the file
 
-Getting the shared schema and fixed values right is necessary but not sufficient: each bank layers its own extra rules on top. Tatra banka rejects an execution date more than 31 days out and caps a file at 500 transactions; VÚB's own window is 30 days and it marks creditor BIC mandatory; ČSOB documents that any diacritics anywhere in the XML block the import outright. This generator writes what you give it (aside from the fixed schema fields above); it doesn't strip diacritics or warn about a bank's own date window or transaction cap. The sibling tool, **SEPA pain.001 Doctor**, checks a finished file against exactly those bank-specific rules, with citations to each bank's own documentation: https://arling.sk/sepa-pain001-doctor/
+Getting the shared schema and fixed values right is necessary but not sufficient: each bank layers its own extra rules on top. Tatra banka rejects an execution date more than 31 days out and accepts at most 500 transactions in one payment block (`PmtInf`); VÚB's own window is 30 days and it marks creditor BIC mandatory; ČSOB documents that any diacritics anywhere in the XML block the import outright. This generator writes what you give it (aside from the fixed schema fields above); it doesn't strip diacritics itself. Right after generation, the page runs the finished file through the same engine as the sibling tool, **SEPA pain.001 Doctor**, which checks it against exactly those bank-specific rules (date window, transaction cap, diacritics), with citations to each bank's own documentation: https://arling.sk/sepa-pain001-doctor/
 
-## Pro: 39 EUR for 12 months (optional)
+## Limit
 
-Generating and checking a `pain.001` file is, and stays, entirely free: no cap on the number of payments, files, or downloads, no feature held back behind a paywall in the core flow. Pro is an optional paid tier aimed specifically at someone who runs this tool every month (a bookkeeper with a recurring payroll or supplier run), not at the one-off user.
+One generated file holds at most 5,000 payments (`MAX_PAYMENTS = 5000` in `generator-pain001.js`; a longer list gets the error "Príliš veľa platieb" and has to be split into several files). The limit is the same with or without Pro.
+
+## Pro: 9 EUR a month or 79 EUR a year (optional)
+
+Generating and checking a `pain.001` file is free: up to 5,000 payments per file, no cap on the number of files or downloads, no feature of the single-file flow held back behind a paywall. Pro is an optional paid tier aimed specifically at someone who runs this tool every month (a bookkeeper with a recurring payroll or supplier run), not at the one-off user.
 
 What Pro adds:
 
@@ -156,7 +160,11 @@ What Pro adds:
 - **Order history.** The last 50 generated commands (date, payment count, total amount, target bank), stored locally, with one-click re-download of any past file.
 - **Priority email support.**
 
-Pricing and purchase: 39 EUR, one-time, covering 12 months, VAT included in the price. Checkout runs through Stripe (Stripe Checkout / Managed Payments); ARLing s. r. o. is the seller of record, with Stripe acting as merchant of record for VAT, and the invoice is emailed automatically by Stripe after payment. A 14-day, no-questions money-back guarantee applies (andrej@arling.sk).
+Pricing and purchase: Pro is the Banking tools licence sold at https://arling.sk/bankove-nastroje/ for 9 EUR a month or 79 EUR a year, VAT included, a subscription that renews until cancelled. One licence activates Pro in three tools: this generator, camt.053 to Excel and Payment matcher. SEPA pain.001 Doctor is free and needs no licence.
+
+Who sells and who sends the receipt: the licence is sold through Stripe Managed Payments. The merchant of record is Link (Sold through Link, LLC, which provides that service for Stripe): the checkout says "Sold through Link", Link sends the receipt and the invoice as a PDF, and Stripe calculates and remits the VAT. ARLing s. r. o. delivers the tool and the licence key and is responsible for its quality.
+
+Cancelling and refunds: cancel or change the subscription at any time in the Stripe customer portal (https://billing.stripe.com/p/login/3cIaER9M63hNeFcg8B4ko00, log in with the e-mail you paid with); it stays active until the end of the paid period, and paid periods are not refunded pro rata. For a monthly or yearly subscription, ARLing refunds the payment on request within 14 days of purchase, without you giving a reason: write to support@arling.sk. Full terms: https://arling.sk/podmienky/en/ (sections 4 to 6).
 
 How the licence works: after payment, the page requests a signed licence (Ed25519 signature over a small JSON payload carrying the plan and expiry) from ARLing's licence service and stores it in the browser's `localStorage`. The signature is verified entirely client-side with the browser's WebCrypto API; no server call happens on ordinary use after that. The same licence key can be copied and pasted into the page on a different browser or computer to activate Pro there too; no account or login is involved on either machine.
 
@@ -183,10 +191,10 @@ A manual BIC field appears in its place; the file still generates normally once 
 Packed into `PmtId/EndToEndId` as `/VS.../SS.../KS...`, in that order, following the National Bank of Slovakia convention. This is the only place `pain.001.001.03` has room for them, since the schema has no dedicated Slovak payment-symbol fields.
 
 **Does it check the file against each bank's own rules (execution-date window, transaction cap, diacritics) before I download it?**
-No. This tool's job is turning your payment list into a structurally correct `pain.001` file; checking a finished file against bank-specific rules is what the sibling tool, SEPA pain.001 Doctor, does. Running a freshly generated file through it before the first import to a given bank is a good habit.
+Yes. Right after generation the page runs the file through the same engine as the sibling tool, SEPA pain.001 Doctor, and shows its findings for the selected bank. A clean result is still not a guarantee that the bank accepts the file.
 
 **Is there a limit on how many rows I can paste in?**
-Not in this tool. Tatra banka's own spec, however, caps a single file at 500 transactions; a longer list generated for Tatra banka should be split before import.
+Yes. One file holds at most 5,000 payments; a longer list has to be split into several files. Tatra banka's own spec additionally caps one payment block (`PmtInf`) at 500 transactions, which the check after generation points out.
 
 **Does anything get uploaded when I use the file picker instead of pasting?**
 No. The file is read locally with the browser's `FileReader` API; it's parsed the same way pasted text would be, and never leaves the page.
@@ -195,7 +203,7 @@ No. The file is read locally with the browser's `FileReader` API; it's parsed th
 Only if the two banks share every rule this tool applies (they don't, in general: BIC requirements and profile-specific values differ). Regenerate with the correct target bank selected rather than reusing a file across banks.
 
 **Do I need Pro to generate a file?**
-No. Generating and checking a `pain.001` file is free, with no cap on payments, files, or downloads, with or without Pro. Pro adds saved payer profiles, multi-file batches, column-mapping templates for Pohoda/Omega/Money S3, order history, and priority support: convenience for repeat monthly use, not a requirement for the core tool.
+No. Generating and checking a `pain.001` file is free, up to 5,000 payments per file, with no cap on the number of files or downloads. Pro adds saved payer profiles, multi-file batches, column-mapping templates for Pohoda/Omega/Money S3, order history, and priority support: convenience for repeat monthly use, not a requirement for the core tool.
 
 **How does the "de" (Germany, DK) country profile differ from "sk" (Slovakia)?**
 The "de" profile hides the VS/SS/KS columns and offers one free-text Verwendungszweck instead (max. 140 characters, SEPA character set) plus an optional EndToEndId column. The bank list collapses to one generic "Bank nach DK-Regelwerk (pain.001.001.03)" preset instead of the four Slovak banks, since Tatra banka/SLSP/VÚB/ČSOB's own per-bank rules don't apply to it. BIC stays optional, as for any IBAN from an EEA/SEPA country. The "de" profile activates automatically when the page language is German, and can be selected manually while browsing in English or Slovak.
@@ -216,4 +224,4 @@ No account, no login, no cookies for the tool itself, no server-side processing 
 
 ## Contact
 
-Built by ARLing s. r. o. (Bratislava, Slovakia). andrej@arling.sk
+Built by ARLing s. r. o. (Bratislava, Slovakia). support@arling.sk (English, German), podpora@arling.sk (Slovak)

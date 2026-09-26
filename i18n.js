@@ -254,9 +254,9 @@ export const DICT = {
   // ── section 04: Pro ──────────────────────────────────────────────────
   's4.h2': { sk: 'Pro pre účtovníka, ktorý to robí každý mesiac.', en: 'Pro for a bookkeeper who does this every month.', de: 'Pro: optionaler Komfort, wenn Sie das jeden Monat machen.' },
   's4.sub': {
-    sk: 'Bezplatná verzia ostáva bez limitov navždy, na počet platieb, súborov aj stiahnutí. Pro je pohodlie pri opakovanom mesačnom spracovaní, nie odomknutá funkčnosť.',
-    en: 'The free version stays unlimited forever: no cap on payments, files, or downloads. Pro is convenience for repeat monthly use, not unlocked core functionality.',
-    de: 'Alles auf dieser Seite ist und bleibt kostenlos: keine Grenze bei Zahlungen, Dateien oder Downloads, kein Konto. Pro schaltet nichts frei, es spart Tipparbeit bei der monatlichen Wiederholung. Für eine einzelne Sammelüberweisung brauchen Sie es nicht.',
+    sk: 'Bezplatná verzia vygeneruje súbor až s 5 000 platbami, bez limitu na počet súborov a stiahnutí. Pro je pohodlie pri opakovanom mesačnom spracovaní, limit 5 000 platieb v jednom súbore platí aj v ňom.',
+    en: 'The free version generates a file with up to 5,000 payments, with no cap on the number of files or downloads. Pro is convenience for repeat monthly use; the limit of 5,000 payments per file applies there too.',
+    de: 'Die kostenlose Version erstellt eine Datei mit bis zu 5.000 Zahlungen, ohne Grenze bei der Anzahl der Dateien oder Downloads, ohne Konto. Pro spart Tipparbeit bei der monatlichen Wiederholung; die Grenze von 5.000 Zahlungen je Datei gilt auch dort. Für eine einzelne Sammelüberweisung brauchen Sie es nicht.',
   },
   's4.r1.title': { sk: 'Uložené profily platiteľov.', en: 'Saved payer profiles.', de: 'Gespeicherte Zahlerprofile.' },
   's4.r1.body': { sk: 'Názov firmy, IBAN, BIC aj banka na jeden klik z výberu, bez prepisovania pri každom hromadnom príkaze.', en: 'Company name, IBAN, BIC and bank in one click from a dropdown, no retyping for every batch.', de: 'Firmenname, IBAN, BIC und Bank mit einem Klick aus der Auswahl, kein erneutes Eintippen bei jeder Sammelüberweisung.' },
@@ -265,9 +265,9 @@ export const DICT = {
   's4.r3.title': { sk: 'Šablóny mapovania stĺpcov.', en: 'Column-mapping templates.', de: 'Vorlagen für Spaltenzuordnung.' },
   's4.r3.body': { sk: 'Predvolené názvy stĺpcov pre exporty z Pohody, Omegy (KROS) alebo Money S3. Mapovanie sa dá aj tak vždy ručne skontrolovať a opraviť.', en: 'Preset column names for exports from Pohoda, Omega (KROS) or Money S3. The mapping can still always be checked and fixed by hand.', de: 'Voreingestellte Spaltennamen für Exporte aus Pohoda, Omega (KROS) und Money S3, also aus slowakischen und tschechischen Buchhaltungsprogrammen. Bei einer deutschen Excel- oder CSV-Liste erkennt der Generator die Spalten IBAN, Betrag, Name und Verwendungszweck ohnehin selbst, dafür ist keine Vorlage nötig.' },
   's4.cta.p': {
-    sk: '<b>Jedna licencia pre tri nástroje.</b> Pro pre SEPA pain.001 Generátor sa aktivuje rovnakou licenciou ako camt.053 do Excelu a Párovač platieb: 9&nbsp;€ mesačne alebo 79&nbsp;€ ročne pre všetky tri, DPH v cene, faktúru pošle Stripe. SEPA pain.001 Doctor je zadarmo a licenciu nepotrebuje.',
-    en: '<b>One licence for three tools.</b> Pro for SEPA pain.001 Generator is activated by the same licence as camt.053 to Excel and Payment matcher: €9/month or €79/year for all three, VAT included, Stripe sends the invoice. SEPA pain.001 Doctor is free and needs no licence.',
-    de: '<b>Eine Lizenz für drei Tools.</b> Pro für den SEPA-pain.001-Generator wird mit derselben Lizenz aktiviert wie camt.053 nach Excel und Zahlungsabgleich: 9&nbsp;€/Monat oder 79&nbsp;€/Jahr für alle drei, inkl. MwSt., die Rechnung stellt Stripe. SEPA pain.001 Doctor ist kostenlos und braucht keine Lizenz.',
+    sk: '<b>Jedna licencia pre tri nástroje.</b> Pro pre SEPA pain.001 Generátor sa aktivuje rovnakou licenciou ako camt.053 do Excelu a Párovač platieb: 9&nbsp;€ mesačne alebo 79&nbsp;€ ročne pre všetky tri, DPH v cene. Platbu spracuje Stripe cez Managed Payments, doklad a faktúru vám pošle Link (Sold through Link, LLC). SEPA pain.001 Doctor je zadarmo a licenciu nepotrebuje.',
+    en: '<b>One licence for three tools.</b> Pro for SEPA pain.001 Generator is activated by the same licence as camt.053 to Excel and Payment matcher: €9/month or €79/year for all three, VAT included. Stripe processes the payment through Managed Payments; Link (Sold through Link, LLC) sends you the receipt and the invoice. SEPA pain.001 Doctor is free and needs no licence.',
+    de: '<b>Eine Lizenz für drei Tools.</b> Pro für den SEPA-pain.001-Generator wird mit derselben Lizenz aktiviert wie camt.053 nach Excel und Zahlungsabgleich: 9&nbsp;€/Monat oder 79&nbsp;€/Jahr für alle drei, inkl. MwSt. Die Zahlung wickelt Stripe über Managed Payments ab; Beleg und Rechnung schickt Ihnen Link (Sold through Link, LLC). SEPA pain.001 Doctor ist kostenlos und braucht keine Lizenz.',
   },
   's4.buy.year.btn': { sk: 'Kúpiť Pro, 79 €/rok', en: 'Buy Pro, €79/year', de: 'Pro kaufen, 79 €/Jahr' },
   's4.buy.month.btn': { sk: 'alebo 9 €/mesiac', en: 'or €9/month', de: 'oder 9 €/Monat' },
@@ -292,11 +292,11 @@ export const DICT = {
   's4.licence.remove.btn': { sk: 'Odstrániť licenciu', en: 'Remove licence', de: 'Lizenz entfernen' },
 
   // ── section 05: pricing / ask ────────────────────────────────────────
-  's5.h2': { sk: 'Zadarmo. Bez limitov, natrvalo.', en: 'Free. No limits, for good.', de: 'Kostenlos. Ohne Limits, dauerhaft.' },
+  's5.h2': { sk: 'Zadarmo. Bez účtu, bez platby.', en: 'Free. No account, no payment.', de: 'Kostenlos. Ohne Konto, ohne Zahlung.' },
   's5.sub': {
-    sk: 'Vznikol z vlastnej potreby: previesť zoznam platieb z Excelu na hromadný príkaz bez ručného skladania XML. Bez účtu, bez platby, bez limitu na počet platieb, súborov ani stiahnutí.',
-    en: 'Built out of a real need: turn a payment list from Excel into a batch payment file without hand-assembling XML. No account, no payment, no limit on payments, files, or downloads.',
-    de: 'Entstanden aus echtem Bedarf: eine Zahlungsliste aus Excel in eine Sammelüberweisung umwandeln, ohne XML von Hand zu bauen. Kein Konto, keine Zahlung, kein Limit bei Zahlungen, Dateien oder Downloads.',
+    sk: 'Vznikol z vlastnej potreby: previesť zoznam platieb z Excelu na hromadný príkaz bez ručného skladania XML. Bez účtu, bez platby, až 5 000 platieb v jednom súbore, bez limitu na počet súborov a stiahnutí.',
+    en: 'Built out of a real need: turn a payment list from Excel into a batch payment file without hand-assembling XML. No account, no payment, up to 5,000 payments per file, no cap on the number of files or downloads.',
+    de: 'Entstanden aus echtem Bedarf: eine Zahlungsliste aus Excel in eine Sammelüberweisung umwandeln, ohne XML von Hand zu bauen. Kein Konto, keine Zahlung, bis zu 5.000 Zahlungen je Datei, keine Grenze bei der Anzahl der Dateien oder Downloads.',
   },
   's5.ask.p': {
     sk: 'Ak vám ušetrí popoludnie, napíšte, čo generátor spracoval zle. <a href="https://github.com/AndryRoby/sepa-pain001-generator/issues" target="_blank" rel="noopener">Otvorte issue na GitHube</a>.',
@@ -313,9 +313,9 @@ export const DICT = {
   's5.subscribe.btn': { sk: 'Dať vedieť', en: 'Notify me', de: 'Benachrichtigen' },
   's5.subscribe.thanks': { sk: 'Ďakujeme. Ozveme sa len vtedy, keď bude niečo nové.', en: 'Thanks. We’ll only write when there’s something new.', de: 'Danke. Wir melden uns nur, wenn es etwas Neues gibt.' },
   's5.subscribe.error': {
-    sk: 'Nepodarilo sa uložiť. Napíšte na <a href="mailto:andrej@arling.sk">andrej@arling.sk</a>.',
-    en: 'Could not save it. Please write to <a href="mailto:andrej@arling.sk">andrej@arling.sk</a>.',
-    de: 'Speichern fehlgeschlagen. Bitte schreiben Sie an <a href="mailto:andrej@arling.sk">andrej@arling.sk</a>.',
+    sk: 'Nepodarilo sa uložiť. Napíšte na <a href="mailto:podpora@arling.sk">podpora@arling.sk</a>.',
+    en: 'Could not save it. Please write to <a href="mailto:support@arling.sk">support@arling.sk</a>.',
+    de: 'Speichern fehlgeschlagen. Bitte schreiben Sie an <a href="mailto:support@arling.sk">support@arling.sk</a>.',
   },
   's5.subscribe.privacy': { sk: 'Súkromie', en: 'Privacy', de: 'Datenschutz' },
   's5.business.p': {
@@ -377,27 +377,27 @@ export const DICT = {
   },
   'faq.q8': { sk: 'Musím platiť, aby som vygeneroval XML?', en: 'Do I have to pay to generate an XML?', de: 'Muss ich bezahlen, um eine XML zu erstellen?' },
   'faq.a8': {
-    sk: 'Nie. Generovanie aj kontrola súboru sú a zostávajú zadarmo, bez limitu na počet platieb, súborov ani stiahnutí. Pro je len pohodlie navyše pre toho, kto hromadné príkazy pripravuje opakovane.',
-    en: 'No. Generating and checking a file are, and stay, free, with no limit on payments, files, or downloads. Pro is just extra convenience for someone preparing batch payments repeatedly.',
-    de: 'Nein. Erstellung und Prüfung einer Datei sind und bleiben kostenlos, ohne Limit bei Zahlungen, Dateien oder Downloads. Pro ist nur zusätzlicher Komfort für jemanden, der wiederholt Sammelüberweisungen erstellt.',
+    sk: 'Nie. Generovanie aj kontrola súboru sú zadarmo, až 5 000 platieb v jednom súbore, bez limitu na počet súborov a stiahnutí. Pro je len pohodlie navyše pre toho, kto hromadné príkazy pripravuje opakovane.',
+    en: 'No. Generating and checking a file are free, up to 5,000 payments per file, with no cap on the number of files or downloads. Pro is just extra convenience for someone preparing batch payments repeatedly.',
+    de: 'Nein. Erstellung und Prüfung einer Datei sind kostenlos, bis zu 5.000 Zahlungen je Datei, ohne Grenze bei der Anzahl der Dateien oder Downloads. Pro ist nur zusätzlicher Komfort für jemanden, der wiederholt Sammelüberweisungen erstellt.',
   },
   'faq.q9': { sk: 'Ako dostanem faktúru?', en: 'How do I get an invoice?', de: 'Wie erhalte ich eine Rechnung?' },
   'faq.a9': {
-    sk: 'Faktúru vystaví a pošle na váš e-mail Stripe hneď po zaplatení. Pri tomto predaji je ARLing s. r. o. predajcom cez Stripe Managed Payments: DPH aj vystavenie dokladu rieši priamo Stripe.',
-    en: 'The invoice is issued and emailed to you by Stripe right after payment. For this sale, ARLing s. r. o. sells through Stripe Managed Payments: Stripe itself handles VAT and issuing the document.',
-    de: 'Die Rechnung wird von Stripe direkt nach der Zahlung erstellt und Ihnen per E-Mail zugesandt. Bei diesem Verkauf handelt ARLing s. r. o. über Stripe Managed Payments: Stripe selbst kümmert sich um Umsatzsteuer und Belegausstellung.',
+    sk: 'Licenciu predávame cez Stripe Managed Payments. Predajcom je v ňom Link (Sold through Link, LLC), ktorý vám pošle doklad a faktúru v PDF; DPH vypočíta a odvedie Stripe. ARLing s. r. o. dodáva nástroj a licenčný kľúč.',
+    en: 'The licence is sold through Stripe Managed Payments. The merchant of record there is Link (Sold through Link, LLC), which sends you the receipt and the invoice as a PDF; Stripe calculates and remits the VAT. ARLing s. r. o. delivers the tool and the licence key.',
+    de: 'Die Lizenz wird über Stripe Managed Payments verkauft. Verkäufer (Merchant of Record) ist dort Link (Sold through Link, LLC), der Ihnen Beleg und Rechnung als PDF schickt; die Umsatzsteuer berechnet und führt Stripe ab. ARLing s. r. o. liefert das Tool und den Lizenzschlüssel.',
   },
   'faq.q10': { sk: 'Čo ak zmením počítač?', en: 'What if I change computers?', de: 'Was, wenn ich den Computer wechsle?' },
   'faq.a10': {
-    sk: 'Licenčný kľúč nie je viazaný na jedno zariadenie. Nájdete ho v e-maile od Stripe po zaplatení; na novom počítači ho stačí vložiť ručne do poľa pre licenčný kľúč v <a href="#pro">sekcii Pro</a> a Pro sa aktivuje aj tam.',
-    en: 'The licence key isn’t tied to one device. You’ll find it in the email from Stripe after payment; on a new computer, just paste it manually into the licence-key field in the <a href="#pro">Pro section</a>, and Pro activates there too.',
-    de: 'Der Lizenzschlüssel ist nicht an ein Gerät gebunden. Sie finden ihn in der E-Mail von Stripe nach der Zahlung; auf einem neuen Computer fügen Sie ihn einfach manuell in das Lizenzschlüsselfeld im <a href="#pro">Pro-Abschnitt</a> ein, und Pro wird auch dort aktiviert.',
+    sk: 'Licenčný kľúč nie je viazaný na jedno zariadenie. Nájdete ho na potvrdzovacej stránke hneď po zaplatení; na novom počítači ho stačí vložiť ručne do poľa pre licenčný kľúč v <a href="#pro">sekcii Pro</a> a Pro sa aktivuje aj tam.',
+    en: 'The licence key isn’t tied to one device. You’ll find it on the confirmation page right after payment; on a new computer, just paste it manually into the licence-key field in the <a href="#pro">Pro section</a>, and Pro activates there too.',
+    de: 'Der Lizenzschlüssel ist nicht an ein Gerät gebunden. Sie finden ihn direkt nach der Zahlung auf der Bestätigungsseite; auf einem neuen Computer fügen Sie ihn einfach manuell in das Lizenzschlüsselfeld im <a href="#pro">Pro-Abschnitt</a> ein, und Pro wird auch dort aktiviert.',
   },
   'faq.q11': { sk: 'Čo ak Pro nechcem, môžem dostať peniaze naspäť?', en: 'What if I don’t want Pro, can I get a refund?', de: 'Was, wenn ich Pro nicht möchte, bekomme ich mein Geld zurück?' },
   'faq.a11': {
-    sk: 'Áno. Ak vám Pro nesadne, napíšte do 14 dní od kúpy na <a href="mailto:andrej@arling.sk?subject=Vr%C3%A1tenie%20Pro%20licencie">andrej@arling.sk</a> a peniaze vrátime bez zbytočných otázok.',
-    en: 'Yes. If Pro doesn’t work out for you, write within 14 days of purchase to <a href="mailto:andrej@arling.sk?subject=Vr%C3%A1tenie%20Pro%20licencie">andrej@arling.sk</a> and we’ll refund it, no questions asked.',
-    de: 'Ja. Wenn Pro nichts für Sie ist, schreiben Sie innerhalb von 14 Tagen nach dem Kauf an <a href="mailto:andrej@arling.sk?subject=Vr%C3%A1tenie%20Pro%20licencie">andrej@arling.sk</a>, und wir erstatten das Geld ohne unnötige Fragen.',
+    sk: 'Áno. Ak vám Pro nesadne, napíšte do 14 dní od kúpy na <a href="mailto:podpora@arling.sk?subject=Vr%C3%A1tenie%20Pro%20licencie">podpora@arling.sk</a> a platbu vrátime bez udania dôvodu, cez Stripe. Predplatné zrušíte kedykoľvek na <a href="https://billing.stripe.com/p/login/3cIaER9M63hNeFcg8B4ko00">portáli Stripe</a>, platí do konca zaplateného obdobia.',
+    en: 'Yes. If Pro doesn’t work out for you, write within 14 days of purchase to <a href="mailto:support@arling.sk?subject=Pro%20licence%20refund">support@arling.sk</a> and we refund the payment through Stripe, no reason needed. You can cancel the subscription at any time in the <a href="https://billing.stripe.com/p/login/3cIaER9M63hNeFcg8B4ko00">Stripe customer portal</a>; it stays active until the end of the paid period.',
+    de: 'Ja. Wenn Pro nichts für Sie ist, schreiben Sie innerhalb von 14 Tagen nach dem Kauf an <a href="mailto:support@arling.sk?subject=Pro%20Erstattung">support@arling.sk</a>, und wir erstatten die Zahlung über Stripe ohne Angabe von Gründen. Das Abo können Sie jederzeit im <a href="https://billing.stripe.com/p/login/3cIaER9M63hNeFcg8B4ko00">Stripe-Kundenportal</a> kündigen; es bleibt bis zum Ende des bezahlten Zeitraums aktiv.',
   },
   'faq.q12': { sk: 'Čím sa líši profil „Nemecko (DK)“ od „Slovensko“?', en: 'How does the “Germany (DK)” profile differ from “Slovakia”?', de: 'Wie unterscheidet sich das Profil „Deutschland (DK)“ von „Slowakei“?' },
   'faq.a12': {
@@ -530,7 +530,7 @@ export const DICT = {
   'js.licence.validUntil': { sk: 'Licencia platná do {date}.', en: 'Licence valid until {date}.', de: 'Lizenz gültig bis {date}.' },
   'js.licence.removeConfirm': { sk: 'Odstrániť licenciu z tohto prehliadača?', en: 'Remove the licence from this browser?', de: 'Lizenz aus diesem Browser entfernen?' },
   'js.licence.keyMissing': { sk: 'Vložte licenčný kľúč.', en: 'Paste a licence key.', de: 'Lizenzschlüssel einfügen.' },
-  'js.licence.activationFailed': { sk: 'Aktivácia zlyhala. Skúste vložiť kľúč ručne nižšie, alebo napíšte na andrej@arling.sk.', en: 'Activation failed. Try pasting the key manually below, or write to andrej@arling.sk.', de: 'Aktivierung fehlgeschlagen. Versuchen Sie, den Schlüssel unten manuell einzufügen, oder schreiben Sie an andrej@arling.sk.' },
+  'js.licence.activationFailed': { sk: 'Aktivácia zlyhala. Skúste vložiť kľúč ručne nižšie, alebo napíšte na podpora@arling.sk.', en: 'Activation failed. Try pasting the key manually below, or write to support@arling.sk.', de: 'Aktivierung fehlgeschlagen. Versuchen Sie, den Schlüssel unten manuell einzufügen, oder schreiben Sie an support@arling.sk.' },
   'js.licence.reason.expired': { sk: 'licencia vypršala', en: 'licence expired', de: 'Lizenz abgelaufen' },
   'js.licence.reason.signature': { sk: 'neplatný kľúč', en: 'invalid key', de: 'ungültiger Schlüssel' },
   'js.licence.reason.plan': { sk: 'kľúč pre iný produkt', en: 'key for a different product', de: 'Schlüssel für ein anderes Produkt' },
@@ -801,7 +801,7 @@ export function applyI18n(lang) {
 
   const businessLink = document.getElementById('business-link');
   if (businessLink) {
-    businessLink.href = 'mailto:andrej@arling.sk?subject=' + encodeURIComponent(t('s5.business.subject', l));
+    businessLink.href = 'mailto:' + (l === 'sk' ? 'podpora' : 'support') + '@arling.sk?subject=' + encodeURIComponent(t('s5.business.subject', l));
   }
 
   // The Pro-section "what is in the bundle" link sends visitors to the
