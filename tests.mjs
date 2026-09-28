@@ -453,6 +453,27 @@ throws('buildXml: throws on zero payments', () => buildXml({ payer: { name: 'X',
 }
 
 {
+  // Tatra banka PDF, strana 3: "Max. 500 transakcií v súbore". Generátor
+  // rozdelí platby s dvoma dátumami do dvoch blokov PmtInf po 300, no súbor
+  // má spolu 600: kontrola po vygenerovaní to musí hlásiť ako blokujúcu chybu.
+  const platby = (n, dateIso) => Array.from({ length: n }, (_, i) => ({ iban: IBAN_VUB, amount: 1, name: 'Prijemca ' + i, dateIso }));
+  const xml600 = buildXml({ bank: 'tatrabanka', payer: { name: 'Firma s.r.o.', iban: IBAN_TATRA }, payments: [...platby(300, '2026-10-02'), ...platby(300, '2026-10-05')] });
+  eq('integration (Tatra banka): 2 x 300 by date gives two PmtInf blocks', (xml600.match(/<PmtInf>/g) || []).length, 2);
+  const r600 = diagnose({ xml: xml600, bank: 'tatrabanka', dnes: DNES_PRED });
+  const limit = r600.problems.filter((p) => p.code === 'file_tx_count_exceeded');
+  eq('integration (Tatra banka): 2 x 300 in one file is reported once as file_tx_count_exceeded', limit.length, 1);
+  eq('integration (Tatra banka): file limit is high severity', limit[0] && limit[0].severity, 'high');
+  eq('integration (Tatra banka): 2 x 300 makes the Doctor status "fail"', r600.status, 'fail');
+
+  const xml500 = buildXml({ bank: 'tatrabanka', payer: { name: 'Firma s.r.o.', iban: IBAN_TATRA }, payments: [...platby(250, '2026-10-02'), ...platby(250, '2026-10-05')] });
+  const r500 = diagnose({ xml: xml500, bank: 'tatrabanka', dnes: DNES_PRED });
+  eq('integration (Tatra banka): 500 in one file is within the limit', r500.problems.some((p) => p.code === 'file_tx_count_exceeded'), false);
+
+  const r600vub = diagnose({ xml: xml600, bank: 'vub', dnes: DNES_PRED });
+  eq('integration (VUB): 2 x 300 has no Tatra file limit', r600vub.problems.some((p) => p.code === 'file_tx_count_exceeded'), false);
+}
+
+{
   // Deliberately invalid creditor IBAN must round-trip into the XML as-is
   // (not silently fixed) so Doctor's own check is the one that catches it.
   const rows = [['IBAN', 'Suma', 'Nazov'], ['SK0000000000000000000000', '10', 'Zly Iban']];

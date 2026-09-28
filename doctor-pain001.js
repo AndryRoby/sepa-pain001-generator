@@ -14,7 +14,8 @@
 //  - Tatra banka: "Prenosový formát pain.001.001.03 v štruktúre XML"
 //      C:\Users\User\Downloads\prenosovy_formatpain001.pdf (read in full,
 //      pages 1-8): GrpHdr/PmtInf field tables, "Max. 500 transakcií v
-//      súbore", ReqdExctnDt "Nesmie byť spätný dátum a dopredný dátum viac
+//      súbore" (page 3, row 2.0 PmtInf; a limit for the whole file, not
+//      per block, re-checked 28. 9. 2026), ReqdExctnDt "Nesmie byť spätný dátum a dopredný dátum viac
 //      ako 31 dní", DbtrAgt/BIC "Musí byť iba TATRSKBX", CdtrAgt/BIC
 //      derivation-from-IBAN rule, Slovak BBAN modulo-11 check on the last 10
 //      digits of a Slovak creditor IBAN, "Povolená je iba jedna inštancia
@@ -105,8 +106,8 @@ const SPRAVY = {
     diakritikaCsob: (v) => '"' + v + '" obsahuje diakritiku. ČSOB výslovne uvádza, že SEPA XML súbor s diakritikou sa do BusinessBanking Lite nedá importovať vôbec.',
     diakritikaVseobecne: (v) => '"' + v + '" obsahuje diakritiku. SEPA XML znaková sada (podľa dokumentácie ČSOB, platí všeobecne) povoľuje len a-z A-Z 0-9 / - ? : ( ) . , \' + a medzeru: diakritika môže spôsobiť odmietnutie importu.',
     mimoSady: (v, znaky) => '"' + v + '" obsahuje znak(y) mimo povolenej SEPA znakovej sady: ' + znaky + '.',
-    pmtInfLimit: (i, n) => 'PmtInf[' + i + '] obsahuje ' + n + ' transakcií. Tatra banka povoľuje maximálne 500 transakcií v jednom bloku PmtInf ("Max. 500 transakcií v súbore"): súbor rozdeľte na viac blokov/súborov.',
-    pmtInfLimitInde: (i, n) => 'PmtInf[' + i + '] obsahuje ' + n + ' transakcií. Tatra banka má zdokumentovaný limit 500 transakcií na blok: aj iné banky bežne obmedzujú veľkosť dávky, overte limit vašej banky.',
+    suborLimitTatra: (n, bloky) => 'Súbor obsahuje ' + n + ' transakcií' + (bloky > 1 ? ' v ' + bloky + ' blokoch PmtInf spolu' : '') + '. Tatra banka povoľuje najviac 500 transakcií v jednom súbore ("Max. 500 transakcií v súbore"): platby rozdeľte do viacerých súborov. Rozdelenie na viac blokov PmtInf v tom istom súbore nestačí.',
+    pmtInfLimitInde: (i, n) => 'PmtInf[' + i + '] obsahuje ' + n + ' transakcií. Tatra banka má zdokumentovaný limit 500 transakcií v jednom súbore: aj iné banky bežne obmedzujú veľkosť dávky, overte limit vašej banky.',
     pmtMtdZly: (i, v) => 'PmtInf[' + i + ']/PmtMtd je "' + v + '", musí byť "TRF" pre SEPA úhradu.',
     datumChyba: (i) => 'PmtInf[' + i + ']/ReqdExctnDt chýba. Toto pole je povinné.',
     datumFormat: (i, v) => 'PmtInf[' + i + ']/ReqdExctnDt "' + v + '" nie je platný dátum vo formáte YYYY-MM-DD.',
@@ -157,7 +158,7 @@ const SPRAVY = {
     slspInstant: (tx) => tx + ': PmtTpInf/LclInstrm/Cd nie je nastavené. Ak má byť táto platba spracovaná ako okamžitá (instant), Business24 vyžaduje hodnotu "INST": bez nej sa platba spracuje ako bežná SEPA úhrada, bez chybového hlásenia.',
     pocetNesedi: (ocak, sk) => 'Očakávali ste ' + ocak + ' transakcií, súbor však obsahuje ' + sk + '. Skontrolujte, či ste nahrali správny/celý súbor, alebo či export z účtovníctva nevynechal/zdvojil platby.',
     suborVelky: (mb) => 'Súbor má približne ' + mb + ' MB. Veľmi veľké súbory môžu importný formulár banky spomaliť alebo prekročiť jeho limit: zvážte rozdelenie do viacerých súborov.',
-    velaTransakcii: (n) => 'Súbor obsahuje ' + n + ' transakcií. Aj mimo Tatra banky (limit 500/PmtInf) je bežné, že banky obmedzujú veľkosť jednej dávky: pri veľkých súboroch overte limit vopred.',
+    velaTransakcii: (n) => 'Súbor obsahuje ' + n + ' transakcií. Aj mimo Tatra banky (limit 500 v súbore) je bežné, že banky obmedzujú veľkosť jednej dávky: pri veľkých súboroch overte limit vopred.',
 
     chkMsgId: 'GrpHdr/MsgId nie je vyplnené: nepovinné pre Tatra banku, no odporúčame vlastný jedinečný identifikátor súboru pre spätné dohľadanie.',
     chkNbOfTxs: (n) => 'GrpHdr/NbOfTxs nie je vyplnené: odporúčame doplniť presnú hodnotu ' + n + ', aj keď Tatra banka toto pole nevyžaduje, iné importy naň spoliehajú.',
@@ -213,8 +214,8 @@ const SPRAVY = {
     diakritikaCsob: (v) => '"' + v + '" contains diacritics. ČSOB states explicitly that a SEPA XML file with diacritics cannot be imported into BusinessBanking Lite at all.',
     diakritikaVseobecne: (v) => '"' + v + '" contains diacritics. The SEPA XML character set (per ČSOB documentation, applies generally) allows only a-z A-Z 0-9 / - ? : ( ) . , \' + and space: diacritics can cause the import to be rejected.',
     mimoSady: (v, znaky) => '"' + v + '" contains character(s) outside the allowed SEPA character set: ' + znaky + '.',
-    pmtInfLimit: (i, n) => 'PmtInf[' + i + '] contains ' + n + ' transactions. Tatra banka allows at most 500 transactions in one PmtInf block ("Max. 500 transactions per file"): split the file into more blocks or files.',
-    pmtInfLimitInde: (i, n) => 'PmtInf[' + i + '] contains ' + n + ' transactions. Tatra banka documents a limit of 500 transactions per block: other banks commonly limit batch size too, check your bank\'s limit.',
+    suborLimitTatra: (n, bloky) => 'The file contains ' + n + ' transactions' + (bloky > 1 ? ' across ' + bloky + ' PmtInf blocks' : '') + '. Tatra banka allows at most 500 transactions in one file ("Max. 500 transactions per file"): split the payments into several files. Splitting them into more PmtInf blocks within the same file is not enough.',
+    pmtInfLimitInde: (i, n) => 'PmtInf[' + i + '] contains ' + n + ' transactions. Tatra banka documents a limit of 500 transactions per file: other banks commonly limit batch size too, check your bank\'s limit.',
     pmtMtdZly: (i, v) => 'PmtInf[' + i + ']/PmtMtd is "' + v + '", it must be "TRF" for a SEPA credit transfer.',
     datumChyba: (i) => 'PmtInf[' + i + ']/ReqdExctnDt is missing. This field is mandatory.',
     datumFormat: (i, v) => 'PmtInf[' + i + ']/ReqdExctnDt "' + v + '" is not a valid date in YYYY-MM-DD format.',
@@ -265,7 +266,7 @@ const SPRAVY = {
     slspInstant: (tx) => tx + ': PmtTpInf/LclInstrm/Cd is not set. If this payment is meant to be processed as an instant transfer, Business24 requires the value "INST": without it the payment is processed as a normal SEPA transfer, with no error message.',
     pocetNesedi: (ocak, sk) => 'You expected ' + ocak + ' transactions, but the file contains ' + sk + '. Check that you uploaded the right and complete file, or whether the accounting export skipped or duplicated payments.',
     suborVelky: (mb) => 'The file is roughly ' + mb + ' MB. Very large files can slow down the bank\'s import form or exceed its limit: consider splitting them.',
-    velaTransakcii: (n) => 'The file contains ' + n + ' transactions. Beyond Tatra banka (500 per PmtInf), banks commonly limit batch size: with large files, check the limit in advance.',
+    velaTransakcii: (n) => 'The file contains ' + n + ' transactions. Beyond Tatra banka (500 per file), banks commonly limit batch size: with large files, check the limit in advance.',
 
     chkMsgId: 'GrpHdr/MsgId is empty: optional for Tatra banka, but we recommend your own unique file identifier so the file can be traced later.',
     chkNbOfTxs: (n) => 'GrpHdr/NbOfTxs is empty: we recommend filling in the exact value ' + n + '; Tatra banka does not require this field, but other imports rely on it.',
@@ -321,8 +322,8 @@ const SPRAVY = {
     diakritikaCsob: (v) => '"' + v + '" enthält diakritische Zeichen. ČSOB gibt ausdrücklich an, dass sich eine SEPA-XML-Datei mit diakritischen Zeichen gar nicht in BusinessBanking Lite importieren lässt.',
     diakritikaVseobecne: (v) => '"' + v + '" enthält diakritische Zeichen. Der SEPA-XML-Zeichensatz (laut ČSOB-Dokumentation, allgemein gültig) erlaubt nur a-z A-Z 0-9 / - ? : ( ) . , \' + und Leerzeichen: diakritische Zeichen können zur Zurückweisung des Imports führen.',
     mimoSady: (v, znaky) => '"' + v + '" enthält Zeichen außerhalb des erlaubten SEPA-Zeichensatzes: ' + znaky + '.',
-    pmtInfLimit: (i, n) => 'PmtInf[' + i + '] enthält ' + n + ' Transaktionen. Tatra banka erlaubt höchstens 500 Transaktionen in einem PmtInf-Block ("Max. 500 Transaktionen je Datei"): teilen Sie die Datei in mehrere Blöcke oder Dateien.',
-    pmtInfLimitInde: (i, n) => 'PmtInf[' + i + '] enthält ' + n + ' Transaktionen. Tatra banka dokumentiert ein Limit von 500 Transaktionen je Block: auch andere Banken begrenzen die Stapelgröße üblicherweise, prüfen Sie das Limit Ihrer Bank.',
+    suborLimitTatra: (n, bloky) => 'Die Datei enthält ' + n + ' Transaktionen' + (bloky > 1 ? ' in ' + bloky + ' PmtInf-Blöcken zusammen' : '') + '. Tatra banka erlaubt höchstens 500 Transaktionen in einer Datei ("Max. 500 Transaktionen je Datei"): teilen Sie die Zahlungen auf mehrere Dateien auf. Mehrere PmtInf-Blöcke in derselben Datei reichen nicht.',
+    pmtInfLimitInde: (i, n) => 'PmtInf[' + i + '] enthält ' + n + ' Transaktionen. Tatra banka dokumentiert ein Limit von 500 Transaktionen je Datei: auch andere Banken begrenzen die Stapelgröße üblicherweise, prüfen Sie das Limit Ihrer Bank.',
     pmtMtdZly: (i, v) => 'PmtInf[' + i + ']/PmtMtd ist "' + v + '", für eine SEPA-Überweisung muss es "TRF" sein.',
     datumChyba: (i) => 'PmtInf[' + i + ']/ReqdExctnDt fehlt. Dieses Feld ist Pflicht.',
     datumFormat: (i, v) => 'PmtInf[' + i + ']/ReqdExctnDt "' + v + '" ist kein gültiges Datum im Format YYYY-MM-DD.',
@@ -373,7 +374,7 @@ const SPRAVY = {
     slspInstant: (tx) => tx + ': PmtTpInf/LclInstrm/Cd ist nicht gesetzt. Soll diese Zahlung als Echtzeitüberweisung verarbeitet werden, verlangt Business24 den Wert "INST": ohne ihn wird die Zahlung ohne Fehlermeldung als normale SEPA-Überweisung verarbeitet.',
     pocetNesedi: (ocak, sk) => 'Sie haben ' + ocak + ' Transaktionen erwartet, die Datei enthält aber ' + sk + '. Prüfen Sie, ob Sie die richtige und vollständige Datei hochgeladen haben, oder ob der Buchhaltungsexport Zahlungen ausgelassen oder verdoppelt hat.',
     suborVelky: (mb) => 'Die Datei ist etwa ' + mb + ' MB groß. Sehr große Dateien können das Importformular der Bank verlangsamen oder dessen Limit überschreiten: erwägen Sie eine Aufteilung.',
-    velaTransakcii: (n) => 'Die Datei enthält ' + n + ' Transaktionen. Auch außerhalb von Tatra banka (500 je PmtInf) begrenzen Banken die Stapelgröße üblicherweise: prüfen Sie das Limit bei großen Dateien vorab.',
+    velaTransakcii: (n) => 'Die Datei enthält ' + n + ' Transaktionen. Auch außerhalb von Tatra banka (500 je Datei) begrenzen Banken die Stapelgröße üblicherweise: prüfen Sie das Limit bei großen Dateien vorab.',
 
     chkMsgId: 'GrpHdr/MsgId ist leer: für Tatra banka optional, wir empfehlen aber eine eigene eindeutige Dateikennung, damit sich die Datei später nachvollziehen lässt.',
     chkNbOfTxs: (n) => 'GrpHdr/NbOfTxs ist leer: wir empfehlen, den exakten Wert ' + n + ' einzutragen; Tatra banka verlangt dieses Feld nicht, andere Importe verlassen sich darauf.',
@@ -1155,6 +1156,12 @@ export function diagnose(input) {
   if (actualTxCount === 0 && pmtInfList.length > 0) {
     addProblem({ code: 'cdt_trf_tx_inf_missing', severity: 'high', message: T.chybaTx, path: 'CstmrCdtTrfInitn/PmtInf' });
   }
+  // Tatra banka PDF, strana 3, riadok 2.0 PmtInf: "Max. 500 transakcií v
+  // súbore" (overené 28. 9. 2026). Limit platí za celý súbor, nie za blok:
+  // dva bloky po 300 banka odmietne, hoci každý blok zvlášť je pod limitom.
+  if (bankKey === 'tatrabanka' && actualTxCount > 500) {
+    addProblem({ code: 'file_tx_count_exceeded', severity: 'high', message: T.suborLimitTatra(actualTxCount, pmtInfList.length), path: 'CstmrCdtTrfInitn', value: String(actualTxCount) });
+  }
 
   if (grpHdr) {
     const msgIdEl = firstChild(grpHdr, 'MsgId');
@@ -1265,9 +1272,10 @@ export function diagnose(input) {
     const pmtPath = `CstmrCdtTrfInitn/PmtInf[${pmtIdx + 1}]`;
     const txList = allChildren(pmtInf, 'CdtTrfTxInf');
 
-    if (bankKey === 'tatrabanka' && txList.length > 500) {
-      addProblem({ code: 'pmt_inf_tx_count_exceeded', severity: 'high', message: T.pmtInfLimit(pmtIdx + 1, txList.length), path: pmtPath, value: String(txList.length) });
-    } else if (bankKey !== 'tatrabanka' && txList.length > 500) {
+    // Tatra banka: limit za celý súbor (file_tx_count_exceeded vyššie). Pri
+    // iných bankách limit zo zdroja nepoznáme (VÚB a ČSOB PDF ho neuvádzajú),
+    // preto len mierne upozornenie na veľký blok.
+    if (bankKey !== 'tatrabanka' && txList.length > 500) {
       addProblem({ code: 'pmt_inf_tx_count_exceeded_generic', severity: 'low', message: T.pmtInfLimitInde(pmtIdx + 1, txList.length), path: pmtPath, value: String(txList.length) });
     }
 

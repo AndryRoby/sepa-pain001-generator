@@ -149,7 +149,7 @@ fixed values every Slovak bank requires (`PmtMtd = TRF`,
 `SvcLvl/Cd = SEPA`, `ChrgBr = SLEV`), but each bank still layers its
 own extra rules on top: an execution-date window (Tatra banka up to
 31 days ahead, VÚB up to 30), a transaction cap (Tatra banka: 500 per
-payment block, `PmtInf`), and stricter handling of diacritics and
+file, across all `PmtInf` blocks together), and stricter handling of diacritics and
 length limits at ČSOB. Right after generation the page runs the file
 through the same engine as the sibling tool, **SEPA pain.001 Doctor**
 (https://arling.sk/sepa-pain001-doctor/), which checks it against

@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="de" data-lang-static="de">
 <head>
-<script src="/style/vzhlad.js?v=8a4019ae"></script>
+<script src="/style/vzhlad.js?v=072ce2c2"></script>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://api.arling.workers.dev 'sha256-1hk7wqxJiY6oCgMZbrSuzQl9EJtVEw+vJ7MiUtUcm54=' 'sha256-0p09ETZD9XKDpTjX/qfDPI01Vz1soQxhPP08jmVutDs=' 'sha256-TMTXHglO+Kl29oWuCmhNlUHQBVCuSaPLVBmmGAvDR+s=' 'sha256-bR1dXSXIi1Llj3zWw9UOBpWHLEYEUEaXa6MY/TDxDcU=' 'sha256-lXRJx6Uag71Xy7zZttpc8NeUiHx/AjR7tR1jR0MYTjI=' 'sha256-strbyq1BpI+7BIJr0ChKiwrudallB9cNlc0wfYdMxCM='; connect-src 'self' https://api.arling.workers.dev; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://api.arling.workers.dev 'sha256-1hk7wqxJiY6oCgMZbrSuzQl9EJtVEw+vJ7MiUtUcm54=' 'sha256-0p09ETZD9XKDpTjX/qfDPI01Vz1soQxhPP08jmVutDs=' 'sha256-/gvwQK6nMJwyOuUO3GcL59CECFU7JzTqKZv4epmuKeQ=' 'sha256-bR1dXSXIi1Llj3zWw9UOBpWHLEYEUEaXa6MY/TDxDcU=' 'sha256-lXRJx6Uag71Xy7zZttpc8NeUiHx/AjR7tR1jR0MYTjI=' 'sha256-strbyq1BpI+7BIJr0ChKiwrudallB9cNlc0wfYdMxCM='; connect-src 'self' https://api.arling.workers.dev; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <script>try{localStorage.setItem("arling_lang","de")}catch(e){}</script>
 <meta name="color-scheme" content="dark">
 <link rel="preconnect" href="https://api.arling.workers.dev" crossorigin>
@@ -146,7 +146,7 @@
       "name": "Wie viele Zahlungen dürfen in einer Datei sein?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Der Generator verarbeitet maximal 5000 Zahlungen auf einmal. Haben Zahlungen unterschiedliche Ausführungsdaten, teilt der Generator sie automatisch nach Datum in separate PmtInf-Blöcke auf; Tatra banka begrenzt einen solchen Block trotzdem auf 500 Transaktionen, worauf SEPA pain.001 Doctor nach der Erstellung hinweist."
+        "text": "Der Generator verarbeitet maximal 5000 Zahlungen auf einmal. Haben Zahlungen unterschiedliche Ausführungsdaten, teilt der Generator sie automatisch nach Datum in separate PmtInf-Blöcke auf. Tatra banka akzeptiert höchstens 500 Transaktionen in einer Datei, über alle Blöcke zusammen; eine Aufteilung in Blöcke innerhalb einer Datei reicht nicht. Bei einer Datei für Tatra banka mit mehr als 500 Zahlungen meldet SEPA pain.001 Doctor nach der Erstellung einen blockierenden Fehler: teilen Sie die Zahlungen auf mehrere Dateien auf."
       }
     },
     {
@@ -940,7 +940,7 @@
       </details>
       <details class="r d2">
         <summary data-i18n="faq.q5">Wie viele Zahlungen dürfen in einer Datei sein?</summary>
-        <p data-i18n-html="faq.a5">Der Generator verarbeitet maximal 5000 Zahlungen auf einmal. Haben Zahlungen unterschiedliche Ausführungsdaten, teilt der Generator sie automatisch nach Datum in separate PmtInf-Blöcke auf; Tatra banka begrenzt einen solchen Block trotzdem auf 500 Transaktionen, worauf SEPA pain.001 Doctor nach der Erstellung hinweist.</p>
+        <p data-i18n-html="faq.a5">Der Generator verarbeitet maximal 5000 Zahlungen auf einmal. Haben Zahlungen unterschiedliche Ausführungsdaten, teilt der Generator sie automatisch nach Datum in separate PmtInf-Blöcke auf. Tatra banka akzeptiert höchstens 500 Transaktionen in einer Datei, über alle Blöcke zusammen; eine Aufteilung in Blöcke innerhalb einer Datei reicht nicht. Bei einer Datei für Tatra banka mit mehr als 500 Zahlungen meldet SEPA pain.001 Doctor nach der Erstellung einen blockierenden Fehler: teilen Sie die Zahlungen auf mehrere Dateien auf.</p>
       </details>
       <details class="r d2">
         <summary data-i18n="faq.q6">Warum hat die Bank die Datei trotz Prüfung abgelehnt?</summary>

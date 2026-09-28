@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="sk">
 <head>
-<script src="/style/vzhlad.js?v=8a4019ae"></script>
+<script src="/style/vzhlad.js?v=072ce2c2"></script>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://api.arling.workers.dev 'sha256-+V9mm8OGhWuVLCaOvCFafFZlE4bftcYa4qJo/lzVTM8=' 'sha256-Tah+axQ4yYb/BXgvhXI8hygUJl5ahaWlpCHFCtsL74U=' 'sha256-fA1YDicDRAlNMhu6VkqkLNKrAv75ugOAHSvB3hmB0mU=' 'sha256-lXRJx6Uag71Xy7zZttpc8NeUiHx/AjR7tR1jR0MYTjI=' 'sha256-strbyq1BpI+7BIJr0ChKiwrudallB9cNlc0wfYdMxCM='; connect-src 'self' https://api.arling.workers.dev; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://api.arling.workers.dev 'sha256-+V9mm8OGhWuVLCaOvCFafFZlE4bftcYa4qJo/lzVTM8=' 'sha256-Qoe3qGohWdkeVTBK34poCjShz784p62DR4SVi3Ws4C4=' 'sha256-fA1YDicDRAlNMhu6VkqkLNKrAv75ugOAHSvB3hmB0mU=' 'sha256-lXRJx6Uag71Xy7zZttpc8NeUiHx/AjR7tR1jR0MYTjI=' 'sha256-strbyq1BpI+7BIJr0ChKiwrudallB9cNlc0wfYdMxCM='; connect-src 'self' https://api.arling.workers.dev; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="color-scheme" content="dark">
 <link rel="preconnect" href="https://api.arling.workers.dev" crossorigin>
 <meta name="theme-color" content="#0a0908">
@@ -129,7 +129,7 @@
       "name": "Koľko platieb môže byť v jednom súbore?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Generátor spracuje najviac 5000 platieb naraz. Ak majú platby rôzny dátum splatnosti, generátor ich automaticky rozdelí do samostatných blokov PmtInf podľa dátumu; Tatra banka aj tak obmedzuje jeden takýto blok na 500 transakcií, na čo SEPA pain.001 Doctor po vygenerovaní upozorní."
+        "text": "Generátor spracuje najviac 5000 platieb naraz. Ak majú platby rôzny dátum splatnosti, generátor ich automaticky rozdelí do samostatných blokov PmtInf podľa dátumu. Tatra banka prijme najviac 500 transakcií v jednom súbore, spolu vo všetkých blokoch; rozdelenie do blokov v jednom súbore nestačí. Súbor pre Tatra banku s viac ako 500 platbami SEPA pain.001 Doctor po vygenerovaní označí ako blokujúcu chybu: platby rozdeľte do viacerých súborov."
       }
     },
     {
@@ -925,7 +925,7 @@
       </details>
       <details class="r d2">
         <summary data-i18n="faq.q5">Koľko platieb môže byť v jednom súbore?</summary>
-        <p data-i18n-html="faq.a5">Generátor spracuje najviac 5000 platieb naraz. Ak majú platby rôzny dátum splatnosti, generátor ich automaticky rozdelí do samostatných blokov <code>PmtInf</code> podľa dátumu; Tatra banka aj tak obmedzuje jeden takýto blok na 500 transakcií, na čo kontrola po vygenerovaní upozorní.</p>
+        <p data-i18n-html="faq.a5">Generátor spracuje najviac 5000 platieb naraz. Ak majú platby rôzny dátum splatnosti, generátor ich automaticky rozdelí do samostatných blokov <code>PmtInf</code> podľa dátumu. Tatra banka prijme najviac 500 transakcií v jednom súbore, spolu vo všetkých blokoch; rozdelenie do blokov v jednom súbore nestačí. Súbor pre Tatra banku s viac ako 500 platbami kontrola po vygenerovaní označí ako blokujúcu chybu: platby rozdeľte do viacerých súborov.</p>
       </details>
       <details class="r d2">
         <summary data-i18n="faq.q6">Prečo banka odmietla súbor aj po kontrole?</summary>

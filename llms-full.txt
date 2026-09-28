@@ -142,7 +142,7 @@ Both creditor BICs above were derived from each IBAN's own bank code (`0900` and
 
 ## Before importing the file
 
-Getting the shared schema and fixed values right is necessary but not sufficient: each bank layers its own extra rules on top. Tatra banka rejects an execution date more than 31 days out and accepts at most 500 transactions in one payment block (`PmtInf`); VÚB's own window is 30 days and it marks creditor BIC mandatory; ČSOB documents that any diacritics anywhere in the XML block the import outright. This generator writes what you give it (aside from the fixed schema fields above); it doesn't strip diacritics itself. Right after generation, the page runs the finished file through the same engine as the sibling tool, **SEPA pain.001 Doctor**, which checks it against exactly those bank-specific rules (date window, transaction cap, diacritics), with citations to each bank's own documentation: https://arling.sk/sepa-pain001-doctor/
+Getting the shared schema and fixed values right is necessary but not sufficient: each bank layers its own extra rules on top. Tatra banka rejects an execution date more than 31 days out and accepts at most 500 transactions in one file, across all payment blocks (`PmtInf`) together, so splitting into blocks within one file is not enough; VÚB's own window is 30 days and it marks creditor BIC mandatory; ČSOB documents that any diacritics anywhere in the XML block the import outright. This generator writes what you give it (aside from the fixed schema fields above); it doesn't strip diacritics itself. Right after generation, the page runs the finished file through the same engine as the sibling tool, **SEPA pain.001 Doctor**, which checks it against exactly those bank-specific rules (date window, transaction cap, diacritics), with citations to each bank's own documentation: https://arling.sk/sepa-pain001-doctor/
 
 ## Limit
 
@@ -194,7 +194,7 @@ Packed into `PmtId/EndToEndId` as `/VS.../SS.../KS...`, in that order, following
 Yes. Right after generation the page runs the file through the same engine as the sibling tool, SEPA pain.001 Doctor, and shows its findings for the selected bank. A clean result is still not a guarantee that the bank accepts the file.
 
 **Is there a limit on how many rows I can paste in?**
-Yes. One file holds at most 5,000 payments; a longer list has to be split into several files. Tatra banka's own spec additionally caps one payment block (`PmtInf`) at 500 transactions, which the check after generation points out.
+Yes. One file holds at most 5,000 payments; a longer list has to be split into several files. Tatra banka's own spec additionally caps one file at 500 transactions, across all payment blocks (`PmtInf`) together ("Max. 500 transakcií v súbore", page 3 of its pain.001 PDF); splitting into blocks within one file is not enough. The check after generation reports a Tatra banka file over 500 as a blocking error.
 
 **Does anything get uploaded when I use the file picker instead of pasting?**
 No. The file is read locally with the browser's `FileReader` API; it's parsed the same way pasted text would be, and never leaves the page.
