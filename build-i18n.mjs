@@ -34,6 +34,8 @@ import { createHash } from 'node:crypto';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DICT, LANGS, STORAGE_KEY, ogLocaleForLang } from './i18n.js';
+// Spoločný rám webu (hlavička, menu v jazyku stránky, päta) z toho istého zdroja ako ostatné stránky.
+import { obalStranku } from '../../ops/design/obal.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SITE = 'https://arling.sk';
@@ -333,6 +335,10 @@ export function build(lang, sourceHtml) {
   html = relocateUrls(html, lang);
 
   if (problems.length) throw new Error(`build-i18n (${lang}):\n - ` + problems.join('\n - '));
+  // Audit jazykov 29. 9. 2026: kópia slovenského koreňa niesla na /en/ a /de/ slovenskú hlavičku, menu-sk.js,
+  // pätu aj tlačidlo („Skontrolovať e-faktúru zadarmo“). obal.mjs to opravil, ale tento build beží v
+  // pred-nasadenim.mjs až po ňom a rám prepísal späť; preto rám v jazyku stránky dáva sám build.
+  html = obalStranku(html, `${TOOL}/${lang}/index.html`).html;
   return prepocitajCsp(html);
 }
 
