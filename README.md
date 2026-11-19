@@ -1,6 +1,6 @@
 # SEPA pain.001 Generator: Excel or CSV to a pain.001 XML batch payment file
 
-SEPA pain.001 Generator turns a list of payments pasted from Excel or a CSV export into a SEPA `pain.001.001.03` XML batch payment file, entirely in your browser, for bookkeepers and small companies whose accounting software has no SEPA export (profiles for Tatra banka, SLSP, VÚB and ČSOB, plus a generic German DK profile). Building and checking files is free, up to 5,000 payments per file; the optional Pro licence costs €9 a month or €79 a year (VAT included) at https://arling.sk/bankove-nastroje/ and the same licence also covers camt.053 to Excel and Payment matcher.
+SEPA pain.001 Generator turns a list of payments pasted from Excel or a CSV export into a SEPA `pain.001.001.03` XML batch payment file (or `pain.001.001.09`, picked in the form), entirely in your browser, for bookkeepers and small companies whose accounting software has no SEPA export (profiles for Tatra banka, SLSP, VÚB and ČSOB, plus a generic German DK profile). Building and checking files is free, up to 5,000 payments per file; the optional Pro licence costs €9 a month or €79 a year (VAT included) at https://arling.sk/bankove-nastroje/ and the same licence also covers camt.053 to Excel and Payment matcher.
 
 Live: https://arling.sk/sepa-pain001-generator/ (Slovak) · https://arling.sk/sepa-pain001-generator/en/ (English) · https://arling.sk/sepa-pain001-generator/de/ (German)
 
@@ -117,8 +117,24 @@ selector:
 
 The "de" profile is selected automatically when the page language is
 German, and can be picked manually while browsing in English or
-Slovak too. The output XML is `pain.001.001.03` either way; only the
+Slovak too. The default output XML is `pain.001.001.03` either way; only the
 remittance-reference handling and the bank preset list differ.
+
+## Message version: .03 or .09
+
+The generator writes `pain.001.001.03` by default; `pain.001.001.09` can be
+picked with the "verzia správy" / "message version" selector.
+As of 19 November 2026, VÚB, ČSOB and SLSP list both `.03` and `.09` in their import documentation (VÚB Internet banking: "Povolené sú xsd schémy pain.001.001.03 a pain.001.001.09."; ČSOB BusinessBanking and MultiCash, which will keep supporting `.03` if you leave addresses out or write them structured, and recommends `.09` for structured addresses; SLSP Business24 import descriptions for both, updated 14 September 2026, with no end date for `.03`). The Slovak version of Tatra banka's Internet bankingTB batch-files page from April 2026 announced `.03` imports only until 12 November 2026; the English page read on 19 November 2026 does not give that date and still links a `.03` description. Whether Tatra banka now rejects `.03` is unverified; if a `.03` import fails there, pick `.09`. For `.09`, Tatra banka lists its own restrictions (for example at most one `PmtInf` block).
+Sources: VÚB "INTERNET BANKING Formáty importných súborov"
+(https://www.vub.sk/document/documents/VUB/IB-navody-manualy/IB-Formaty-importnych-suborov.pdf),
+ČSOB "ISO20022 Štrukturované adresy" (1 August 2026,
+https://www.csob.sk/documents/11005/100040/ISO20022_Strukturovane_adresy.pdf),
+SLSP Business24 (https://www.slsp.sk/sk/biznis/elektronicke-bankovnictvo/business24),
+Tatra banka batch files (https://www.tatrabanka.sk/en/personal/account-payments/internet-banking/batch-files/;
+Slovak version of 10 April 2026 in the Internet Archive:
+http://web.archive.org/web/20260410214751/https://www.tatrabanka.sk/sk/personal/ucet-platby/internet-banking/davkove-platby/).
+Right after generation, the page's check lists what the selected bank
+publishes about both versions.
 
 ## How it works (client-side only)
 
@@ -257,8 +273,7 @@ issues are public.
 
 ## Disclaimer
 
-This tool is provided **as is**, with no warranty of any kind. It
-builds a `pain.001.001.03` file from the data you provide and applies
+This tool is provided **as is**, with no warranty of any kind. It builds a `pain.001.001.03` (or `.09`, picked in the form) file from the data you provide and applies
 the fixed values documented above; it does not verify that IBANs
 belong to real accounts, that amounts are correct, or that a
 particular bank will accept the resulting file. Tatra banka,

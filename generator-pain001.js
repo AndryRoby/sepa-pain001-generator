@@ -270,7 +270,8 @@ export function parseRows(text) {
 // is only consulted by resolveEndToEndId() when profile === 'de'.
 // Adresné stĺpce pribudli kvôli štruktúrovanej adrese (pozri TERMIN_ADRESY
 // nižšie): SEPA schémy chcú čisto neštruktúrovanú adresu ukončiť, termín
-// EPC 9. 9. 2026 odložila a nový určí v októbri 2026. Sú nepovinné a nemapujú sa, keď v hárku nie sú. Buď sa použijú
+// EPC 9. 9. 2026 odložila a 29. 10. 2026 rozhodla nový zatiaľ neurčiť; vráti sa
+// k nemu do februára 2027. Sú nepovinné a nemapujú sa, keď v hárku nie sú. Buď sa použijú
 // samostatné stĺpce (street/buildingNumber/postCode/town/country), alebo
 // jeden spoločný stĺpec "address", ktorý rozoberie parseAddressLine();
 // samostatný stĺpec má vždy prednosť pred tým, čo sa vyčítalo zo spoločného.
@@ -702,9 +703,12 @@ export function mapColumns(rows, overrides, profile, lang) {
 //
 // Pravidlá SEPA z roku 2025 mali od 15. 11. 2026 ukončiť čisto neštruktúrovanú
 // poštovú adresu v schémach SCT, SCT Inst, SDD Core aj B2B. EPC tento koniec
-// 9. 9. 2026 odložila a nový termín určí v októbri 2026 (zdroj:
+// 9. 9. 2026 odložila (zdroj:
 // https://www.europeanpaymentscouncil.eu/news-insights/news/epc-delays-address-format-migration-timeline).
-// Smer ostáva: štruktúrovaná alebo hybridná adresa, ktorá má aspoň mesto
+// PSMB EPC 29. 10. 2026 rozhodla nový termín zatiaľ neurčiť a vráti sa k nemu
+// do februára 2027 (EPC, 30. 10. 2026, overené 19. 11. 2026:
+// https://www.europeanpaymentscouncil.eu/news-insights/news/epc-defers-setting-new-end-date-unstructured-address-format-until-february-2027).
+// Banka môže mať vlastné pravidlá skôr. Smer ostáva: štruktúrovaná alebo hybridná adresa, ktorá má aspoň mesto
 // (TwnNm) a kód krajiny (Ctry). Adresa samotná zostáva nepovinná, takže súbor
 // úplne bez adries sa zmena netýka.
 //
@@ -713,7 +717,10 @@ export function mapColumns(rows, overrides, profile, lang) {
 // TwnNm, CtrySubDvsn aj Ctry. Novšia PostalAddress24 z pain.001.001.09
 // pridáva len jemnejšie polia (BldgNm, Flr, PstBx, Room, TwnLctnNm, DstrctNm)
 // a obmedzuje AdrLine na dva riadky. Dôvod prechodu na .09 teda nie je "03 to
-// neunesie", ale to, že časť bánk prestáva .03 prijímať. Preto vieme
+// neunesie", ale to, že časť bánk ohlásila koniec .03 (Tatra banka v apríli
+// 2026 import .03 len do 12. 11. 2026; či ho po tomto dni odmieta, je
+// neoverené). VÚB, ČSOB a SLSP 19. 11. 2026 uvádzajú pre import .03 aj .09
+// (zdroje v ops/sepa-doctor/ZMENY-2026-11-19-verzia09.md, časť 1). Preto vieme
 // štruktúrovanú adresu zapísať do oboch verzií a verziu si vyberá používateľ.
 //
 // Poradie prvkov StrtNm, BldgNb, PstCd, TwnNm, Ctry je v PostalAddress6 aj
@@ -721,8 +728,8 @@ export function mapColumns(rows, overrides, profile, lang) {
 //
 // Zdroje overené 6. 9. 2026: European Payments Council (zosúladenie schém,
 // pôvodne na 15. 11. 2026), ECB/PMPG vzorový list o hybridnej adrese
-// (2025-10-22), Komerční banka (pain.001.001.03 sa mala od 15. 11. 2026
-// prestať používať). Odklad EPC overený 24. 9. 2026.
+// (2025-10-22), Komerční banka (ohlasuje MultiCash 5.0 kompatibilný s
+// pain.001.001.09; dátum konca .03 na stránke neuvádza). Odklad EPC overený 24. 9. 2026.
 // null = EPC nový termín zatiaľ neurčila; stránky podľa neho volia predvolenú
 // verziu správy (bez termínu .03). Pôvodná hodnota bola '2026-11-15'.
 export const TERMIN_ADRESY = null;

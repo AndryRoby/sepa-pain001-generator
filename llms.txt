@@ -2,9 +2,9 @@
 
 > Free, client-side tool that builds a SEPA pain.001 XML batch payment file from payments pasted or uploaded from Excel or CSV. Two country profiles: "sk" (Tatra banka/SLSP/VÚB/ČSOB, variabilný/špecifický/konštantný symbol in EndToEndId) and "de" (Deutsche Kreditwirtschaft, Verwendungszweck instead of VS/SS/KS, optional EndToEndId column, generic DK bank preset). Available in Slovak, English and German, each at its own URL: Slovak at https://arling.sk/sepa-pain001-generator/, English at https://arling.sk/sepa-pain001-generator/en/, German at https://arling.sk/sepa-pain001-generator/de/ (a language switcher in the header; the old `?lang=sk|en|de` links on the root URL keep working); the "de" profile follows the page language automatically and is selectable in English or Slovak too.
 
-> Free, client-side tool that builds a SEPA pain.001 XML batch payment file (hromadný príkaz na úhradu) directly from payments pasted or uploaded from Excel or CSV, ready for import into Tatra banka, Slovenská sporiteľňa (SLSP), VÚB, or ČSOB internet banking.
+> Free, client-side tool that builds a SEPA pain.001 XML batch payment file (hromadný príkaz na úhradu) directly from payments pasted or uploaded from Excel or CSV, for import into Tatra banka, Slovenská sporiteľňa (SLSP), VÚB, or ČSOB internet banking.
 
-Paste rows copied from Excel (tab-separated) or a CSV/TSV file, fill in the payer's IBAN once, and download a `pain.001.001.03` file: no account, no backend, nothing you enter leaves your browser except an optional email if you join the mailing list.
+Paste rows copied from Excel (tab-separated) or a CSV/TSV file, fill in the payer's IBAN once, and download a `pain.001.001.03` file (or `pain.001.001.09`, picked in the form): no account, no backend, nothing you enter leaves your browser except an optional email if you join the mailing list.
 
 ## What it does
 
@@ -27,6 +27,8 @@ Static HTML plus one dependency-free JavaScript engine. All parsing and XML gene
 ## Before importing
 
 Each bank layers its own extra rules on top of the shared schema (execution-date window, transaction cap, diacritics handling). The sibling tool, SEPA pain.001 Doctor, checks a finished file against those bank-specific rules: https://arling.sk/sepa-pain001-doctor/
+
+Message version: the default is `pain.001.001.03`. As of 19 November 2026, VÚB, ČSOB and SLSP list both `.03` and `.09` in their import documentation (VÚB Internet banking: "Povolené sú xsd schémy pain.001.001.03 a pain.001.001.09."; ČSOB BusinessBanking and MultiCash, which will keep supporting `.03` if you leave addresses out or write them structured, and recommends `.09` for structured addresses; SLSP Business24 import descriptions for both, updated 14 September 2026, with no end date for `.03`). The Slovak version of Tatra banka's Internet bankingTB batch-files page from April 2026 announced `.03` imports only until 12 November 2026; the English page read on 19 November 2026 does not give that date and still links a `.03` description. Whether Tatra banka now rejects `.03` is unverified; if a `.03` import fails there, pick `.09`. For `.09`, Tatra banka lists its own restrictions (for example at most one `PmtInf` block).
 
 ## Limit
 

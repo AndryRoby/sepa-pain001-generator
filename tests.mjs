@@ -11,6 +11,7 @@ import {
   normalizeCountry, countryFromIban, parseAddressLine, PAIN_NAMESPACES, TERMIN_ADRESY,
 } from './generator-pain001.js';
 import { diagnose } from './doctor-pain001.js';
+import { readFileSync, existsSync } from 'node:fs';
 import { parse as parseLicence, verify as verifyLicence, isValid as isValidLicence, load as loadLicence, save as saveLicence, clear as clearLicence, todayIso as licenceTodayIso, STORAGE_KEY as LICENCE_STORAGE_KEY, DEFAULT_PLAN, BUNDLE_PLAN, BUNDLE_STORAGE_KEY, ACCEPTED_PLANS, STORAGE_KEYS as LICENCE_STORAGE_KEYS } from './licence.js';
 import {
   MAPPING_TEMPLATES, applyTemplate, loadProfiles, addProfile, removeProfile,
@@ -1279,13 +1280,21 @@ function xmlSAdresou(schema, bank) {
       r.problems.filter((p) => p.severity === 'high').length, 0);
   }
   // Zmena 24. 9. 2026: pôvodne sa čakalo, že po 15. 11. 2026 Doctor .09
-  // nekomentuje vôbec. EPC termín odložila (TERMIN_ADRESY je null), preto
-  // Doctor aj 20. 11. 2026 pripíše k .09 len nízku poznámku, nič vážnejšie.
+  // nekomentuje vôbec. EPC termín odložila (TERMIN_ADRESY je null).
+  // Zmena 19. 11. 2026 (motor Doctora c2b5717, verzia .09 podľa banky): pri
+  // Tatra banke, SLSP, VÚB a ČSOB Doctor k .09 nepripíše nič, lebo všetky štyri
+  // .09 uvádzajú v dokumentácii importu; čo banka o verziách píše, je v
+  // kontrolnom zozname. Nízka poznámka schema_namespace_09_skoro ostala len
+  // pri voľbe „iná banka“ (generic).
   const r09 = diagnose({ xml: xmlSAdresou('09', 'tatrabanka'), bank: 'tatrabanka', dnes: DNES_PO });
   const verzia09 = r09.problems.filter((p) => p.code.indexOf('schema_namespace') === 0);
-  eq('Doctor pri .09 dá najviac jednu poznámku k verzii', verzia09.length, 1);
-  eq('Doctor pri .09: len poznámka schema_namespace_09_skoro, nízka závažnosť',
-    verzia09.map((p) => p.code + ':' + p.severity).join(), 'schema_namespace_09_skoro:low');
+  eq('Doctor pri .09 pre Tatra banku nedá poznámku k verzii', verzia09.length, 0);
+  const r09g = diagnose({ xml: xmlSAdresou('09', 'generic'), bank: 'generic', dnes: DNES_PO });
+  eq('Doctor pri .09 pre inú banku: len poznámka schema_namespace_09_skoro, nízka závažnosť',
+    r09g.problems.filter((p) => p.code.indexOf('schema_namespace') === 0).map((p) => p.code + ':' + p.severity).join(),
+    'schema_namespace_09_skoro:low');
+  ok('Doctor pri .09 pre Tatra banku pripomenie jej obmedzenia .09 (najviac 1 PmtInf)',
+    r09.checklist.some((c) => c.indexOf('PaymentInformation') !== -1 && c.indexOf('2.118') !== -1));
 }
 
 {
@@ -1302,9 +1311,75 @@ function xmlSAdresou(schema, bank) {
 }
 
 {
-  // Zmena 24. 9. 2026: pôvodne '2026-11-15'. EPC 9. 9. 2026 termín odložila
-  // a nový určí v októbri 2026, preto null (stránky potom ponúkajú .03).
+  // Zmena 24. 9. 2026: pôvodne '2026-11-15'. EPC 9. 9. 2026 termín odložila;
+  // PSMB EPC 29. 10. 2026 rozhodla nový zatiaľ neurčiť a vráti sa k nemu do
+  // februára 2027, preto null (stránky potom predvolene ponúkajú .03).
   eq('termín adresy je null, kým EPC neurčí nový', TERMIN_ADRESY, null);
+}
+
+// ═════════ kópia motora Doctora a vety o .03 a termíne adries (19. 11. 2026) ═════════
+//
+// doctor-pain001.js je celá kópia motora sesterského nástroja, nie výber.
+// Do 19. 11. 2026 tu ostala staršia verzia bez pravidla lomiek a bez textov
+// .09 podľa banky. Tieto testy strážia, že kópia sa rovná Doctorovi, a že
+// stránky ani texty netvrdia, že slovenské banky očakávajú .03, ani starý
+// termín EPC („v októbri 2026“). Zdroje: ops/sepa-doctor/ZMENY-2026-11-19-verzia09.md,
+// časť 1 (banky) a 2 (EPC, 30. 10. 2026).
+
+{
+  const motor = readFileSync(new URL('./doctor-pain001.js', import.meta.url));
+  const doctorCesta = new URL('../sepa-pain001-doctor/doctor-pain001.js', import.meta.url);
+  if (existsSync(doctorCesta)) {
+    ok('kópia doctor-pain001.js sa bajt po bajte rovná motoru SEPA pain.001 Doctor',
+      motor.equals(readFileSync(doctorCesta)));
+  }
+  const text = motor.toString('utf8');
+  includes('motor má pravidlo lomiek EPC', text, "code: 'identifier_slash_rule'");
+  includes('motor pozná rozhodnutie PSMB 29. 10. 2026', text, 'vráti sa k nemu do februára 2027');
+
+  // Generovaný súbor pre Tatra banku: kontrolný zoznam uvedie, čo banka o
+  // verziách píše (aprílové ohlásenie .03 do 12. 11. 2026), nie radu „.03“.
+  const r = diagnose({ xml: xmlSAdresou('03', 'tatrabanka'), bank: 'tatrabanka', dnes: DNES_PO });
+  ok('Doctor pri Tatra banke uvedie aprílový termín .03 (12. 11. 2026)',
+    r.checklist.some((c) => c.indexOf('12. 11. 2026') !== -1 && c.indexOf('.09') !== -1));
+  const rv = diagnose({ xml: xmlSAdresou('03', 'vub'), bank: 'vub', dnes: DNES_PO });
+  ok('Doctor pri VÚB cituje povolené schémy .03 aj .09',
+    rv.checklist.some((c) => c.indexOf('Povolené sú xsd schémy pain.001.001.03 a pain.001.001.09.') !== -1));
+}
+
+{
+  // Nápoveda k verzii správy v troch jazykoch: pravdivý stav bánk, žiadne
+  // „banky čakajú .03“.
+  const hint = DICT['s2.schema.hint'];
+  for (const lang of ['sk', 'en', 'de']) {
+    includes(`nápoveda verzie (${lang}) spomína Tatra banku`, hint[lang], 'Tatra banka');
+    includes(`nápoveda verzie (${lang}) spomína .09`, hint[lang], '.09');
+    ok(`nápoveda verzie (${lang}) uvádza aprílový termín .03 pri Tatra banke`,
+      hint[lang].indexOf('12. 11. 2026') !== -1 || hint[lang].indexOf('12 November 2026') !== -1 || hint[lang].indexOf('12. November 2026') !== -1);
+    ok(`nápoveda verzie (${lang}) nesľubuje, že stav Tatra banky je overený`,
+      /nie je overené|unverified|nicht geprüft/.test(hint[lang]));
+  }
+
+  // Zakázané vety vo všetkých textoch repozitára (stránky, i18n, README,
+  // llms, package.json, generátor, build). tests.mjs sa nečíta, lebo vzory
+  // sú v ňom samom.
+  const ZAKAZANE = [
+    /čakajú\s+\.03/i, /očakávajú\s+(pain\.001\.001)?\.?03/i, /expect\s+(pain\.001\.001)?\.03/i, /erwarten\s+(pain\.001\.001)?\.03/i,
+    /v\s+októbri\s+2026/i, /in\s+October\s+2026/i, /im\s+Oktober\s+2026/i,
+    /all\s+four\s+target\s+banks'\s+documented\s+import\s+formats\s+process/i,
+    // Brána sepa-hub pokus 1, nález 2: predvolená verzia je .03 a pri Tatra
+    // banke je po 12. 11. 2026 neoverená, popis preto nesmie sľubovať prijatie.
+    /ready\s+for\s+import/i, /pripravený\s+na\s+import/i, /bereit\s+zum\s+Import/i,
+  ];
+  const SUBORY = ['index.html', 'en/index.html', 'de/index.html', '404.html', 'i18n.js', 'build-i18n.mjs',
+    'generator-pain001.js', 'README.md', 'llms.txt', 'llms-full.txt', 'package.json', 'manifest.json'];
+  for (const f of SUBORY) {
+    const obsah = readFileSync(new URL('./' + f, import.meta.url), 'utf8').replace(/\s+/g, ' ');
+    for (const vzor of ZAKAZANE) {
+      const m = obsah.match(vzor);
+      ok(`${f} neobsahuje vetu ${vzor}`, !m, m ? '…' + obsah.slice(Math.max(0, m.index - 60), m.index + 80) + '…' : '');
+    }
+  }
 }
 
 // ═══════════════════════════ summary ═══════════════════════════════════

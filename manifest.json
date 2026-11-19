@@ -1,7 +1,7 @@
 {
   "name": "SEPA pain.001 Generátor (slovenské banky)",
   "short_name": "SEPA Generátor",
-  "description": "Vytvorí SEPA pain.001 XML hromadný príkaz na úhradu z platieb skopírovaných z Excelu alebo CSV, pripravený na import do Tatra banky, SLSP, VÚB alebo ČSOB. Zadarmo, priamo v prehliadači, nič sa neodosiela.",
+  "description": "Vytvorí SEPA pain.001 XML hromadný príkaz na úhradu z platieb skopírovaných z Excelu alebo CSV, na import do Tatra banky, SLSP, VÚB alebo ČSOB. Zadarmo, priamo v prehliadači, nič sa neodosiela.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

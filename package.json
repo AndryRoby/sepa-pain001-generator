@@ -1,7 +1,7 @@
 {
   "name": "sepa-pain001-generator",
   "version": "1.0.0",
-  "description": "SEPA pain.001 Generátor (slovenské banky): free, client-side tool that builds a SEPA pain.001.001.03 batch payment file from payments pasted or uploaded from Excel/CSV, for Tatra banka, SLSP, VÚB and ČSOB.",
+  "description": "SEPA pain.001 Generátor (slovenské banky): free, client-side tool that builds a SEPA pain.001.001.03 (or .09) batch payment file from payments pasted or uploaded from Excel/CSV, for Tatra banka, SLSP, VÚB and ČSOB.",
   "private": true,
   "type": "module",
   "scripts": {
