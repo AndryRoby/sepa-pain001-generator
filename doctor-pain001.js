@@ -71,6 +71,7 @@
 const SPRAVY = {
   sk: {
     strana: { Cdtr: 'príjemcu', Dbtr: 'platiteľa', UltmtCdtr: 'konečného príjemcu', UltmtDbtr: 'konečného platiteľa', InitgPty: 'zadávateľa súboru', _: 'strany platby' },
+    spojkaA: 'a',
     chybaMestoKrajina: 'mesto (TwnNm) ani kód krajiny (Ctry)',
     chybaMesto: 'mesto (TwnNm)',
     chybaKrajina: 'kód krajiny (Ctry)',
@@ -197,6 +198,7 @@ const SPRAVY = {
 
   en: {
     strana: { Cdtr: 'of the creditor', Dbtr: 'of the debtor', UltmtCdtr: 'of the ultimate creditor', UltmtDbtr: 'of the ultimate debtor', InitgPty: 'of the initiating party', _: 'of a party to the payment' },
+    spojkaA: 'and',
     chybaMestoKrajina: 'the town (TwnNm) or the country code (Ctry)',
     chybaMesto: 'the town (TwnNm)',
     chybaKrajina: 'the country code (Ctry)',
@@ -323,6 +325,7 @@ const SPRAVY = {
 
   de: {
     strana: { Cdtr: 'des Zahlungsempfängers', Dbtr: 'des Auftraggebers', UltmtCdtr: 'des endgültigen Zahlungsempfängers', UltmtDbtr: 'des endgültigen Auftraggebers', InitgPty: 'des Einreichers', _: 'einer Zahlungspartei' },
+    spojkaA: 'und',
     chybaMestoKrajina: 'der Ort (TwnNm) und der Ländercode (Ctry)',
     chybaMesto: 'der Ort (TwnNm)',
     chybaKrajina: 'der Ländercode (Ctry)',
@@ -498,13 +501,20 @@ function parseAttrs(str) {
   return attrs;
 }
 
-function makeNode(tag, attrs, parent) {
-  return { tag: localName(tag), rawTag: tag, attrs: attrs || {}, children: [], parent: parent || null };
+// pos: posun znaku "<" otv\u00E1racej zna\u010Dky v p\u00F4vodnom texte (vr\u00E1tane pr\u00EDpadn\u00E9ho
+// BOM na za\u010Diatku), z neho vytvorPolohy() urob\u00ED riadok a st\u013Apec (20. 11. 2026,
+// zadanie sepa-riadok: spr\u00E1va s\u013Eubuje \u201Ev ktorom riadku\u201C).
+function makeNode(tag, attrs, parent, pos) {
+  return { tag: localName(tag), rawTag: tag, attrs: attrs || {}, children: [], parent: parent || null, pos: Number.isInteger(pos) ? pos : -1 };
 }
 
 function parseXml(text) {
-  const src = safeStr(text).replace(/^\uFEFF/, '');
+  const povodny = safeStr(text);
+  const src = povodny.replace(/^\uFEFF/, '');
+  const bom = povodny.length - src.length;
   const errors = [];
+  // errorPos[i] je posun v p\u00F4vodnom texte, ku ktor\u00E9mu sa via\u017Ee errors[i] (alebo null).
+  const errorPos = [];
   const root = makeNode('#root', {}, null);
   let current = root;
   const stack = [root];
@@ -564,6 +574,7 @@ function parseXml(text) {
     }
     if (j >= len) {
       errors.push('Nezatvorený tag na pozícii ' + lt + ' (chýba ">").');
+      errorPos.push(lt + bom);
       break;
     }
     const inner = src.slice(lt + 1, j);
@@ -578,9 +589,11 @@ function parseXml(text) {
       }
       if (foundIdx === -1) {
         errors.push(`Zatvárací tag </${closeName}> nemá zodpovedajúci otvárací tag.`);
+        errorPos.push(lt + bom);
       } else {
         if (foundIdx !== stack.length - 1) {
           errors.push(`Tag <${stack[stack.length - 1].rawTag}> nebol správne zatvorený pred </${closeName}>.`);
+          errorPos.push(lt + bom);
         }
         stack.length = foundIdx;
         current = stack[stack.length - 1];
@@ -594,7 +607,11 @@ function parseXml(text) {
     if (!nameMatch) continue;
     const tagName = nameMatch[1];
     const attrs = parseAttrs(body.slice(nameMatch[0].length));
-    const node = makeNode(tagName, attrs, current);
+    const node = makeNode(tagName, attrs, current, lt + bom);
+    // Poradie medzi súrodencami s tou istou značkou (od 1): stabilná adresa prvku pre
+    // párovanie nálezov pôvodného a opraveného súboru (brána sepa-riadok, pokus 2).
+    const pocty = current.pocty || (current.pocty = Object.create(null));
+    node.ord = (pocty[node.tag] = (pocty[node.tag] || 0) + 1);
     current.children.push({ type: 'element', node });
     sawAnyElement = true;
     if (!selfClosing) {
@@ -605,12 +622,152 @@ function parseXml(text) {
 
   if (stack.length > 1) {
     errors.push('Nasledovné tagy neboli zatvorené: ' + stack.slice(1).map((n) => n.rawTag).join(', '));
+    // Súbor sa skončil skôr, než sa prvky zatvorili: chyba je na konci súboru (brána sepa-riadok, A4).
+    errorPos.push(povodny.length);
   }
   if (!sawAnyElement) {
     errors.push('V súbore sa nenašiel žiadny XML element.');
+    errorPos.push(null);
   }
 
-  return { root, malformed: errors.length > 0, errors };
+  return { root, malformed: errors.length > 0, errors, errorPos };
+}
+
+// ───────────────────── riadok a stĺpec z posunu v texte ─────────────────────
+// Zadanie sepa-riadok (20. 11. 2026): stránky kontroly súboru sľubujú, v ktorom
+// riadku je chyba. Riadky sa delia ako v XML a v Poznámkovom bloku: CRLF, LF
+// aj samotné CR je jeden koniec riadku. Stĺpec je poradie znaku v riadku od 1
+// (BOM na začiatku súboru sa nepočíta, tabulátor je jeden znak). Pri súbore v
+// jednom riadku je riadok vždy 1, preto lineShared hovorí, že pred prvkom na
+// tom istom riadku začína iný prvok a bez stĺpca by sa miesto nedalo nájsť;
+// prvok na začiatku riadku stĺpec nepotrebuje (brána sepa-riadok, pokus 2).
+
+/**
+ * @param {string} text pôvodný text súboru (rovnaký, aký dostal diagnose)
+ * @returns {(posun: number) => ({line: number, column: number, lineShared: boolean} | null)}
+ */
+export function vytvorPolohy(text) {
+  const src = safeStr(text);
+  const bom = src.charCodeAt(0) === 0xfeff ? 1 : 0;
+  const zaciatky = [0];
+  for (let i = 0; i < src.length; i++) {
+    const c = src.charCodeAt(i);
+    if (c === 10) zaciatky.push(i + 1);
+    else if (c === 13) {
+      if (src.charCodeAt(i + 1) === 10) i++;
+      zaciatky.push(i + 1);
+    }
+  }
+  const prvyPrvok = new Map();
+  return function poloha(posun) {
+    if (!Number.isInteger(posun) || posun < 0 || posun > src.length) return null;
+    let lo = 0;
+    let hi = zaciatky.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1;
+      if (zaciatky[mid] <= posun) lo = mid; else hi = mid - 1;
+    }
+    const zac = zaciatky[lo];
+    const od = lo === 0 ? Math.min(bom, posun) : zac;
+    if (!prvyPrvok.has(lo)) {
+      const kon = lo + 1 < zaciatky.length ? zaciatky[lo + 1] : src.length;
+      const k = src.slice(zac, kon).search(/<[A-Za-z_]/);
+      prvyPrvok.set(lo, k < 0 ? Infinity : zac + k);
+    }
+    return { line: lo + 1, column: posun - od + 1, lineShared: posun > prvyPrvok.get(lo) };
+  };
+}
+
+/** Uzol podľa cesty z nálezu ("CstmrCdtTrfInitn/PmtInf[2]/Dbtr/Nm", "Document/…",
+ *  ".../InstdAmt/@Ccy"). Ak prvok v súbore chýba, vráti najbližšieho
+ *  existujúceho predka a presne: false. */
+function uzolPodlaCesty(documentEl, cesta, deti) {
+  if (!documentEl || !cesta) return null;
+  const kusy = String(cesta).split('/');
+  let uzol = documentEl;
+  for (let i = kusy[0] === 'Document' ? 1 : 0; i < kusy.length; i++) {
+    const k = kusy[i];
+    if (k.startsWith('@')) break;
+    const m = k.match(/^([A-Za-z0-9_.-]+)(?:\[(\d+)\])?$/);
+    if (!m) return { uzol, presne: false };
+    const dalsi = detiPodlaZnacky(uzol, m[1], deti)[(m[2] ? Number(m[2]) : 1) - 1];
+    if (!dalsi) return { uzol, presne: false };
+    uzol = dalsi;
+  }
+  return { uzol, presne: true };
+}
+
+/** Cesta k prvku s poradím medzi súrodencami s tou istou značkou, napr.
+ *  "Document[1]/CstmrCdtTrfInitn[1]/PmtInf[1]/CdtTrfTxInf[3]/Cdtr[1]/PstlAdr[1]". */
+function cestaSIndexmi(node) {
+  const kusy = [];
+  for (let n = node; n && n.tag && n.tag !== '#root'; n = n.parent) kusy.unshift(`${n.tag}[${n.ord || 1}]`);
+  return kusy.join('/');
+}
+
+/** Deti uzla s danou značkou, zapamätané na jeden beh diagnose (bez pamäte by bol čas
+ *  pri tisícoch transakcií v jednom PmtInf kvadratický; brána sepa-riadok, nález A2). */
+function detiPodlaZnacky(uzol, tag, deti) {
+  if (!deti) return allChildren(uzol, tag);
+  let podla = deti.get(uzol);
+  if (!podla) {
+    podla = new Map();
+    for (const c of uzol.children) {
+      if (c.type !== 'element') continue;
+      const zoznam = podla.get(c.node.tag);
+      if (zoznam) zoznam.push(c.node); else podla.set(c.node.tag, [c.node]);
+    }
+    deti.set(uzol, podla);
+  }
+  return podla.get(tag) || [];
+}
+
+const POLOHA_TEXTY = {
+  sk: { riadok: 'riadok', riadky: 'riadky', stlpec: 'stĺpec', stlpce: 'stĺpce', chyba: (tag) => `kde začína ${tag}, v ktorom prvok chýba`, dalsich: (n) => ` a ďalších ${n}` },
+  en: { riadok: 'line', riadky: 'lines', stlpec: 'column', stlpce: 'columns', chyba: (tag) => `the start of ${tag}, which lacks this element`, dalsich: (n) => ` and ${n} more` },
+  de: { riadok: 'Zeile', riadky: 'Zeilen', stlpec: 'Spalte', stlpce: 'Spalten', chyba: (tag) => `wo ${tag} beginnt, in dem das Element fehlt`, dalsich: (n) => ` und ${n} weitere` },
+};
+
+/**
+ * Poloha nálezu slovami, napr. "riadok 57", "riadok 1, stĺpec 4812",
+ * "riadok 40, kde začína PmtInf, v ktorom prvok chýba" alebo pri zlúčenom
+ * nájdení viacerých adries "riadky 22, 35, 61" (v súbore v jednom riadku
+ * "riadok 1, stĺpce 684, 1832"). Prázdny reťazec, ak nález nemá riadok.
+ * Ten istý text používa stránka Doctora aj platená správa.
+ * @param {object} problem nález z diagnose() alebo {line, column, lineShared, lines}
+ * @param {string} lang sk | en | de
+ * @param {number} [strop] najviac toľko miest vymenuje, zvyšok číslom (predvolene všetky)
+ */
+export function popisPolohy(problem, lang, strop) {
+  if (!problem) return '';
+  const t = POLOHA_TEXTY[lang] || POLOHA_TEXTY.sk;
+  const miesta = Array.isArray(problem.lines) ? problem.lines.filter((x) => x && Number.isInteger(x.line) && x.line >= 1) : [];
+  if (miesta.length > 1) {
+    const max = Number.isInteger(strop) && strop > 0 ? strop : miesta.length;
+    const ukaz = miesta.slice(0, max);
+    const zvysok = miesta.length - ukaz.length;
+    let text;
+    if (!ukaz.some((x) => x.lineShared)) {
+      text = `${t.riadky} ${ukaz.map((x) => x.line).join(', ')}`;
+    } else {
+      const skupiny = [];
+      for (const x of ukaz) {
+        const posledna = skupiny[skupiny.length - 1];
+        if (posledna && posledna.line === x.line) posledna.stlpce.push(x.column);
+        else skupiny.push({ line: x.line, zdielany: x.lineShared, stlpce: [x.column] });
+      }
+      text = skupiny.map((g) => (g.zdielany
+        ? `${t.riadok} ${g.line}, ${g.stlpce.length > 1 ? t.stlpce : t.stlpec} ${g.stlpce.join(', ')}`
+        : `${t.riadok} ${g.line}`)).join('; ');
+    }
+    return text + (zvysok > 0 ? t.dalsich(zvysok) : '');
+  }
+  const jedno = miesta.length === 1 ? miesta[0] : problem;
+  if (!Number.isInteger(jedno.line) || jedno.line < 1) return '';
+  let s = `${t.riadok} ${jedno.line}`;
+  if (jedno.lineShared && Number.isInteger(jedno.column)) s += `, ${t.stlpec} ${jedno.column}`;
+  if (problem.lineExact === false && problem.lineTag) s += `, ${t.chyba(problem.lineTag)}`;
+  return s;
 }
 
 // ── tree query helpers (operate on the {tag, attrs, children} node shape) ──
@@ -1024,57 +1181,65 @@ function skontrolujAdresy(documentEl, addProblem, dnes, T) {
   const poTermine = jePoTermineAdries(dnes);
   const zavaznost = poTermine ? 'high' : 'medium';
   let zle = 0;
-  const uzHlasene = new Set();
+  // Zlúčené nálezy (jeden na druh) nesú uzly VŠETKÝCH adries toho druhu, aby správa
+  // a stránka ukázali riadok každej z nich (zadanie sepa-riadok, brána pokus 1, nález B1).
+  const skupiny = new Map();
+  function hlasRaz(kluc, adr, strana, nalez, sprava) {
+    const sk = skupiny.get(kluc);
+    if (sk) {
+      sk.uzly.push(adr);
+      sk.strany.add(strana);
+      return;
+    }
+    const uzly = [adr];
+    skupiny.set(kluc, { uzly, strany: new Set([strana]), zaznam: addProblem({ ...nalez, group: kluc, node: adr, nodes: uzly }), sprava });
+  }
 
   for (const adr of vsetky) {
     const a = rozborAdresy(adr);
     if (a.prazdna) continue;
     const kde = cestaK(adr);
-    const cieCast = T.strana[ktoraStrana(adr)] || T.strana._;
+    const strana = ktoraStrana(adr);
+    const cieCast = T.strana[strana] || T.strana._;
 
     if (a.adrLine.length && !a.struktura.length) {
       zle++;
-      if (uzHlasene.has('cela_nestruktura')) continue;
-      uzHlasene.add('cela_nestruktura');
-      addProblem({
+      hlasRaz('nestrukturovana', adr, strana, {
         code: 'adresa_nestrukturovana',
         severity: zavaznost,
         message: T.adresaNestrukturovana(cieCast, poTermine),
         path: kde,
         value: a.adrLine.join(' | '),
         fix: '<PstlAdr><TwnNm>Bratislava</TwnNm><Ctry>SK</Ctry></PstlAdr>',
-      });
+      }, (c) => T.adresaNestrukturovana(c, poTermine));
       continue;
     }
 
     if (!a.mesto || !a.krajina) {
       zle++;
       const chyba = !a.mesto && !a.krajina ? T.chybaMestoKrajina : !a.mesto ? T.chybaMesto : T.chybaKrajina;
-      if (uzHlasene.has('chyba_' + chyba)) continue;
-      uzHlasene.add('chyba_' + chyba);
-      addProblem({
+      const druh = !a.mesto && !a.krajina ? 'bez_mesta_krajiny' : !a.mesto ? 'bez_mesta' : 'bez_krajiny';
+      hlasRaz(druh, adr, strana, {
         code: 'adresa_bez_mesta_alebo_krajiny',
         severity: zavaznost,
         message: T.adresaBezMestaKrajiny(cieCast, chyba),
         path: kde,
         value: a.struktura.join(', '),
         fix: !a.mesto ? '<TwnNm>Bratislava</TwnNm>' : '<Ctry>SK</Ctry>',
-      });
+      }, (c) => T.adresaBezMestaKrajiny(c, chyba));
       continue;
     }
 
     if (a.adrLine.length > 2) {
       zle++;
-      if (uzHlasene.has('vela_riadkov')) continue;
-      uzHlasene.add('vela_riadkov');
-      addProblem({
+      hlasRaz('vela_riadkov', adr, strana, {
         code: 'adresa_prilis_vela_riadkov',
         severity: 'low',
         message: T.adresaVelaRiadkov(a.adrLine.length),
         path: kde,
         value: a.adrLine.join(' | '),
         fix: '<StrtNm>Ivanská cesta</StrtNm><BldgNb>32E</BldgNb>',
-      });
+      }, null);
     }
 
     if (a.krajina && !/^[A-Z]{2}$/.test(a.krajina)) {
@@ -1084,10 +1249,17 @@ function skontrolujAdresy(documentEl, addProblem, dnes, T) {
         severity: 'high',
         message: T.adresaZlyKodKrajiny(a.krajina),
         path: kde + '/Ctry',
+        node: firstChild(adr, 'Ctry') || adr,
         value: a.krajina,
         fix: '<Ctry>SK</Ctry>',
       });
     }
+  }
+  // Ak zlúčený nález pokrýva adresy viacerých strán, hláška nemenuje len prvú z nich.
+  for (const sk of skupiny.values()) {
+    if (sk.strany.size < 2 || !sk.sprava || !sk.zaznam) continue;
+    const mena = [...new Set([...sk.strany].map((k) => T.strana[k] || T.strana._))];
+    sk.zaznam.message = sk.sprava(mena.length === 1 ? mena[0] : mena.slice(0, -1).join(', ') + ' ' + T.spojkaA + ' ' + mena[mena.length - 1]);
   }
   return { spolu: vsetky.length, zle: zle };
 }
@@ -1132,9 +1304,57 @@ export function diagnose(input) {
 
   const problems = [];
   const checklist = [];
+  // Poloha nálezov (zadanie sepa-riadok): uzol, ku ktorému nález patrí, ak ho
+  // volajúci pozná (adresy), inak sa uzol nájde podľa cesty v finish().
+  const uzlyNalezov = new Map();
+  // Zlúčené nálezy (adresy): všetky uzly, ktorých sa nález týka (pole sa plní aj po addProblem).
+  const vsetkyUzlyNalezov = new Map();
+  const lokalita = { poloha: null, doc: null, chybaPosun: null, deti: new Map() };
 
   function addProblem(p) {
-    problems.push({ code: p.code, severity: p.severity, message: p.message, path: p.path || '', value: p.value === undefined ? '' : String(p.value), fix: p.fix === undefined ? '' : String(p.fix) });
+    const zaznam = { code: p.code, severity: p.severity, message: p.message, path: p.path || '', value: p.value === undefined ? '' : String(p.value), fix: p.fix === undefined ? '' : String(p.fix) };
+    // Druh zlúčeného adresného nálezu (nepreložený kľúč), napr. 'bez_mesta'; inde prázdny.
+    if (p.group) zaznam.group = p.group;
+    if (p.node) uzlyNalezov.set(zaznam, p.node);
+    if (Array.isArray(p.nodes)) vsetkyUzlyNalezov.set(zaznam, p.nodes);
+    problems.push(zaznam);
+    return zaznam;
+  }
+
+  function doplnPolohu(p) {
+    let posun = null;
+    let presne = true;
+    let tag = '';
+    let uzol = uzlyNalezov.get(p);
+    if (uzol) {
+      posun = uzol.pos;
+      tag = uzol.tag;
+    } else if (p.code === 'xml_not_well_formed') {
+      posun = lokalita.chybaPosun;
+    } else if (p.path) {
+      const najdene = uzolPodlaCesty(lokalita.doc, p.path, lokalita.deti);
+      if (najdene) {
+        uzol = najdene.uzol;
+        posun = najdene.uzol.pos;
+        presne = najdene.presne;
+        tag = najdene.uzol.tag;
+      }
+    }
+    const miesto = lokalita.poloha && Number.isInteger(posun) && posun >= 0 ? lokalita.poloha(posun) : null;
+    p.line = miesto ? miesto.line : null;
+    p.column = miesto ? miesto.column : null;
+    p.lineShared = miesto ? miesto.lineShared : false;
+    p.lineExact = miesto ? presne : false;
+    p.lineTag = miesto ? tag : '';
+    // Stabilná adresa prvku s indexmi („Document[1]/…/CdtTrfTxInf[3]/Cdtr[1]/PstlAdr[1]“): opravy
+    // súboru štruktúru prvkov mimo rozdelených adries nemenia, takže páruje nález v pôvodnom
+    // a opravenom súbore (zakazka.mjs; brána sepa-riadok, pokus 2, nález A1).
+    p.nodePath = uzol ? cestaSIndexmi(uzol) : '';
+    // Zlúčený nález (adresy): riadok každej adresy, ktorej sa týka, v poradí súboru.
+    const vsetky = vsetkyUzlyNalezov.get(p);
+    p.lines = vsetky && vsetky.length > 1 && lokalita.poloha
+      ? vsetky.map((u) => (u.pos >= 0 ? lokalita.poloha(u.pos) : null)).filter(Boolean)
+      : null;
   }
 
   const expected = {
@@ -1160,6 +1380,8 @@ export function diagnose(input) {
   }
 
   const parsed = parseXml(xmlText);
+  lokalita.poloha = vytvorPolohy(xmlText);
+  lokalita.chybaPosun = (parsed.errorPos || []).find((x) => Number.isInteger(x)) ?? null;
   if (parsed.malformed) {
     addProblem({
       code: 'xml_not_well_formed',
@@ -1179,6 +1401,7 @@ export function diagnose(input) {
     });
     return finish();
   }
+  lokalita.doc = documentEl;
 
   const ns = documentEl.attrs.xmlns || '';
   // Oprava 19. 11. 2026 (brána sepa-09, nálezy N1 a N3): „očakávaný“ menný
@@ -1676,19 +1899,24 @@ export function diagnose(input) {
       const effInstrPrty = pmtInfInstrPrty || txInstrPrty;
       const effSvcLvl = pmtInfSvcLvl || txSvcLvl;
       const effChrgBr = pmtInfChrgBr || txChrgBr;
+      // Poloha (zadanie sepa-riadok, brána pokus 1, nález A1): zlá hodnota zdedená z PmtInf
+      // ukazuje na prvok v PmtInf, z ktorého naozaj pochádza, nie na „chýbajúci“ prvok v transakcii.
+      const uzolInstrPrty = pmtInfInstrPrty ? firstChild(pmtTpInf, 'InstrPrty') : firstChild(txPmtTpInf, 'InstrPrty');
+      const uzolSvcLvl = pmtInfSvcLvl ? firstChild(firstChild(pmtTpInf, 'SvcLvl'), 'Cd') : firstChild(firstChild(txPmtTpInf, 'SvcLvl'), 'Cd');
+      const uzolChrgBr = pmtInfChrgBr ? firstChild(pmtInf, 'ChrgBr') : firstChild(tx, 'ChrgBr');
 
       if (effInstrPrty && effInstrPrty !== 'NORM') {
-        addProblem({ code: 'instr_prty_not_norm', severity: 'medium', message: T.instrPrty(txPath, effInstrPrty), path: `${txPath}/PmtTpInf/InstrPrty`, value: effInstrPrty, fix: 'NORM' });
+        addProblem({ code: 'instr_prty_not_norm', severity: 'medium', message: T.instrPrty(txPath, effInstrPrty), path: `${txPath}/PmtTpInf/InstrPrty`, node: uzolInstrPrty, value: effInstrPrty, fix: 'NORM' });
       }
       if (!effSvcLvl) {
         addProblem({ code: 'svc_lvl_missing_or_invalid', severity: 'high', message: T.svcLvlChyba(txPath), path: `${txPath}/PmtTpInf/SvcLvl/Cd`, fix: 'SEPA' });
       } else if (effSvcLvl !== 'SEPA') {
-        addProblem({ code: 'svc_lvl_missing_or_invalid', severity: 'high', message: T.svcLvlZly(txPath, effSvcLvl), path: `${txPath}/PmtTpInf/SvcLvl/Cd`, value: effSvcLvl, fix: 'SEPA' });
+        addProblem({ code: 'svc_lvl_missing_or_invalid', severity: 'high', message: T.svcLvlZly(txPath, effSvcLvl), path: `${txPath}/PmtTpInf/SvcLvl/Cd`, node: uzolSvcLvl, value: effSvcLvl, fix: 'SEPA' });
       }
       if (!effChrgBr) {
         addProblem({ code: 'chrg_br_missing', severity: 'medium', message: T.chrgBrChyba(txPath), path: `${txPath}/ChrgBr`, fix: 'SLEV' });
       } else if (effChrgBr !== 'SLEV') {
-        addProblem({ code: 'chrg_br_invalid', severity: 'high', message: T.chrgBrZly(txPath, effChrgBr), path: `${txPath}/ChrgBr`, value: effChrgBr, fix: 'SLEV' });
+        addProblem({ code: 'chrg_br_invalid', severity: 'high', message: T.chrgBrZly(txPath, effChrgBr), path: `${txPath}/ChrgBr`, node: uzolChrgBr, value: effChrgBr, fix: 'SLEV' });
       }
 
       const pmtId = firstChild(tx, 'PmtId');
@@ -1928,6 +2156,7 @@ export function diagnose(input) {
   return finish();
 
   function finish() {
+    for (const p of problems) doplnPolohu(p);
     const sorted = sortProblems(problems);
     const highCount = sorted.filter((p) => p.severity === 'high').length;
     const medCount = sorted.filter((p) => p.severity === 'medium').length;
