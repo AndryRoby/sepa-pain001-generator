@@ -1382,6 +1382,66 @@ function xmlSAdresou(schema, bank) {
   }
 }
 
+// ═══════ riadok a stĺpec nálezu pri kontrole vygenerovaného súboru ═══════
+//
+// Oprava 5 zadania sepa-mesto-jazyk (20. 11. 2026): stránka ukazovala pri
+// náleze Doctora len cestu v XML, hoci motor vie riadok (a pri súbore
+// v jednom riadku stĺpec). Teraz ho píše cez popisPolohy() rovnako ako stránka
+// Doctora, vo všetkých troch jazykoch. Test spúšťa skutočný kód vykreslenia
+// nálezov vystrihnutý zo stránky. Premenná GEN_POLOHA_DIR (voliteľná) ukáže na
+// iný priečinok so stránkami, napr. na kópiu pred opravou; tam má blok padať.
+{
+  const { popisPolohy } = await import('./doctor-pain001.js');
+  const { pathToFileURL } = await import('node:url');
+  const priecinok = process.env.GEN_POLOHA_DIR ? pathToFileURL(process.env.GEN_POLOHA_DIR.replace(/[\\/]*$/, '/')) : new URL('./', import.meta.url);
+  const escTest = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  // Súbor z generátora s dvomi rovnakými platbami bez symbolov: Doctor dá
+  // nález (napr. opakované EndToEndId) s riadkom v súbore.
+  const platba = { iban: IBAN_VUB, amount: 12.5, name: 'Jan Novak', message: 'Faktura 1' };
+  const xmlRiadky = buildXml({
+    bank: 'generic',
+    payer: { name: 'Firma s.r.o.', iban: IBAN_TATRA },
+    execDate: defaultExecDate(new Date(DNES_PO + 'T12:00:00')),
+    payments: [platba, { ...platba }],
+  });
+  const xmlJedenRiadok = xmlRiadky.replace(/\r?\n\s*/g, '');
+  const rRiadky = diagnose({ xml: xmlRiadky, bank: 'generic', dnes: DNES_PO });
+  const rJeden = diagnose({ xml: xmlJedenRiadok, bank: 'generic', dnes: DNES_PO });
+  const sRiadkom = rRiadky.problems.filter((p) => Number.isInteger(p.line) && p.line > 1);
+  ok('poloha: Doctor dá nálezu vo vygenerovanom súbore riadok väčší než 1', sRiadkom.length > 0, JSON.stringify(rRiadky.problems.map((p) => p.code)));
+  ok('poloha: v súbore v jednom riadku dá nález stĺpec (lineShared)', rJeden.problems.some((p) => p.line === 1 && p.lineShared && Number.isInteger(p.column)));
+  const OCAKAVANE = { sk: ['riadok', 'stĺpec'], en: ['line', 'column'], de: ['Zeile', 'Spalte'] };
+  for (const [stranka, jazyk] of [['index.html', 'sk'], ['en/index.html', 'en'], ['de/index.html', 'de']]) {
+    const html = readFileSync(new URL(stranka, priecinok), 'utf8');
+    ok(`poloha ${stranka}: stránka importuje popisPolohy z doctor-pain001.js`, /import\s*\{[^}]*\bpopisPolohy\b[^}]*\}\s*from\s*'(\.\.\/|\.\/)doctor-pain001\.js'/.test(html));
+    ok(`poloha ${stranka}: štýl .poloha ako Doctor (12,5 px, --ink, tučné, číslo sa neláme)`,
+      /\.problem-item \.where \.poloha \{[^}]*color:var\(--ink\)[^}]*font:600 12\.5px[^}]*word-break:normal/.test(html));
+    const m = html.match(/const problemsHtml = (r\.problems\.map\([\s\S]*?\.join\(''\));/);
+    ok(`poloha ${stranka}: vykreslenie nálezov sa dá nájsť`, !!m);
+    if (!m || !sRiadkom.length) continue;
+    const vykresli = new Function('r', 'esc', 'popisPolohy', 'getLang', 'return ' + m[1]);
+    // Ako na stránke: diagnose() s jazykom stránky, potom vykreslenie.
+    const rJazyk = diagnose({ xml: xmlRiadky, bank: 'generic', dnes: DNES_PO, lang: jazyk });
+    const htmlRiadky = vykresli(rJazyk, escTest, popisPolohy, () => jazyk);
+    const prvy = rJazyk.problems.find((p) => Number.isInteger(p.line) && p.line > 1);
+    ok(`poloha ${stranka}: nález s riadkom aj pri jazyku ${jazyk}`, !!prvy);
+    if (!prvy) continue;
+    includes(`poloha ${stranka}: nález má <span class="poloha"> s riadkom (${jazyk})`, htmlRiadky, `<span class="poloha">${escTest(popisPolohy(prvy, jazyk))}</span> · ${escTest(prvy.path)}`);
+    includes(`poloha ${stranka}: text riadku je v jazyku stránky (${jazyk})`, htmlRiadky, `<span class="poloha">${OCAKAVANE[jazyk][0]} ${prvy.line}`);
+    const htmlJeden = vykresli(diagnose({ xml: xmlJedenRiadok, bank: 'generic', dnes: DNES_PO, lang: jazyk }), escTest, popisPolohy, () => jazyk);
+    ok(`poloha ${stranka}: súbor v jednom riadku ukáže riadok 1 a stĺpec (${jazyk})`,
+      new RegExp(`<span class="poloha">${OCAKAVANE[jazyk][0]} 1, ${OCAKAVANE[jazyk][1]} \\d+`).test(htmlJeden), htmlJeden.slice(0, 300));
+    // Nález bez cesty, len s riadkom: poloha sa ukáže bez oddeľovača; text
+    // s prvkom zo súboru (lineTag) prejde cez esc, nie ako HTML.
+    const htmlBezCesty = vykresli({ problems: [{ severity: 'low', message: 'm', line: 7, lineExact: false, lineTag: '<b>x</b>' }] }, escTest, popisPolohy, () => jazyk);
+    includes(`poloha ${stranka}: nález bez cesty ukáže riadok`, htmlBezCesty, `<span class="poloha">${OCAKAVANE[jazyk][0]} 7`);
+    notIncludes(`poloha ${stranka}: názov prvku zo súboru je escapovaný`, htmlBezCesty, '<b>x</b>');
+    notIncludes(`poloha ${stranka}: bez cesty nie je osamotený oddeľovač`, htmlBezCesty, ' · ');
+    // Nález bez riadku aj cesty nevyrobí prázdny riadok s miestom.
+    notIncludes(`poloha ${stranka}: nález bez riadku a cesty nemá blok .where`, vykresli({ problems: [{ severity: 'low', message: 'm' }] }, escTest, popisPolohy, () => jazyk), 'class="where"');
+  }
+}
+
 // ═══════════════════════════ summary ═══════════════════════════════════
 
 console.log(`\n${pass} passed, ${fail} failed (${pass + fail} total assertions)`);

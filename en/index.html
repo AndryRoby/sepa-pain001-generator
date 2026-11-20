@@ -5,7 +5,7 @@
 <script type="text/plain" data-odlozene src="/style/vzhlad.js?v=da076a5a"></script>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://api.arling.workers.dev 'sha256-7FSdfmrl+5QSgl6IKPQIurtZ+JQz6W0uhhvFm3YWalc=' 'sha256-Ra6Uywy+wsJf4KPNx0SzRl80g7NgcrRvVypX9OfV/+M=' 'sha256-dV3zdNziTZflR5sh2V6+d8fopwUsBEzf7Ij+0BjIgzo=' 'sha256-GFVA+RbQmEJ1h4oH/wkBGK1tn1e6wHSaHU4DtcIIBfo=' 'sha256-s6D47UEWZ8tnTQ0I9aOM8rLl9BOb5/HXlAn0Ntq9Tl8=' 'sha256-lXRJx6Uag71Xy7zZttpc8NeUiHx/AjR7tR1jR0MYTjI=' 'sha256-strbyq1BpI+7BIJr0ChKiwrudallB9cNlc0wfYdMxCM='; connect-src 'self' https://api.arling.workers.dev; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://api.arling.workers.dev 'sha256-7FSdfmrl+5QSgl6IKPQIurtZ+JQz6W0uhhvFm3YWalc=' 'sha256-Ra6Uywy+wsJf4KPNx0SzRl80g7NgcrRvVypX9OfV/+M=' 'sha256-dV3zdNziTZflR5sh2V6+d8fopwUsBEzf7Ij+0BjIgzo=' 'sha256-GFVA+RbQmEJ1h4oH/wkBGK1tn1e6wHSaHU4DtcIIBfo=' 'sha256-fGF5zMAJkuQElKmxEpC+e58AdUKFes7rFkwEkWnMVpk=' 'sha256-lXRJx6Uag71Xy7zZttpc8NeUiHx/AjR7tR1jR0MYTjI=' 'sha256-strbyq1BpI+7BIJr0ChKiwrudallB9cNlc0wfYdMxCM='; connect-src 'self' https://api.arling.workers.dev; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <script>try{localStorage.setItem("arling_lang","en")}catch(e){}</script>
 <meta name="color-scheme" content="dark">
 <link rel="preconnect" href="https://api.arling.workers.dev" crossorigin>
@@ -396,6 +396,8 @@
   .problem-item.medium .sev-tag { color:var(--warn); }
   .problem-item.low .sev-tag { color:var(--muted); }
   .problem-item .where { color:var(--muted); font:10.5px/1.4 var(--mono); margin-top:4px; word-break:break-all; }
+  /* Riadok v súbore ako na stránke Doctora: čitateľnejší než cesta, číslo sa nikdy neláme. */
+  .problem-item .where .poloha { display:inline-block; color:var(--ink); font:600 12.5px/1.4 var(--ui); word-break:normal; overflow-wrap:normal; margin-right:2px; }
 
   .fix-item { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:10px; font-size:12px; min-width:0; }
   .fix-item + .fix-item { margin-top:8px; }
@@ -999,7 +1001,7 @@
 <!-- Scripts -->
 <script type="module">
   import { parseRows, mapColumns, buildXml, bicFromIban, defaultExecDate, autoMsgId, TERMIN_ADRESY } from '../generator-pain001.js';
-  import { diagnose } from '../doctor-pain001.js';
+  import { diagnose, popisPolohy } from '../doctor-pain001.js';
   import { isValid as licenceIsValid, load as licenceLoad, save as licenceSave, clear as licenceClear, claim as licenceClaim } from '../licence.js';
   import { applyTemplate, loadProfiles, addProfile, removeProfile, mergeBlockPayments, blockTotals, loadHistory, addHistoryEntry } from '../pro.js';
   import { t, tf, getLang, localeTagForLang, formatAmountForLang, formatDateForLang } from '../i18n.js';
@@ -1390,10 +1392,15 @@
       expectedRow(t('js.doctor.pmtinfcount'), r.stats.pmtInfCount) +
       expectedRow(t('js.doctor.banksdetected'), r.stats.banksDetected.join(', '));
 
-    const problemsHtml = r.problems.map((p) => `<div class="problem-item ${esc(p.severity)}">
+    // Riadok (pri súbore v jednom riadku aj stĺpec) z motora Doctora, rovnaký
+    // text ako na stránke Doctora (oprava 5 zadania sepa-mesto-jazyk).
+    const problemsHtml = r.problems.map((p) => {
+      const poloha = popisPolohy(p, getLang());
+      return `<div class="problem-item ${esc(p.severity)}">
         <div><span class="sev-tag">${esc(p.severity)}</span>${esc(p.message)}</div>
-        ${p.path ? `<div class="where">${esc(p.path)}</div>` : ''}
-      </div>`).join('');
+        ${p.path || poloha ? `<div class="where">${poloha ? `<span class="poloha">${esc(poloha)}</span>${p.path ? ' · ' : ''}` : ''}${p.path ? esc(p.path) : ''}</div>` : ''}
+      </div>`;
+    }).join('');
 
     const fixesHtml = r.fixes.map((f, i) => `<div class="fix-item">
         <div class="fix-body">

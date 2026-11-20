@@ -68,13 +68,22 @@
 // Predvolený jazyk je slovenčina. diagnose({ lang: 'de' }) prepne celý výstup
 // vrátane súhrnu, kontrolného zoznamu a právnej poznámky.
 
+/** Slovenský tvar podľa počtu: 1, 2 až 4, inak (0, 5 a viac). */
+function tvarPoctu(n, jeden, dvaAzStyri, viac) {
+  const c = Number(n);
+  return c === 1 ? jeden : c >= 2 && c <= 4 ? dvaAzStyri : viac;
+}
+
 const SPRAVY = {
   sk: {
     strana: { Cdtr: 'príjemcu', Dbtr: 'platiteľa', UltmtCdtr: 'konečného príjemcu', UltmtDbtr: 'konečného platiteľa', InitgPty: 'zadávateľa súboru', _: 'strany platby' },
     spojkaA: 'a',
-    chybaMestoKrajina: 'mesto (TwnNm) ani kód krajiny (Ctry)',
+    chybaMestoKrajina: 'mesto (TwnNm) aj kód krajiny (Ctry)',
     chybaMesto: 'mesto (TwnNm)',
     chybaKrajina: 'kód krajiny (Ctry)',
+    // Zástupný text v návrhu opravy adresy, keď sa údaj z adresy nedá spoľahlivo určiť.
+    // Ide do XML komentára v prázdnom prvku: vložený bez zmeny nie je hodnotou (pozri prvokNavrhu).
+    zastupne: { mesto: 'doplňte mesto', krajina: 'doplňte kód krajiny', ulica: 'doplňte ulicu', cislo: 'doplňte číslo domu' },
     ibanFormat: 'nesprávny formát',
     ibanDlzka: (k) => 'nesprávna dĺžka pre krajinu ' + k,
     ibanSucet: 'zlyhal kontrolný súčet MOD-97',
@@ -89,7 +98,18 @@ const SPRAVY = {
     adresaZlyKodKrajiny: (k) => 'Kód krajiny "' + k + '" nie je dvojpísmenový kód podľa ISO 3166-1. Banka ho odmietne.',
 
     xmlPrazdne: 'Nebol vložený žiadny XML obsah. Vložte celý súbor pain.001, ktorý ste exportovali z účtovného softvéru.',
-    xmlZleFormovane: (prva, dalsich) => 'XML nie je správne formované (well-formed): ' + prva + (dalsich ? ' (a ' + dalsich + ' ďalších problémov so štruktúrou.)' : '') + ' Banka takýto súbor odmietne skôr, než sa dostane k obsahu platieb.',
+    // prva: prvá chyba parsera bez bodky na konci (xmlChyby), dalsich: počet ďalších chýb.
+    xmlZleFormovane: (prva, dalsich) => 'XML nie je správne formované (well-formed): ' + prva + (dalsich
+      ? ' (a ' + dalsich + (dalsich === 1 ? ' ďalší problém' : dalsich < 5 ? ' ďalšie problémy' : ' ďalších problémov') + ' so štruktúrou)'
+      : '') + '. Banka takýto súbor odmietne skôr, než sa dostane k obsahu platieb.',
+    // Chyby parsera (parseXml vracia kľúč a parametre, text sa skladá tu). Názov značky je zo súboru.
+    xmlChyby: {
+      nezatvorenyTag: (e) => 'Nezatvorený tag na pozícii ' + e.pozicia + ' (chýba ">")',
+      zatvaraciBezOtvaracieho: (e) => 'Zatvárací tag </' + e.zatvaraci + '> nemá zodpovedajúci otvárací tag',
+      zleZatvoreny: (e) => 'Tag <' + e.otvoreny + '> nebol správne zatvorený pred </' + e.zatvaraci + '>',
+      nezatvorene: (e) => 'Nasledovné tagy neboli zatvorené: ' + e.tagy.join(', '),
+      ziadnyElement: () => 'V súbore sa nenašiel žiadny XML element',
+    },
     chybaDocument: 'Koreňový element <Document> sa v súbore nenašiel. Toto nie je platný pain.001 súbor (alebo XML je natoľko poškodené, že sa element nedá nájsť).',
     chybaXmlns: (ns) => 'Element <Document> nemá nastavený menný priestor (xmlns). Bez neho banka nevie, či ide o pain.001.001.03 alebo .09, a import môže zlyhať alebo byť interpretovaný nesprávne. Podľa prvkov v súbore navrhujeme "' + ns + '".',
     verzia09Skoro: 'Súbor je pain.001.001.09, verzia, ktorú opisujú aktuálne pravidlá EPC. Tatra banka, Slovenská sporiteľňa, VÚB a ČSOB ju uvádzajú v dokumentácii importu (VÚB a ČSOB výslovne ako povolenú, SLSP a Tatra banka popisom alebo vzormi); pri inej banke overte v jej dokumentácii, či import hromadného príkazu .09 prijíma.',
@@ -103,7 +123,7 @@ const SPRAVY = {
     msgIdDlhy: (n) => 'GrpHdr/MsgId má ' + n + ' znakov, maximum je 35 (Max35Text). Banka môže hodnotu skrátiť alebo súbor odmietnuť.',
     msgIdZnaky: 'GrpHdr/MsgId obsahuje znaky mimo bežnej SEPA znakovej sady (a-z A-Z 0-9 / - ? : ( ) . , \' + medzera). Odporúčame používať len tieto znaky pre istotu naprieč bankami.',
     creDtTmZly: (v) => 'GrpHdr/CreDtTm "' + v + '" nie je platný ISO dátum/čas (napr. 2026-09-04T09:00:00).',
-    nbOfTxsNesedi: (uv, sk) => 'GrpHdr/NbOfTxs uvádza ' + uv + ', ale súbor obsahuje ' + sk + ' transakcií <CdtTrfTxInf>. Nezhoda počtu transakcií je jeden z najčastejších dôvodov zamietnutia importu.',
+    nbOfTxsNesedi: (uv, sk) => 'GrpHdr/NbOfTxs uvádza ' + uv + ', ale súbor obsahuje ' + sk + ' ' + tvarPoctu(sk, 'transakciu', 'transakcie', 'transakcií') + ' <CdtTrfTxInf>. Nezhoda počtu transakcií je jeden z najčastejších dôvodov zamietnutia importu.',
     ctrlSumNesedi: (uv, sk) => 'GrpHdr/CtrlSum uvádza ' + uv + ', súčet InstdAmt všetkých transakcií je však ' + sk + '.',
     initgPtyVzor: (nm) => 'Tatra banka očakáva GrpHdr/InitgPty/Nm vo formáte [A-Za-z0-9]{1,10}/[A-Z]{2} (napr. "ABC1234567/SK"), ak je toto pole vyplnené. Hodnota "' + nm + '" tomuto vzoru nezodpovedá: pole je však celkovo nepovinné, takže ho pokojne aj úplne vynechajte.',
     diakritikaCsob: (v) => '"' + v + '" obsahuje diakritiku. ČSOB výslovne uvádza, že SEPA XML súbor s diakritikou sa do BusinessBanking Lite nedá importovať vôbec.',
@@ -199,9 +219,10 @@ const SPRAVY = {
   en: {
     strana: { Cdtr: 'of the creditor', Dbtr: 'of the debtor', UltmtCdtr: 'of the ultimate creditor', UltmtDbtr: 'of the ultimate debtor', InitgPty: 'of the initiating party', _: 'of a party to the payment' },
     spojkaA: 'and',
-    chybaMestoKrajina: 'the town (TwnNm) or the country code (Ctry)',
+    chybaMestoKrajina: 'the town (TwnNm) and the country code (Ctry)',
     chybaMesto: 'the town (TwnNm)',
     chybaKrajina: 'the country code (Ctry)',
+    zastupne: { mesto: 'enter the town', krajina: 'enter the country code', ulica: 'enter the street', cislo: 'enter the building number' },
     ibanFormat: 'wrong format',
     ibanDlzka: (k) => 'wrong length for country ' + k,
     ibanSucet: 'MOD-97 checksum failed',
@@ -211,12 +232,21 @@ const SPRAVY = {
     adresaNestrukturovana: (strana, po) => 'The address ' + strana + ' is written as free text in <AdrLine>. ' + (po
       ? 'The end date the EPC set for unstructured addresses has passed: the address must carry at least the town and the country code in their own fields.'
       : 'The SEPA rules still allow such an address for now, but we recommend a structured address: at least the town (TwnNm) and the country code (Ctry) in their own fields. On 9 September 2026 the EPC postponed the end of unstructured addresses, and on 29 October 2026 it decided not to set a new date yet; it will meet again by February 2027 to decide on one. Your bank may apply its own rules earlier.'),
-    adresaBezMestaKrajiny: (strana, chyba) => 'The address ' + strana + ' has structured fields, but ' + chyba + ' is missing. Under the EPC rules the town and the country code are the minimum of every structured and hybrid address.',
+    adresaBezMestaKrajiny: (strana, chyba, obe) => 'The address ' + strana + ' has structured fields, but ' + chyba + (obe ? ' are missing.' : ' is missing.') + ' Under the EPC rules the town and the country code are the minimum of every structured and hybrid address.',
     adresaVelaRiadkov: (n) => 'A hybrid address may have at most two <AdrLine> lines, this one has ' + n + '. Move the street and number into <StrtNm> and <BldgNb>.',
     adresaZlyKodKrajiny: (k) => 'The country code "' + k + '" is not a two-letter ISO 3166-1 code. The bank will reject it.',
 
     xmlPrazdne: 'No XML content was pasted. Paste the whole pain.001 file you exported from your accounting software.',
-    xmlZleFormovane: (prva, dalsich) => 'The XML is not well-formed: ' + prva + (dalsich ? ' (and ' + dalsich + ' more structural problems.)' : '') + ' The bank will reject such a file before it even reaches the payment content.',
+    xmlZleFormovane: (prva, dalsich) => 'The XML is not well-formed: ' + prva + (dalsich
+      ? ' (and ' + dalsich + ' more structural ' + (dalsich === 1 ? 'problem' : 'problems') + ')'
+      : '') + '. The bank will reject such a file before it even reaches the payment content.',
+    xmlChyby: {
+      nezatvorenyTag: (e) => 'Unclosed tag at position ' + e.pozicia + ' (">" is missing)',
+      zatvaraciBezOtvaracieho: (e) => 'The closing tag </' + e.zatvaraci + '> has no matching opening tag',
+      zleZatvoreny: (e) => 'The tag <' + e.otvoreny + '> was not closed properly before </' + e.zatvaraci + '>',
+      nezatvorene: (e) => 'The following tags were not closed: ' + e.tagy.join(', '),
+      ziadnyElement: () => 'No XML element was found in the file',
+    },
     chybaDocument: 'The root <Document> element was not found in the file. This is not a valid pain.001 file (or the XML is damaged badly enough that the element cannot be located).',
     chybaXmlns: (ns) => 'The <Document> element has no namespace (xmlns). Without it the bank cannot tell whether the file is pain.001.001.03 or .09, and the import may fail or be interpreted incorrectly. Based on the elements in the file we suggest "' + ns + '".',
     verzia09Skoro: 'The file is pain.001.001.09, the version described by the current EPC rules. Tatra banka, Slovenská sporiteľňa, VÚB and ČSOB list it in their import documentation (VÚB and ČSOB explicitly as allowed, SLSP and Tatra banka with a description or samples); with another bank, check its documentation to see whether its batch import accepts .09.',
@@ -230,7 +260,7 @@ const SPRAVY = {
     msgIdDlhy: (n) => 'GrpHdr/MsgId is ' + n + ' characters, the maximum is 35 (Max35Text). The bank may truncate the value or reject the file.',
     msgIdZnaky: 'GrpHdr/MsgId contains characters outside the common SEPA character set (a-z A-Z 0-9 / - ? : ( ) . , \' + space). We recommend using only these characters to be safe across banks.',
     creDtTmZly: (v) => 'GrpHdr/CreDtTm "' + v + '" is not a valid ISO date/time (for example 2026-09-04T09:00:00).',
-    nbOfTxsNesedi: (uv, sk) => 'GrpHdr/NbOfTxs states ' + uv + ', but the file contains ' + sk + ' <CdtTrfTxInf> transactions. A transaction-count mismatch is one of the most common reasons an import is rejected.',
+    nbOfTxsNesedi: (uv, sk) => 'GrpHdr/NbOfTxs states ' + uv + ', but the file contains ' + sk + ' <CdtTrfTxInf> ' + (Number(sk) === 1 ? 'transaction' : 'transactions') + '. A transaction-count mismatch is one of the most common reasons an import is rejected.',
     ctrlSumNesedi: (uv, sk) => 'GrpHdr/CtrlSum states ' + uv + ', but the sum of all InstdAmt amounts is ' + sk + '.',
     initgPtyVzor: (nm) => 'Tatra banka expects GrpHdr/InitgPty/Nm in the format [A-Za-z0-9]{1,10}/[A-Z]{2} (for example "ABC1234567/SK") when this field is filled in. The value "' + nm + '" does not match that pattern: the field is optional overall, so you may leave it out entirely.',
     diakritikaCsob: (v) => '"' + v + '" contains diacritics. ČSOB states explicitly that a SEPA XML file with diacritics cannot be imported into BusinessBanking Lite at all.',
@@ -329,6 +359,7 @@ const SPRAVY = {
     chybaMestoKrajina: 'der Ort (TwnNm) und der Ländercode (Ctry)',
     chybaMesto: 'der Ort (TwnNm)',
     chybaKrajina: 'der Ländercode (Ctry)',
+    zastupne: { mesto: 'Ort eintragen', krajina: 'Ländercode eintragen', ulica: 'Straße eintragen', cislo: 'Hausnummer eintragen' },
     ibanFormat: 'falsches Format',
     ibanDlzka: (k) => 'falsche Länge für das Land ' + k,
     ibanSucet: 'MOD-97-Prüfsumme fehlgeschlagen',
@@ -338,12 +369,21 @@ const SPRAVY = {
     adresaNestrukturovana: (strana, po) => 'Die Adresse ' + strana + ' steht als Freitext in <AdrLine>. ' + (po
       ? 'Der Termin, den der EPC für das Ende unstrukturierter Adressen festgelegt hat, ist erreicht: die Adresse muss mindestens Ort und Ländercode in eigenen Feldern führen.'
       : 'Die SEPA-Regeln erlauben eine solche Adresse vorerst noch, wir empfehlen aber eine strukturierte Adresse: mindestens Ort (TwnNm) und Ländercode (Ctry) in eigenen Feldern. Der EPC hat das Ende unstrukturierter Adressen am 9. September 2026 verschoben und am 29. Oktober 2026 entschieden, noch keinen neuen Termin festzulegen; bis Februar 2027 will er erneut darüber entscheiden. Ihre Bank kann eigene Vorgaben schon früher haben.'),
-    adresaBezMestaKrajiny: (strana, chyba) => 'Die Adresse ' + strana + ' hat strukturierte Felder, es fehlt aber ' + chyba + '. Ort und Ländercode sind nach den EPC-Regeln das Minimum jeder strukturierten und hybriden Adresse.',
+    adresaBezMestaKrajiny: (strana, chyba, obe) => 'Die Adresse ' + strana + ' hat strukturierte Felder, ' + (obe ? 'es fehlen aber ' : 'es fehlt aber ') + chyba + '. Ort und Ländercode sind nach den EPC-Regeln das Minimum jeder strukturierten und hybriden Adresse.',
     adresaVelaRiadkov: (n) => 'Eine hybride Adresse darf höchstens zwei <AdrLine>-Zeilen haben, diese hat ' + n + '. Verschieben Sie Straße und Hausnummer nach <StrtNm> und <BldgNb>.',
     adresaZlyKodKrajiny: (k) => 'Der Ländercode "' + k + '" ist kein zweibuchstabiger Code nach ISO 3166-1. Die Bank weist ihn zurück.',
 
     xmlPrazdne: 'Es wurde kein XML-Inhalt eingefügt. Fügen Sie die vollständige pain.001-Datei ein, die Sie aus Ihrer Buchhaltungssoftware exportiert haben.',
-    xmlZleFormovane: (prva, dalsich) => 'Das XML ist nicht wohlgeformt: ' + prva + (dalsich ? ' (und ' + dalsich + ' weitere Strukturprobleme.)' : '') + ' Die Bank weist eine solche Datei zurück, bevor sie überhaupt zum Zahlungsinhalt kommt.',
+    xmlZleFormovane: (prva, dalsich) => 'Das XML ist nicht wohlgeformt: ' + prva + (dalsich
+      ? ' (und ' + dalsich + (dalsich === 1 ? ' weiteres Strukturproblem' : ' weitere Strukturprobleme') + ')'
+      : '') + '. Die Bank weist eine solche Datei zurück, bevor sie überhaupt zum Zahlungsinhalt kommt.',
+    xmlChyby: {
+      nezatvorenyTag: (e) => 'Nicht abgeschlossenes Tag an Position ' + e.pozicia + ' (">" fehlt)',
+      zatvaraciBezOtvaracieho: (e) => 'Zum schließenden Tag </' + e.zatvaraci + '> gibt es kein passendes öffnendes Tag',
+      zleZatvoreny: (e) => 'Das Tag <' + e.otvoreny + '> wurde vor </' + e.zatvaraci + '> nicht korrekt geschlossen',
+      nezatvorene: (e) => 'Folgende Tags wurden nicht geschlossen: ' + e.tagy.join(', '),
+      ziadnyElement: () => 'In der Datei wurde kein XML-Element gefunden',
+    },
     chybaDocument: 'Das Wurzelelement <Document> wurde in der Datei nicht gefunden. Das ist keine gültige pain.001-Datei (oder das XML ist so beschädigt, dass sich das Element nicht finden lässt).',
     chybaXmlns: (ns) => 'Das Element <Document> hat keinen Namensraum (xmlns). Ohne ihn erkennt die Bank nicht, ob es pain.001.001.03 oder .09 ist, und der Import kann scheitern oder falsch interpretiert werden. Nach den Elementen in der Datei schlagen wir "' + ns + '" vor.',
     verzia09Skoro: 'Die Datei ist pain.001.001.09, die Version, die die aktuellen EPC-Regeln beschreiben. Tatra banka, Slovenská sporiteľňa, VÚB und ČSOB nennen sie in ihrer Importdokumentation (VÚB und ČSOB ausdrücklich als erlaubt, SLSP und Tatra banka mit Beschreibung oder Mustern); bei einer anderen Bank prüfen Sie in deren Dokumentation, ob der Sammelimport .09 annimmt.',
@@ -357,7 +397,7 @@ const SPRAVY = {
     msgIdDlhy: (n) => 'GrpHdr/MsgId hat ' + n + ' Zeichen, das Maximum ist 35 (Max35Text). Die Bank kann den Wert kürzen oder die Datei zurückweisen.',
     msgIdZnaky: 'GrpHdr/MsgId enthält Zeichen außerhalb des üblichen SEPA-Zeichensatzes (a-z A-Z 0-9 / - ? : ( ) . , \' + Leerzeichen). Wir empfehlen, bankübergreifend nur diese Zeichen zu verwenden.',
     creDtTmZly: (v) => 'GrpHdr/CreDtTm "' + v + '" ist kein gültiges ISO-Datum bzw. keine gültige Uhrzeit (zum Beispiel 2026-09-04T09:00:00).',
-    nbOfTxsNesedi: (uv, sk) => 'GrpHdr/NbOfTxs nennt ' + uv + ', die Datei enthält aber ' + sk + ' <CdtTrfTxInf>-Transaktionen. Eine abweichende Transaktionszahl gehört zu den häufigsten Gründen für eine Zurückweisung.',
+    nbOfTxsNesedi: (uv, sk) => 'GrpHdr/NbOfTxs nennt ' + uv + ', die Datei enthält aber ' + sk + ' <CdtTrfTxInf>-' + (Number(sk) === 1 ? 'Transaktion' : 'Transaktionen') + '. Eine abweichende Transaktionszahl gehört zu den häufigsten Gründen für eine Zurückweisung.',
     ctrlSumNesedi: (uv, sk) => 'GrpHdr/CtrlSum nennt ' + uv + ', die Summe aller InstdAmt-Beträge ist aber ' + sk + '.',
     initgPtyVzor: (nm) => 'Tatra banka erwartet GrpHdr/InitgPty/Nm im Format [A-Za-z0-9]{1,10}/[A-Z]{2} (zum Beispiel "ABC1234567/SK"), wenn dieses Feld gefüllt ist. Der Wert "' + nm + '" entspricht diesem Muster nicht: das Feld ist insgesamt optional, Sie können es also auch ganz weglassen.',
     diakritikaCsob: (v) => '"' + v + '" enthält diakritische Zeichen. ČSOB gibt ausdrücklich an, dass sich eine SEPA-XML-Datei mit diakritischen Zeichen gar nicht in BusinessBanking Lite importieren lässt.',
@@ -512,6 +552,8 @@ function parseXml(text) {
   const povodny = safeStr(text);
   const src = povodny.replace(/^\uFEFF/, '');
   const bom = povodny.length - src.length;
+  // errors[i] je { kod, ...parametre }: text v jazyku výstupu skladá SPRAVY[lang].xmlChyby[kod]
+  // (zadanie sepa-mesto-jazyk, 20. 11. 2026: predtým tu boli hotové slovenské vety aj pre en a de).
   const errors = [];
   // errorPos[i] je posun v p\u00F4vodnom texte, ku ktor\u00E9mu sa via\u017Ee errors[i] (alebo null).
   const errorPos = [];
@@ -573,7 +615,7 @@ function parseXml(text) {
       j++;
     }
     if (j >= len) {
-      errors.push('Nezatvorený tag na pozícii ' + lt + ' (chýba ">").');
+      errors.push({ kod: 'nezatvorenyTag', pozicia: lt });
       errorPos.push(lt + bom);
       break;
     }
@@ -588,11 +630,11 @@ function parseXml(text) {
         if (stack[k].rawTag === closeName) { foundIdx = k; break; }
       }
       if (foundIdx === -1) {
-        errors.push(`Zatvárací tag </${closeName}> nemá zodpovedajúci otvárací tag.`);
+        errors.push({ kod: 'zatvaraciBezOtvaracieho', zatvaraci: closeName });
         errorPos.push(lt + bom);
       } else {
         if (foundIdx !== stack.length - 1) {
-          errors.push(`Tag <${stack[stack.length - 1].rawTag}> nebol správne zatvorený pred </${closeName}>.`);
+          errors.push({ kod: 'zleZatvoreny', otvoreny: stack[stack.length - 1].rawTag, zatvaraci: closeName });
           errorPos.push(lt + bom);
         }
         stack.length = foundIdx;
@@ -621,12 +663,12 @@ function parseXml(text) {
   }
 
   if (stack.length > 1) {
-    errors.push('Nasledovné tagy neboli zatvorené: ' + stack.slice(1).map((n) => n.rawTag).join(', '));
+    errors.push({ kod: 'nezatvorene', tagy: stack.slice(1).map((n) => n.rawTag) });
     // Súbor sa skončil skôr, než sa prvky zatvorili: chyba je na konci súboru (brána sepa-riadok, A4).
     errorPos.push(povodny.length);
   }
   if (!sawAnyElement) {
-    errors.push('V súbore sa nenašiel žiadny XML element.');
+    errors.push({ kod: 'ziadnyElement' });
     errorPos.push(null);
   }
 
@@ -1154,6 +1196,302 @@ function ktoraStrana(node) {
   return '_';
 }
 
+// ─────────────── adresy: pravidlá spoločné s oprava.mjs ───────────────
+// Zoznam miest, názvy krajín, tvary PSČ a rozdelenie voľnej adresy žijú len
+// tu. oprava.mjs (platená oprava za 29 €, stránka Doctora aj
+// ops/kontrola/zakazka.mjs) ich importuje z tohto súboru a generátor má
+// kópiu tohto súboru, takže zoznam existuje raz (zadanie sepa-mesto-jazyk,
+// 20. 11. 2026). Presunuté z oprava.mjs bez zmeny správania.
+
+/** Bez diakritiky, malé písmená, ß -> ss, jedna medzera. Len na porovnanie. */
+export function normalizeName(s) {
+  return String(s || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/ß/g, 'ss')
+    .toLowerCase().replace(/[.]/g, '').replace(/\s+/g, ' ').trim();
+}
+
+export const COUNTRY_NAMES = {
+  SK: ['slovensko', 'slovenska republika', 'slovakia', 'slovak republic', 'slowakei', 'slowakische republik', 'svk'],
+  CZ: ['cesko', 'ceska republika', 'czechia', 'czech republic', 'tschechien', 'tschechische republik', 'cze'],
+  DE: ['nemecko', 'deutschland', 'bundesrepublik deutschland', 'germany', 'deu'],
+  AT: ['rakusko', 'rakousko', 'osterreich', 'oesterreich', 'austria', 'aut'],
+  PL: ['polsko', 'polska', 'polen', 'poland', 'pol'],
+  HU: ['madarsko', 'magyarorszag', 'ungarn', 'hungary', 'hun'],
+  FR: ['francuzsko', 'francie', 'frankreich', 'france', 'fra'],
+  IT: ['taliansko', 'italie', 'italien', 'italy', 'italia', 'ita'],
+  NL: ['holandsko', 'nizozemsko', 'niederlande', 'netherlands', 'nederland', 'nld'],
+  BE: ['belgicko', 'belgie', 'belgien', 'belgium', 'bel'],
+  ES: ['spanielsko', 'spanelsko', 'spanien', 'spain', 'espana', 'esp'],
+  PT: ['portugalsko', 'portugal', 'prt'],
+  CH: ['svajciarsko', 'svycarsko', 'schweiz', 'switzerland', 'che'],
+  SI: ['slovinsko', 'slowenien', 'slovenia', 'slovenija', 'svn'],
+  HR: ['chorvatsko', 'kroatien', 'croatia', 'hrvatska', 'hrv'],
+  IE: ['irsko', 'irland', 'ireland', 'irl'],
+  LU: ['luxembursko', 'luxemburg', 'luxembourg', 'lux'],
+  LT: ['litva', 'litauen', 'lithuania', 'ltu'],
+  LV: ['lotyssko', 'lettland', 'latvia', 'lva'],
+  EE: ['estonsko', 'estland', 'estonia', 'est'],
+  FI: ['finsko', 'finnland', 'finland', 'fin'],
+  SE: ['svedsko', 'schweden', 'sweden', 'swe'],
+  DK: ['dansko', 'danemark', 'denmark', 'dnk'],
+  NO: ['norsko', 'norwegen', 'norway', 'nor'],
+  GR: ['grecko', 'griechenland', 'greece', 'grc'],
+  RO: ['rumunsko', 'rumanien', 'romania', 'rou'],
+  BG: ['bulharsko', 'bulgarien', 'bulgaria', 'bgr'],
+  GB: ['velka britania', 'spojene kralovstvo', 'grossbritannien', 'vereinigtes konigreich', 'united kingdom', 'great britain', 'gbr'],
+};
+const NAME_TO_CODE = new Map();
+for (const [code, names] of Object.entries(COUNTRY_NAMES)) for (const n of names) NAME_TO_CODE.set(n, code);
+
+/** 'Slovensko' -> 'SK', 'sk' -> 'SK', 'SK' -> 'SK', neznáme -> null. */
+export function countryCode(value) {
+  const raw = String(value || '').trim();
+  if (/^[A-Za-z]{2}$/.test(raw)) return raw.toUpperCase();
+  return NAME_TO_CODE.get(normalizeName(raw)) || null;
+}
+
+// Formáty PSČ, ktoré vieme priradiť ku krajine. Slovensko a Česko majú
+// rovnaký formát (851 01), preto sa medzi nimi rozhoduje IBAN strany alebo
+// výslovne uvedená krajina, nikdy nie odhad.
+export const POSTCODE_FORMATS = [
+  { re: /^\d{3} \d{2}$/, countries: ['SK', 'CZ'] },
+  { re: /^\d{5}$/, countries: ['SK', 'CZ', 'DE'] },
+  { re: /^\d{4}$/, countries: ['AT', 'HU'] },
+  { re: /^\d{2}-\d{3}$/, countries: ['PL'] },
+];
+// PSČ s mestom v jednom kuse ("851 01 Bratislava") a PSČ samotné ("851 01").
+const PSC_S_MESTOM_RE = /^(\d{3} \d{2}|\d{5}|\d{4}|\d{2}-\d{3})\s+(\D.*)$/;
+const PSC_SAMOTNE_RE = /^(\d{3} \d{2}|\d{5}|\d{4}|\d{2}-\d{3})$/;
+const STREET_RE = /^(.+?)\s+(\d+[A-Za-z]?(?:\s?\/\s?\d+[A-Za-z]?)?)$/;
+// Poštový priečinok nie je ulica s číslom; pain.001.001.03 preň nemá prvok
+// (PstBx je až v .09), tak to necháme človeku.
+const POBOX_RE = /^(p\.?\s?o\.?\s?box|po box|pobox|post box|postfach|schliessfach|postovy priecinok|post priecinok|pp)\b/;
+const MAX_ADRESA = { StrtNm: 70, BldgNb: 16, PstCd: 16, TwnNm: 35 };
+
+// Väčšie mestá, ktoré rozhodnú medzi krajinami s rovnakým tvarom PSČ
+// (Slovensko a Česko majú obe "851 01"). Porovnáva sa bez diakritiky.
+export const TOWNS = {
+  SK: 'Bratislava,Košice,Prešov,Žilina,Nitra,Banská Bystrica,Trnava,Martin,Trenčín,Poprad,Prievidza,Zvolen,Považská Bystrica,Michalovce,Nové Zámky,Spišská Nová Ves,Komárno,Levice,Humenné,Bardejov,Liptovský Mikuláš,Piešťany,Ružomberok,Lučenec,Topoľčany,Pezinok,Čadca,Dunajská Streda,Senica,Malacky,Skalica,Šaľa,Galanta,Hlohovec,Trebišov,Rimavská Sobota,Partizánske,Vranov nad Topľou,Dolný Kubín,Brezno,Púchov,Kežmarok,Bánovce nad Bebravou,Senec,Sereď,Snina,Nové Mesto nad Váhom,Rožňava,Handlová,Žiar nad Hronom,Zlaté Moravce,Stupava,Ivanka pri Dunaji,Šamorín,Sabinov,Detva,Myjava,Bytča,Kysucké Nové Mesto,Stará Ľubovňa,Levoča,Veľký Krtíš,Svidník,Stropkov,Medzilaborce,Sobrance,Kráľovský Chlmec,Krompachy,Gelnica,Revúca,Tornaľa,Fiľakovo,Krupina,Banská Štiavnica,Nová Baňa,Žarnovica,Vráble,Šurany,Štúrovo,Kolárovo,Veľký Meder,Modra,Svätý Jur,Holíč,Gbely,Brezová pod Bradlom,Stará Turá,Ilava,Dubnica nad Váhom,Nová Dubnica,Nemšová,Trstená,Tvrdošín,Námestovo,Turčianske Teplice,Vrútky,Sučany,Svit,Vysoké Tatry,Spišská Belá,Spišské Podhradie,Lipany,Veľký Šariš,Sečovce,Veľké Kapušany,Strážske,Vrbové,Leopoldov,Sládkovičovo,Nesvady,Hurbanovo,Šahy,Želiezovce,Tlmače',
+  CZ: 'Praha,Brno,Ostrava,Plzeň,Liberec,Olomouc,České Budějovice,Hradec Králové,Ústí nad Labem,Pardubice,Zlín,Havířov,Kladno,Most,Opava,Frýdek-Místek,Karviná,Jihlava,Teplice,Děčín,Karlovy Vary,Chomutov,Jablonec nad Nisou,Mladá Boleslav,Prostějov,Přerov,Třebíč,Česká Lípa,Třinec,Tábor,Znojmo,Kolín,Příbram,Cheb,Písek,Trutnov,Orlová,Kroměříž,Vsetín,Šumperk,Uherské Hradiště,Břeclav,Hodonín,Litoměřice,Havlíčkův Brod,Nový Jičín,Chrudim,Krnov,Sokolov,Strakonice,Litvínov,Valašské Meziříčí,Klatovy,Kopřivnice,Jindřichův Hradec,Vyškov,Žďár nad Sázavou,Bohumín,Kutná Hora,Mělník,Blansko,Náchod,Beroun,Jirkov,Žatec,Benešov,Otrokovice,Uherský Brod,Rakovník,Pelhřimov,Louny,Svitavy,Ostrov,Kadaň,Hranice,Bruntál,Rožnov pod Radhoštěm,Český Těšín,Neratovice,Brandýs nad Labem,Říčany,Slaný,Rokycany,Čelákovice',
+  DE: 'Berlin,Hamburg,München,Köln,Frankfurt am Main,Stuttgart,Düsseldorf,Leipzig,Dortmund,Essen,Bremen,Dresden,Hannover,Nürnberg,Duisburg,Bochum,Wuppertal,Bielefeld,Bonn,Münster,Mannheim,Karlsruhe,Augsburg,Wiesbaden,Mönchengladbach,Gelsenkirchen,Aachen,Braunschweig,Chemnitz,Kiel,Halle,Magdeburg,Freiburg,Krefeld,Mainz,Lübeck,Erfurt,Oberhausen,Rostock,Kassel,Hagen,Potsdam,Saarbrücken,Hamm,Ludwigshafen,Mülheim,Oldenburg,Osnabrück,Leverkusen,Heidelberg,Darmstadt,Solingen,Regensburg,Herne,Paderborn,Neuss,Ingolstadt,Offenbach,Fürth,Würzburg,Ulm,Heilbronn,Pforzheim,Wolfsburg,Göttingen,Bottrop,Reutlingen,Koblenz,Bremerhaven,Erlangen,Recklinghausen,Bergisch Gladbach,Remscheid,Jena,Trier,Salzgitter,Moers,Siegen,Hildesheim,Cottbus,Passau,Landshut,Rosenheim,Bamberg,Bayreuth,Kempten,Konstanz,Flensburg',
+  AT: 'Wien,Graz,Linz,Salzburg,Innsbruck,Klagenfurt,Villach,Wels,Sankt Pölten,St. Pölten,Dornbirn,Wiener Neustadt,Steyr,Feldkirch,Bregenz,Leonding,Klosterneuburg,Baden,Wolfsberg,Leoben,Krems,Traun,Amstetten,Lustenau,Kapfenberg,Mödling,Hallein,Kufstein,Traiskirchen,Schwechat,Braunau am Inn,Stockerau,Saalfelden,Ansfelden,Tulln,Hohenems,Spittal an der Drau,Telfs,Ternitz,Perchtoldsdorf,Feldkirchen,Bludenz,Bad Ischl,Eisenstadt,Schwaz,Hall in Tirol,Gmunden,Wörgl,Wals-Siezenheim,Waidhofen an der Ybbs,Marchtrenk,Bruck an der Mur,Korneuburg,Neunkirchen,Vöcklabruck,Lienz,Rankweil,Enns,Zwettl,Mistelbach,Gänserndorf,Hollabrunn,Horn',
+};
+const TOWN_TO_COUNTRY = new Map();
+for (const [code, list] of Object.entries(TOWNS)) for (const town of list.split(',')) TOWN_TO_COUNTRY.set(normalizeName(town), code);
+
+/** Krajina podľa mesta (bez čísla obvodu na konci, napr. "Bratislava 5"). */
+export function countryOfTown(town) {
+  const n = normalizeName(String(town).replace(/\s+\d+$/, ''));
+  return TOWN_TO_COUNTRY.get(n) || null;
+}
+
+/** Riadky voľnej adresy na kusy oddelené čiarkou, bez prázdnych. */
+function kusyAdresy(lines) {
+  return lines.flatMap((l) => String(l).split(',')).map((s) => s.replace(/\s+/g, ' ').trim()).filter(Boolean);
+}
+
+/** Výslovne uvedená krajina v poslednom kuse (bez číslic), inak null. */
+function krajinaNaKonci(parts) {
+  const last = parts[parts.length - 1];
+  return last !== undefined && !/\d/.test(last) ? countryCode(last) : null;
+}
+
+/**
+ * PSČ a mesto: v jednom kuse ("851 01 Bratislava"), alebo PSČ a mesto ako
+ * dva susedné kusy ("851 01", "Bratislava"). Vracia {pstCd, twnNm, idx,
+ * dvaKusy} alebo null.
+ */
+function najdiPscAMesto(parts) {
+  for (let i = 0; i < parts.length; i++) {
+    const m = parts[i].match(PSC_S_MESTOM_RE);
+    if (m) return { pstCd: m[1], twnNm: m[2].trim(), idx: i, dvaKusy: false };
+    const alone = parts[i].match(PSC_SAMOTNE_RE);
+    if (alone && i + 1 < parts.length && !/\d/.test(parts[i + 1])) return { pstCd: alone[1], twnNm: parts[i + 1].trim(), idx: i, dvaKusy: true };
+  }
+  return null;
+}
+
+/**
+ * Rozdelí riadky voľnej adresy na StrtNm, BldgNb, PstCd, TwnNm, Ctry.
+ * Vracia {ok: true, fields} alebo {ok: false, reason}. Pri akejkoľvek
+ * neistote radšej odmietne: neopravená adresa je pre človeka lepší
+ * výsledok než adresa opravená naslepo.
+ *
+ * @param {string[]} lines texty <AdrLine> v poradí
+ * @param {string|null} ibanCountry dvojpísmenový kód z IBAN-u tej istej strany, ak je
+ */
+export function parseAddressLines(lines, ibanCountry) {
+  let parts = kusyAdresy(lines);
+  if (parts.length < 2) return { ok: false, reason: 'jeden_kus' };
+
+  let country = null;
+  let zdrojKrajiny = null;
+  const uvedena = krajinaNaKonci(parts);
+  if (uvedena) { country = uvedena; zdrojKrajiny = 'uvedena'; parts = parts.slice(0, -1); }
+  if (parts.length < 2) return { ok: false, reason: 'chyba_ulica_alebo_mesto' };
+
+  const najdene = najdiPscAMesto(parts);
+  if (!najdene) return { ok: false, reason: 'psc_a_mesto_nenajdene' };
+  const { pstCd, twnNm, idx } = najdene;
+  if (najdene.dvaKusy) parts.splice(idx + 1, 1);
+  const rest = parts.filter((_, i) => i !== idx);
+  if (rest.length !== 1) return { ok: false, reason: rest.length === 0 ? 'chyba_ulica' : 'viac_kusov_ulice' };
+
+  const street = rest[0].match(STREET_RE);
+  if (!street) return { ok: false, reason: 'ulica_bez_cisla' };
+  const strtNm = street[1].trim();
+  if (POBOX_RE.test(normalizeName(strtNm))) return { ok: false, reason: 'postovy_priecinok' };
+  const bldgNb = street[2].replace(/\s*\/\s*/, '/');
+
+  const fmt = POSTCODE_FORMATS.find((f) => f.re.test(pstCd));
+  if (!fmt) return { ok: false, reason: 'neznamy_format_psc' };
+  const podlaMesta = countryOfTown(twnNm);
+  if (country) {
+    if (!fmt.countries.includes(country)) return { ok: false, reason: 'psc_nesedi_s_krajinou' };
+  } else if (podlaMesta && fmt.countries.includes(podlaMesta)) {
+    // Známe mesto rozhoduje; IBAN z inej krajiny s rovnakým tvarom PSČ
+    // (slovenská firma s českým účtom) je dôvod nechať to človeku.
+    if (ibanCountry && ibanCountry !== podlaMesta && fmt.countries.includes(ibanCountry)) return { ok: false, reason: 'krajina_neista' };
+    country = podlaMesta;
+    zdrojKrajiny = 'mesto';
+  } else if (fmt.countries.length === 1) {
+    country = fmt.countries[0];
+    zdrojKrajiny = 'psc';
+  } else if (ibanCountry && fmt.countries.includes(ibanCountry)) {
+    // Neznáme mesto, tvar PSČ sedí s krajinou IBAN-u tej istej strany.
+    // Deterministické, ale v diagnoza.json označené, aby to človek videl.
+    country = ibanCountry;
+    zdrojKrajiny = 'iban';
+  } else {
+    return { ok: false, reason: 'krajina_neista' };
+  }
+
+  const fields = { StrtNm: strtNm, BldgNb: bldgNb, PstCd: pstCd, TwnNm: twnNm, Ctry: country };
+  for (const [k, limit] of Object.entries(MAX_ADRESA)) if (fields[k].length > limit) return { ok: false, reason: `${k}_pridlhe` };
+  return { ok: true, fields, zdrojKrajiny };
+}
+
+// ───────────── návrh opravy adresy z tej istej adresy ─────────────
+// Do 20. 11. 2026 navrhoval Doctor napevno Bratislavu a SK aj adrese v Prahe
+// či v Berlíne (linka sepa-riadok, VYSLEDOK.md časť 6). Návrh teraz berie
+// mesto a krajinu z tej istej adresy; čo sa spoľahlivo určiť nedá, je
+// zástupný text v jazyku výstupu (T.zastupne), nikdy vymyslené mesto.
+
+/** Hodnota zo súboru do XML úryvku návrhu: &, < a > ako entity. */
+function xmlText(s) {
+  return String(s).replace(/[&<>]/g, (c) => (c === '&' ? '&amp;' : c === '<' ? '&lt;' : '&gt;'));
+}
+
+/** Prvok návrhu: hodnota zo súboru escapovaná, inak prázdny prvok s komentárom na doplnenie. */
+function prvokNavrhu(tag, hodnota, zastupny) {
+  return hodnota ? `<${tag}>${xmlText(hodnota)}</${tag}>` : `<${tag}><!-- ${zastupny} --></${tag}>`;
+}
+
+/**
+ * Mesto a PSČ z riadkov <AdrLine>: PSČ s mestom (rovnaké tvary ako
+ * parseAddressLines), inak jediný kus bez číslic, ktorý je známym mestom
+ * zo zoznamu TOWNS. Krajina výslovne uvedená v poslednom kuse ide zvlášť.
+ * Len pre návrh: holandské PSČ a neznáme mesto s ďalším kusom za ním dajú
+ * prázdne mesto (zástupný text); parseAddressLines (oprava.mjs) sa nemení.
+ */
+function mestoZRiadkov(adrLine) {
+  let parts = kusyAdresy(adrLine);
+  const uvedena = krajinaNaKonci(parts);
+  if (uvedena) parts = parts.slice(0, -1);
+  const najdene = najdiPscAMesto(parts);
+  if (najdene) {
+    // Holandské PSČ „1012 AB Amsterdam“: štyri číslice a dve veľké písmená ako samostatné
+    // slovo. Mesto by bolo „AB Amsterdam“, PSČ „1012 AB“ nemá žiadny známy tvar, preto
+    // mesto aj krajinu (okrem výslovne uvedenej) nechávame na zástupný text.
+    const nl = /^\d{4}$/.test(najdene.pstCd) && /^([A-Z]{2})(?:\s|$)/.exec(najdene.twnNm);
+    if (nl) return { mesto: '', psc: najdene.pstCd + ' ' + nl[1], uvedena };
+    // Číslo domu pred ulicou („1600 Pennsylvania Avenue“, „Washington“) má tvar PSČ s mestom.
+    // Neznáme mesto, za ktorým nasleduje ďalší kus adresy, je nejednoznačné: zástupný text.
+    const poslednyKus = najdene.idx + (najdene.dvaKusy ? 1 : 0) === parts.length - 1;
+    if (!poslednyKus && !countryOfTown(najdene.twnNm)) return { mesto: '', psc: najdene.pstCd, uvedena };
+    return { mesto: najdene.twnNm, psc: najdene.pstCd, uvedena };
+  }
+  const zname = parts.filter((p) => !/\d/.test(p) && countryOfTown(p));
+  // PSČ bez mesta ("Hlavna 5", "851 01") sa ráta tiež: inak by krajina z IBAN
+  // prešla aj v rozpore s tvarom PSČ (brána sepa-mesto-jazyk pokus 1, nález A1).
+  const samotne = parts.find((p) => PSC_SAMOTNE_RE.test(p)) || '';
+  return { mesto: zname.length === 1 ? zname[0] : '', psc: samotne, uvedena };
+}
+
+/**
+ * Krajina adresy v poradí sily: výslovne uvedená, podľa známeho mesta
+ * (ak nie je v rozpore s tvarom PSČ), podľa tvaru PSČ jedinej krajiny,
+ * napokon (len ak ibanKrajina) IBAN tej istej strany, ak nie je v rozpore
+ * s PSČ. Rozpor alebo nič: null.
+ */
+function krajinaAdresy({ uvedena, mesto, psc, ibanKrajina }) {
+  if (uvedena) return uvedena;
+  const fmt = psc ? POSTCODE_FORMATS.find((f) => f.re.test(psc)) : null;
+  const podlaMesta = mesto ? countryOfTown(mesto) : null;
+  if (podlaMesta) return !fmt || fmt.countries.includes(podlaMesta) ? podlaMesta : null;
+  if (fmt && fmt.countries.length === 1) return fmt.countries[0];
+  if (ibanKrajina && (!psc || (fmt && fmt.countries.includes(ibanKrajina)))) return ibanKrajina;
+  return null;
+}
+
+/** Krajina z IBAN tej istej strany: Dbtr DbtrAcct, Cdtr CdtrAcct v tej istej transakcii, InitgPty prvý DbtrAcct. */
+function ibanKrajinaStrany(adr, documentEl) {
+  const strana = adr.parent;
+  if (!strana) return null;
+  let ucet = null;
+  if (strana.tag === 'Dbtr' || strana.tag === 'Cdtr') ucet = firstChild(strana.parent, strana.tag + 'Acct');
+  else if (strana.tag === 'InitgPty') ucet = findAll(documentEl, 'DbtrAcct')[0] || null;
+  const iban = textOf(firstChild(firstChild(ucet, 'Id'), 'IBAN')).replace(/\s+/g, '').toUpperCase();
+  return /^[A-Z]{2}/.test(iban) ? iban.slice(0, 2) : null;
+}
+
+/**
+ * Mesto, krajina, ulica a číslo pre návrh opravy jednej adresy; čo sa
+ * nedá spoľahlivo určiť, je ''. Mesto: TwnNm, inak z AdrLine. Krajina:
+ * platný Ctry, inak krajinaAdresy (s IBAN strany ako slabším zdrojom).
+ */
+function navrhAdresy(adr, a, documentEl) {
+  const zRiadkov = mestoZRiadkov(a.adrLine);
+  const mesto = a.mesto || zRiadkov.mesto;
+  const psc = rozborPsc(adr) || zRiadkov.psc;
+  const ibanKrajina = ibanKrajinaStrany(adr, documentEl);
+  const krajina = /^[A-Z]{2}$/.test(a.krajina)
+    ? a.krajina
+    : krajinaAdresy({ uvedena: zRiadkov.uvedena, mesto, psc, ibanKrajina }) || '';
+  let ulica = '';
+  let cislo = '';
+  const rozdelena = a.adrLine.length ? parseAddressLines(a.adrLine, ibanKrajina) : null;
+  if (rozdelena && rozdelena.ok) { ulica = rozdelena.fields.StrtNm; cislo = rozdelena.fields.BldgNb; }
+  return { mesto, krajina, ulica, cislo, psc, uvedena: zRiadkov.uvedena };
+}
+
+/**
+ * Návrh <Ctry> pri zlom kóde krajiny: kód z názvu (Slovensko -> SK, ako platená oprava),
+ * inak z mesta alebo PSČ tej istej adresy, inak zástupný text. IBAN sa tu nepoužije.
+ */
+function navrhKrajinyZoZlehoKodu(a, navrh, zastupny) {
+  const kod = countryCode(a.krajina) || krajinaAdresy({ uvedena: navrh.uvedena, mesto: navrh.mesto, psc: navrh.psc, ibanKrajina: null }) || '';
+  return prvokNavrhu('Ctry', kod, zastupny);
+}
+
+/** Text prvého <PstCd> adresy, ak je. */
+function rozborPsc(adr) {
+  return textOf(firstChild(adr, 'PstCd')).trim();
+}
+
+/** Zlúčený nález: hodnota poľa len ak ju dali všetky adresy skupiny rovnakú, inak ''. */
+function spolocnyNavrh(navrhy, kluce) {
+  const out = {};
+  for (const k of kluce) {
+    const prva = navrhy[0][k];
+    out[k] = navrhy.every((n) => n[k] === prva) ? prva : '';
+  }
+  // Ulica a číslo patria k sebe: bez jedného nemá zmysel ani druhé.
+  if ('ulica' in out && (!out.ulica || !out.cislo)) { out.ulica = ''; out.cislo = ''; }
+  return out;
+}
+
 /** Rozoberie jeden <PstlAdr> na to, čo v ňom je. */
 function rozborAdresy(pstlAdr) {
   const polia = {};
@@ -1184,16 +1522,23 @@ function skontrolujAdresy(documentEl, addProblem, dnes, T) {
   // Zlúčené nálezy (jeden na druh) nesú uzly VŠETKÝCH adries toho druhu, aby správa
   // a stránka ukázali riadok každej z nich (zadanie sepa-riadok, brána pokus 1, nález B1).
   const skupiny = new Map();
-  function hlasRaz(kluc, adr, strana, nalez, sprava) {
+  // navrh: mesto, krajina, ulica a číslo tejto adresy (navrhAdresy); zostav
+  // z nich robí fix. Návrh zlúčeného nálezu sa skladá až po prejdení všetkých
+  // adries, aby mesto jednej adresy nebolo ukázané ako oprava inej.
+  function hlasRaz(kluc, adr, strana, nalez, sprava, navrh, zostav) {
     const sk = skupiny.get(kluc);
     if (sk) {
       sk.uzly.push(adr);
       sk.strany.add(strana);
+      sk.navrhy.push(navrh);
       return;
     }
     const uzly = [adr];
-    skupiny.set(kluc, { uzly, strany: new Set([strana]), zaznam: addProblem({ ...nalez, group: kluc, node: adr, nodes: uzly }), sprava });
+    skupiny.set(kluc, { uzly, strany: new Set([strana]), zaznam: addProblem({ ...nalez, group: kluc, node: adr, nodes: uzly, fix: zostav(navrh) }), sprava, navrhy: [navrh], zostav });
   }
+  const Z = T.zastupne;
+  const fixMesto = (n) => prvokNavrhu('TwnNm', n.mesto, Z.mesto);
+  const fixKrajina = (n) => prvokNavrhu('Ctry', n.krajina, Z.krajina);
 
   for (const adr of vsetky) {
     const a = rozborAdresy(adr);
@@ -1201,6 +1546,7 @@ function skontrolujAdresy(documentEl, addProblem, dnes, T) {
     const kde = cestaK(adr);
     const strana = ktoraStrana(adr);
     const cieCast = T.strana[strana] || T.strana._;
+    const navrh = navrhAdresy(adr, a, documentEl);
 
     if (a.adrLine.length && !a.struktura.length) {
       zle++;
@@ -1210,23 +1556,23 @@ function skontrolujAdresy(documentEl, addProblem, dnes, T) {
         message: T.adresaNestrukturovana(cieCast, poTermine),
         path: kde,
         value: a.adrLine.join(' | '),
-        fix: '<PstlAdr><TwnNm>Bratislava</TwnNm><Ctry>SK</Ctry></PstlAdr>',
-      }, (c) => T.adresaNestrukturovana(c, poTermine));
+      }, (c) => T.adresaNestrukturovana(c, poTermine), navrh, (n) => '<PstlAdr>' + fixMesto(n) + fixKrajina(n) + '</PstlAdr>');
       continue;
     }
 
     if (!a.mesto || !a.krajina) {
       zle++;
-      const chyba = !a.mesto && !a.krajina ? T.chybaMestoKrajina : !a.mesto ? T.chybaMesto : T.chybaKrajina;
-      const druh = !a.mesto && !a.krajina ? 'bez_mesta_krajiny' : !a.mesto ? 'bez_mesta' : 'bez_krajiny';
+      const obe = !a.mesto && !a.krajina;
+      const chyba = obe ? T.chybaMestoKrajina : !a.mesto ? T.chybaMesto : T.chybaKrajina;
+      const druh = obe ? 'bez_mesta_krajiny' : !a.mesto ? 'bez_mesta' : 'bez_krajiny';
       hlasRaz(druh, adr, strana, {
         code: 'adresa_bez_mesta_alebo_krajiny',
         severity: zavaznost,
-        message: T.adresaBezMestaKrajiny(cieCast, chyba),
+        message: T.adresaBezMestaKrajiny(cieCast, chyba, obe),
         path: kde,
         value: a.struktura.join(', '),
-        fix: !a.mesto ? '<TwnNm>Bratislava</TwnNm>' : '<Ctry>SK</Ctry>',
-      }, (c) => T.adresaBezMestaKrajiny(c, chyba));
+      }, (c) => T.adresaBezMestaKrajiny(c, chyba, obe), navrh,
+      druh === 'bez_mesta_krajiny' ? (n) => fixMesto(n) + fixKrajina(n) : druh === 'bez_mesta' ? fixMesto : fixKrajina);
       continue;
     }
 
@@ -1238,8 +1584,9 @@ function skontrolujAdresy(documentEl, addProblem, dnes, T) {
         message: T.adresaVelaRiadkov(a.adrLine.length),
         path: kde,
         value: a.adrLine.join(' | '),
-        fix: '<StrtNm>Ivanská cesta</StrtNm><BldgNb>32E</BldgNb>',
-      }, null);
+      }, null, navrh, (n) => (n.ulica && n.cislo
+        ? prvokNavrhu('StrtNm', n.ulica) + prvokNavrhu('BldgNb', n.cislo)
+        : prvokNavrhu('StrtNm', '', Z.ulica) + prvokNavrhu('BldgNb', '', Z.cislo)));
     }
 
     if (a.krajina && !/^[A-Z]{2}$/.test(a.krajina)) {
@@ -1251,9 +1598,13 @@ function skontrolujAdresy(documentEl, addProblem, dnes, T) {
         path: kde + '/Ctry',
         node: firstChild(adr, 'Ctry') || adr,
         value: a.krajina,
-        fix: '<Ctry>SK</Ctry>',
+        fix: navrhKrajinyZoZlehoKodu(a, navrh, Z.krajina),
       });
     }
+  }
+  // Návrh zlúčeného nálezu: pole, ktoré všetky adresy skupiny dali rovnaké, inak zástupný text.
+  for (const sk of skupiny.values()) {
+    if (sk.zaznam && sk.navrhy.length > 1) sk.zaznam.fix = sk.zostav(spolocnyNavrh(sk.navrhy, ['mesto', 'krajina', 'ulica', 'cislo']));
   }
   // Ak zlúčený nález pokrýva adresy viacerých strán, hláška nemenuje len prvú z nich.
   for (const sk of skupiny.values()) {
@@ -1386,7 +1737,7 @@ export function diagnose(input) {
     addProblem({
       code: 'xml_not_well_formed',
       severity: 'high',
-      message: T.xmlZleFormovane(parsed.errors[0], parsed.errors.length > 1 ? parsed.errors.length - 1 : 0),
+      message: T.xmlZleFormovane(T.xmlChyby[parsed.errors[0].kod](parsed.errors[0]), parsed.errors.length > 1 ? parsed.errors.length - 1 : 0),
       path: '',
     });
   }
