@@ -181,8 +181,48 @@ const SPRAVY = {
     cdtrBicMimoSepa: (tx, tag) => tx + ': CdtrAgt/FinInstnId/' + tag + ' chýba a IBAN príjemcu nepatrí do SEPA priestoru. Tatra banka BIC odvodí z IBAN len ak IBAN patrí banke zo SEPA priestoru: inak platbu zamietne.',
     cdtrBicFormat: (tx, tag, v) => tx + ': CdtrAgt/FinInstnId/' + tag + ' "' + v + '" nemá platný formát BIC (8 alebo 11 znakov).',
     cdtrBicNesediIban: (tx, tag, v, kod, odvodeny) => tx + ': CdtrAgt/FinInstnId/' + tag + ' "' + v + '" sa nezhoduje s bankou odvodenou z IBAN (kód banky ' + kod + ' → ' + odvodeny + '). Tatra banka porovnáva prvých 6 znakov zadaného a vypočítaného BIC: pri nezhode platbu zamietne.',
-    viacUstrd: (tx, n) => tx + ': RmtInf obsahuje ' + n + ' elementov Ustrd. Povolená je iba jedna inštancia: nadbytočné banka pri spracovaní odstráni.',
+    viacUstrd: (tx, n) => tx + ': RmtInf obsahuje ' + n + ' ' + tvarPoctu(n, 'prvok', 'prvky', 'prvkov') + ' <Ustrd>. Pravidlá EPC pre pain.001 povoľujú jeden („Only one occurrence of \'Unstructured\' is allowed“). Tatra banka v popise formátu pain.001.001.03 píše: „Povolená je iba jedna inštancia Ustrd. Nadbytočné elementy budú odstránené.“ Text z ďalších <Ustrd> sa tak k príjemcovi nemusí dostať: spojte ho do jedného <Ustrd> (najviac 140 znakov).',
     ustrdDlhy: (tx, n) => tx + ': RmtInf/Ustrd má ' + n + ' znakov, maximum je 140.',
+    // RmtInf: Ustrd aj Strd naraz, viac Strd, dlhý Strd, neúplná referencia veriteľa (25. 11. 2026, zdroje pri symbolyZoStrd()).
+    // Poradie viet v náleze: problém, čo urobiť, pravidlo so zdrojom, veta banky (brána sepa-rmtinf, pokus 1, O11).
+    ustrdAjStrd: (tx) => tx + ': RmtInf obsahuje naraz <Ustrd> aj <Strd>, pravidlá SEPA dovoľujú len jeden z nich.',
+    ustrdAjStrdPravidlo: ' Pravidlá EPC pre pain.001: „Either \'Structured\' or \'Unstructured\' may be present“; rovnako slovenský štandard SBA pre pain.001 pri SEPA úhrade. Ktorý z nich má prednosť, tieto pravidlá neurčujú: banka môže platbu odmietnuť alebo jednu časť k príjemcovi nepreniesť.',
+    ustrdAjStrdBanka: {
+      slsp09: 'Slovenská sporiteľňa v špecifikácii importu pain.001.001.09 v stĺpci validácií (požiadavka REQ-20584) uvádza: ak sú použité Strd aj Ustrd, dôvod odmietnutia FF01.',
+      slsp03: 'Slovenská sporiteľňa v špecifikácii importu pain.001.001.03 pri SEPA úhrade dovoľuje buď Unstructured, alebo Structured, nie obe.',
+      vub: 'VÚB v popise formátu SEPA úhrad píše: „VÚB pre SEPA úhrady bude používať výhradne USTRD formu.“',
+      tatrabanka: 'Tatra banka v popise formátu pain.001.001.03 píše: „Vyplnený je element Ustrd alebo Strd.“',
+      csob: 'ČSOB v špecifikácii importu píše, že pri SEPA úhrade môže byť použité len Strd alebo Ustrd.',
+    },
+    viacStrd: (tx, n) => tx + ': RmtInf obsahuje ' + n + ' ' + tvarPoctu(n, 'prvok', 'prvky', 'prvkov') + ' <Strd>, pravidlá SEPA dovoľujú jeden.',
+    viacStrdPravidlo: ' Pravidlá EPC pre pain.001: „Only one occurrence of \'Structured\' is allowed“; slovenský štandard SBA pri SEPA úhrade tiež. Banka môže platbu odmietnuť alebo ďalšie <Strd> k príjemcovi nepreniesť.',
+    viacStrdEriMoznost: ' Viac výskytov dovoľuje len voliteľná služba EPC Extended Remittance Information pri platbe označenej PERI, ak k nej pristúpila banka platiteľa aj príjemcu.',
+    viacStrdEri: (tx, n) => tx + ': RmtInf obsahuje ' + n + ' prvkov <Strd>. Aj pri platbe PERI (EPC Extended Remittance Information) je ich najviac 999.',
+    periBanka: (banka) => ' Označenie PERI (EPC Extended Remittance Information) ' + banka + ' v dokumentácii importu neuvádza, preto ho nástroj pri nej neberie do úvahy.',
+    periSlsp: ' Slovenská sporiteľňa pri LclInstrm uvádza len okamžitú platbu a iné hodnoty, teda aj PERI, vyhodnotí ako nepoužitie tohto prvku.',
+    strdDlhy: (tx, n, bez, eri) => tx + ': <Strd> má spolu so značkami vnútorných prvkov ' + n + ' znakov (bez <Strd> a </Strd>). ' + (eri
+      ? 'Pri platbe PERI (EPC Extended Remittance Information) je limit 280 znakov na jeden <Strd> vrátane značiek vnútorných prvkov.'
+      : 'Pravidlá EPC pre pain.001 dovoľujú 140: „\'Structured\' can be used, provided the tags and the data within the \'Structured\' element (i.e. excluding <Strd> and </Strd>) do not exceed 140 characters in length.“ Bez značiek má ' + bez + ' ' + tvarPoctu(bez, 'znak', 'znaky', 'znakov') + '; slovenský štandard SBA pre pain.001.001.09 počíta 140 znakov bez názvov značiek.') + ' Banka môže platbu odmietnuť alebo štruktúrovanú časť k príjemcovi nepreniesť celú. Skráťte ju alebo informáciu zapíšte ako text do <Ustrd> (najviac 140 znakov).',
+    cdtrRefBezTp: 'nemá typ referencie <Tp>',
+    cdtrRefBezRef: 'nemá referenciu <Ref>',
+    cdtrRefZlyTyp: (v) => 'má typ "' + v + '" namiesto "SCOR"',
+    krat: (n) => ' (' + n + '-krát)',
+    cdtrRefNeuplna: (tx, popis) => tx + ': RmtInf/Strd/CdtrRefInf ' + popis + '. Pravidlá EPC pre pain.001: „When used both \'Type\' and \'Reference\' must be present“ a typ smie byť len <Tp><CdOrPrtry><Cd>SCOR</Cd></CdOrPrtry></Tp> („Only \'SCOR\' is allowed“), teda štruktúrovaná referencia veriteľa, napríklad RF podľa ISO 11649.',
+    cdtrRefNeoveruje: ' Banka platiteľa ju overovať nemusí, súbor však pravidlo porušuje.',
+    cdtrRefSlspRr09: ' Slovenská sporiteľňa v špecifikácii importu pain.001.001.09 pri referencii s typom a bez <Ref> uvádza dôvod odmietnutia RR09.',
+    // Návrh opravy, keď sú v Strd len slovenské platobné symboly (štandard SBA: v rámci SR do EndToEndId v tvare /VS(10)/SS(10)/KS(4)).
+    symbolyStrd: (zoznam) => ' V <Strd> sú slovenské platobné symboly (' + zoznam + '). Slovenský štandard SBA pre pain.001 ich pri SEPA úhrade v rámci Slovenska zapisuje do <EndToEndId> v tvare /VS/SS/KS (VÚB uvádza príklad /VS123/SS456/KS0308).',
+    symbolyPresun: (sUstrd) => ' Návrh nižšie ukazuje <EndToEndId> so symbolmi (patrí do <PmtId> namiesto terajšieho)' + (sUstrd ? ' a nový <RmtInf> namiesto celého terajšieho: text ponecháva v <Ustrd>, <Strd> vynecháva.' : '; <RmtInf> potom celý vynechajte.'),
+    symbolyNahradi: (v) => ' Terajšiu hodnotu <EndToEndId> "' + v + '" návrh nahrádza; ak ju používate na párovanie, zmeňte to aj v účtovníctve.',
+    symbolyDoplni: (zoznam) => ' Do terajšieho <EndToEndId> návrh doplní chýbajúce symboly (' + zoznam + ').',
+    symbolyUzVE2E: (sUstrd) => ' Rovnaké symboly už sú v <EndToEndId>, ' + (sUstrd ? 'stačí vynechať <Strd>: návrh nižšie je nový <RmtInf> namiesto celého terajšieho.' : '<RmtInf> preto môžete celý vynechať.'),
+    symbolyIne: (v) => ' <EndToEndId> už obsahuje iné symboly ("' + v + '"): overte, ktoré sú správne, a nechajte ich len v <EndToEndId>.',
+    symbolyMimoSr: ' Návrh do <EndToEndId> nástroj dáva len pri účte príjemcu so slovenským IBAN: mimo Slovenska štandard SBA lomku na začiatku <EndToEndId> nedovoľuje. Zápis symbolov si dohodnite s príjemcom alebo ho overte v banke.',
+    symbolyDlhe: ' Spolu s terajšou hodnotou by <EndToEndId> mal viac ako 35 znakov, preto návrh nedávame.',
+    bezSymbolov: ' Nechajte len jeden z nich: text v <Ustrd>, alebo štruktúrovanú referenciu v <Strd>, ak ju príjemca od vás vyžaduje.',
+    opravaPriUstrdAjStrd: ' Opravu ukazuje nález o <Ustrd> a <Strd> naraz v tej istej platbe.',
+    opravaPriViacStrd: ' Opravu ukazuje nález o viacerých <Strd> v tej istej platbe.',
+    symbolNazov: { VS: 'VS', SS: 'ŠS', KS: 'KS' },
     slspInstant: (tx) => tx + ': PmtTpInf/LclInstrm/Cd nie je nastavené. Ak má byť táto platba spracovaná ako okamžitá (instant), Business24 vyžaduje hodnotu "INST": bez nej sa platba spracuje ako bežná SEPA úhrada, bez chybového hlásenia.',
     pocetNesedi: (ocak, sk) => 'Očakávali ste ' + ocak + ' transakcií, súbor však obsahuje ' + sk + '. Skontrolujte, či ste nahrali správny/celý súbor, alebo či export z účtovníctva nevynechal/zdvojil platby.',
     suborVelky: (mb) => 'Súbor má približne ' + mb + ' MB. Veľmi veľké súbory môžu importný formulár banky spomaliť alebo prekročiť jeho limit: zvážte rozdelenie do viacerých súborov.',
@@ -318,8 +358,45 @@ const SPRAVY = {
     cdtrBicMimoSepa: (tx, tag) => tx + ': CdtrAgt/FinInstnId/' + tag + ' is missing and the creditor IBAN is not in the SEPA area. Tatra banka derives the BIC from the IBAN only when the IBAN belongs to a bank in the SEPA area: otherwise it rejects the payment.',
     cdtrBicFormat: (tx, tag, v) => tx + ': CdtrAgt/FinInstnId/' + tag + ' "' + v + '" is not a valid BIC format (8 or 11 characters).',
     cdtrBicNesediIban: (tx, tag, v, kod, odvodeny) => tx + ': CdtrAgt/FinInstnId/' + tag + ' "' + v + '" does not match the bank derived from the IBAN (bank code ' + kod + ' → ' + odvodeny + '). Tatra banka compares the first 6 characters of the given and the computed BIC: on a mismatch it rejects the payment.',
-    viacUstrd: (tx, n) => tx + ': RmtInf contains ' + n + ' Ustrd elements. Only one instance is allowed: the bank strips the extras during processing.',
+    viacUstrd: (tx, n) => tx + ': RmtInf contains ' + n + ' <Ustrd> elements. The EPC rules for pain.001 allow one ("Only one occurrence of \'Unstructured\' is allowed"). Tatra banka\'s pain.001.001.03 format description says: "Povolená je iba jedna inštancia Ustrd. Nadbytočné elementy budú odstránené." (only one Ustrd instance is allowed, the extra elements will be removed). The text in the further <Ustrd> elements may therefore never reach the beneficiary: merge it into one <Ustrd> (at most 140 characters).',
     ustrdDlhy: (tx, n) => tx + ': RmtInf/Ustrd is ' + n + ' characters, the maximum is 140.',
+    ustrdAjStrd: (tx) => tx + ': RmtInf contains both <Ustrd> and <Strd>; the SEPA rules allow only one of them.',
+    ustrdAjStrdPravidlo: ' The EPC rules for pain.001: "Either \'Structured\' or \'Unstructured\' may be present"; the Slovak SBA standard for pain.001 says the same for a SEPA credit transfer. Neither says which one takes precedence: the bank may reject the payment or not pass one of the two parts on to the beneficiary.',
+    ustrdAjStrdBanka: {
+      slsp09: 'In the validation column of its pain.001.001.09 import specification (requirement REQ-20584), Slovenská sporiteľňa states: if both Strd and Ustrd are used, rejection reason FF01.',
+      slsp03: 'Slovenská sporiteľňa\'s pain.001.001.03 import specification allows either Unstructured or Structured for a SEPA credit transfer, not both.',
+      vub: 'VÚB\'s SEPA credit transfer format description says: "VÚB pre SEPA úhrady bude používať výhradne USTRD formu." (for SEPA credit transfers VÚB will use the Ustrd form only).',
+      tatrabanka: 'Tatra banka\'s pain.001.001.03 format description says: "Vyplnený je element Ustrd alebo Strd." (either Ustrd or Strd is filled in).',
+      csob: 'ČSOB\'s import specification says that a SEPA credit transfer may use only Strd or Ustrd.',
+    },
+    viacStrd: (tx, n) => tx + ': RmtInf contains ' + n + ' <Strd> elements; the SEPA rules allow one.',
+    viacStrdPravidlo: ' The EPC rules for pain.001: "Only one occurrence of \'Structured\' is allowed"; so does the Slovak SBA standard for a SEPA credit transfer. The bank may reject the payment or not pass the further <Strd> on to the beneficiary.',
+    viacStrdEriMoznost: ' More occurrences are allowed only by the optional EPC Extended Remittance Information service for a payment tagged PERI, if both the payer\'s and the beneficiary\'s bank have adhered to it.',
+    viacStrdEri: (tx, n) => tx + ': RmtInf contains ' + n + ' <Strd> elements. Even for a PERI payment (EPC Extended Remittance Information) the maximum is 999.',
+    periBanka: (banka) => ' ' + banka + ' does not list the PERI tag (EPC Extended Remittance Information) in its import documentation, so the tool does not take it into account for this bank.',
+    periSlsp: ' For LclInstrm, Slovenská sporiteľňa lists only instant payments and treats other values, PERI included, as if the element were not used.',
+    strdDlhy: (tx, n, bez, eri) => tx + ': <Strd> is ' + n + ' characters long including the tags of the elements inside it (excluding <Strd> and </Strd>). ' + (eri
+      ? 'For a PERI payment (EPC Extended Remittance Information) the limit is 280 characters per <Strd>, including the tags of the elements inside it.'
+      : 'The EPC rules for pain.001 allow 140: "\'Structured\' can be used, provided the tags and the data within the \'Structured\' element (i.e. excluding <Strd> and </Strd>) do not exceed 140 characters in length." Without the tags it is ' + bez + ' characters; the Slovak SBA standard for pain.001.001.09 counts 140 characters without the tag names.') + ' The bank may reject the payment or not pass the whole structured part on to the beneficiary. Shorten it or write the information as text in <Ustrd> (at most 140 characters).',
+    cdtrRefBezTp: 'has no reference type <Tp>',
+    cdtrRefBezRef: 'has no reference <Ref>',
+    cdtrRefZlyTyp: (v) => 'has the type "' + v + '" instead of "SCOR"',
+    krat: (n) => ' (' + n + ' times)',
+    cdtrRefNeuplna: (tx, popis) => tx + ': RmtInf/Strd/CdtrRefInf ' + popis + '. The EPC rules for pain.001: "When used both \'Type\' and \'Reference\' must be present", and the type may only be <Tp><CdOrPrtry><Cd>SCOR</Cd></CdOrPrtry></Tp> ("Only \'SCOR\' is allowed"), that is a structured creditor reference such as an RF reference under ISO 11649.',
+    cdtrRefNeoveruje: ' The payer\'s bank does not have to validate it, but the file breaks the rule.',
+    cdtrRefSlspRr09: ' For a reference with a type and without <Ref>, Slovenská sporiteľňa\'s pain.001.001.09 import specification gives rejection reason RR09.',
+    symbolyStrd: (zoznam) => ' <Strd> holds Slovak payment symbols (' + zoznam + '). For a SEPA credit transfer within Slovakia, the Slovak SBA standard for pain.001 writes them in <EndToEndId> as /VS/SS/KS (VÚB gives the example /VS123/SS456/KS0308).',
+    symbolyPresun: (sUstrd) => ' The suggestion below shows <EndToEndId> with the symbols (it goes in <PmtId>, replacing the current one)' + (sUstrd ? ' and a new <RmtInf> replacing the whole current one: it keeps the text in <Ustrd> and leaves out <Strd>.' : '; then leave out the whole <RmtInf>.'),
+    symbolyNahradi: (v) => ' The suggestion replaces the current <EndToEndId> value "' + v + '"; if you use it for matching, change it in your accounting too.',
+    symbolyDoplni: (zoznam) => ' The suggestion adds the missing symbols to the current <EndToEndId> (' + zoznam + ').',
+    symbolyUzVE2E: (sUstrd) => ' The same symbols are already in <EndToEndId>, ' + (sUstrd ? 'so it is enough to leave out <Strd>: the suggestion below is a new <RmtInf> replacing the whole current one.' : 'so you can leave out the whole <RmtInf>.'),
+    symbolyIne: (v) => ' <EndToEndId> already holds different symbols ("' + v + '"): check which are right and keep them in <EndToEndId> only.',
+    symbolyMimoSr: ' The tool suggests an <EndToEndId> value only for a beneficiary account with a Slovak IBAN: outside Slovakia the SBA standard does not allow a slash at the start of <EndToEndId>. Agree with the beneficiary how to write the symbols, or check with your bank.',
+    symbolyDlhe: ' Together with the current value <EndToEndId> would be longer than 35 characters, so no value is suggested.',
+    bezSymbolov: ' Keep only one of them: the text in <Ustrd>, or the structured reference in <Strd> if the beneficiary asked you for it.',
+    opravaPriUstrdAjStrd: ' The fix is shown at the finding about <Ustrd> and <Strd> together in the same payment.',
+    opravaPriViacStrd: ' The fix is shown at the finding about more than one <Strd> in the same payment.',
+    symbolNazov: { VS: 'VS', SS: 'SS', KS: 'KS' },
     slspInstant: (tx) => tx + ': PmtTpInf/LclInstrm/Cd is not set. If this payment is meant to be processed as an instant transfer, Business24 requires the value "INST": without it the payment is processed as a normal SEPA transfer, with no error message.',
     pocetNesedi: (ocak, sk) => 'You expected ' + ocak + ' transactions, but the file contains ' + sk + '. Check that you uploaded the right and complete file, or whether the accounting export skipped or duplicated payments.',
     suborVelky: (mb) => 'The file is roughly ' + mb + ' MB. Very large files can slow down the bank\'s import form or exceed its limit: consider splitting them.',
@@ -455,8 +532,45 @@ const SPRAVY = {
     cdtrBicMimoSepa: (tx, tag) => tx + ': CdtrAgt/FinInstnId/' + tag + ' fehlt und die Empfänger-IBAN liegt nicht im SEPA-Raum. Tatra banka leitet die BIC nur dann aus der IBAN ab, wenn die IBAN zu einer Bank im SEPA-Raum gehört: sonst weist sie die Zahlung zurück.',
     cdtrBicFormat: (tx, tag, v) => tx + ': CdtrAgt/FinInstnId/' + tag + ' "' + v + '" hat kein gültiges BIC-Format (8 oder 11 Zeichen).',
     cdtrBicNesediIban: (tx, tag, v, kod, odvodeny) => tx + ': CdtrAgt/FinInstnId/' + tag + ' "' + v + '" passt nicht zu der aus der IBAN abgeleiteten Bank (Bankleitzahl ' + kod + ' → ' + odvodeny + '). Tatra banka vergleicht die ersten 6 Zeichen der angegebenen und der berechneten BIC: bei Abweichung weist sie die Zahlung zurück.',
-    viacUstrd: (tx, n) => tx + ': RmtInf enthält ' + n + ' Ustrd-Elemente. Erlaubt ist nur eine Instanz: die überzähligen entfernt die Bank bei der Verarbeitung.',
+    viacUstrd: (tx, n) => tx + ': RmtInf enthält ' + n + ' <Ustrd>-Elemente. Die EPC-Regeln für pain.001 erlauben eines („Only one occurrence of \'Unstructured\' is allowed“). Tatra banka schreibt in ihrer Formatbeschreibung zu pain.001.001.03: „Povolená je iba jedna inštancia Ustrd. Nadbytočné elementy budú odstránené.“ (nur eine Ustrd-Instanz ist erlaubt, überzählige Elemente werden entfernt). Der Text aus den weiteren <Ustrd> kommt beim Empfänger also womöglich nicht an: Fassen Sie ihn in einem <Ustrd> zusammen (höchstens 140 Zeichen).',
     ustrdDlhy: (tx, n) => tx + ': RmtInf/Ustrd hat ' + n + ' Zeichen, das Maximum ist 140.',
+    ustrdAjStrd: (tx) => tx + ': RmtInf enthält zugleich <Ustrd> und <Strd>; die SEPA-Regeln erlauben nur eines davon.',
+    ustrdAjStrdPravidlo: ' Die EPC-Regeln für pain.001: „Either \'Structured\' or \'Unstructured\' may be present“; ebenso der slowakische SBA-Standard für pain.001 bei einer SEPA-Überweisung. Welches Vorrang hat, legen diese Regeln nicht fest: Die Bank kann die Zahlung zurückweisen oder einen der beiden Teile nicht an den Empfänger weitergeben.',
+    ustrdAjStrdBanka: {
+      slsp09: 'Slovenská sporiteľňa nennt in der Validierungsspalte ihrer Importspezifikation für pain.001.001.09 (Anforderung REQ-20584): Werden Strd und Ustrd zugleich verwendet, Ablehnungsgrund FF01.',
+      slsp03: 'Slovenská sporiteľňa erlaubt in ihrer Importspezifikation für pain.001.001.03 bei einer SEPA-Überweisung entweder Unstructured oder Structured, nicht beides.',
+      vub: 'VÚB schreibt in ihrer Formatbeschreibung für SEPA-Überweisungen: „VÚB pre SEPA úhrady bude používať výhradne USTRD formu.“ (für SEPA-Überweisungen verwendet VÚB ausschließlich die Ustrd-Form).',
+      tatrabanka: 'Tatra banka schreibt in ihrer Formatbeschreibung zu pain.001.001.03: „Vyplnený je element Ustrd alebo Strd.“ (ausgefüllt ist Ustrd oder Strd).',
+      csob: 'ČSOB schreibt in ihrer Importspezifikation, dass eine SEPA-Überweisung nur Strd oder Ustrd verwenden darf.',
+    },
+    viacStrd: (tx, n) => tx + ': RmtInf enthält ' + n + ' <Strd>-Elemente; die SEPA-Regeln erlauben eines.',
+    viacStrdPravidlo: ' Die EPC-Regeln für pain.001: „Only one occurrence of \'Structured\' is allowed“; ebenso der slowakische SBA-Standard bei einer SEPA-Überweisung. Die Bank kann die Zahlung zurückweisen oder die weiteren <Strd> nicht an den Empfänger weitergeben.',
+    viacStrdEriMoznost: ' Mehrere Vorkommen erlaubt nur der optionale EPC-Dienst Extended Remittance Information bei einer mit PERI gekennzeichneten Zahlung, wenn die Bank des Zahlers und die des Empfängers ihm beigetreten sind.',
+    viacStrdEri: (tx, n) => tx + ': RmtInf enthält ' + n + ' <Strd>-Elemente. Auch bei einer PERI-Zahlung (EPC Extended Remittance Information) sind höchstens 999 erlaubt.',
+    periBanka: (banka) => ' ' + banka + ' nennt die Kennzeichnung PERI (EPC Extended Remittance Information) in ihrer Importdokumentation nicht, deshalb berücksichtigt das Werkzeug sie bei dieser Bank nicht.',
+    periSlsp: ' Slovenská sporiteľňa nennt bei LclInstrm nur die Echtzeitzahlung und wertet andere Werte, also auch PERI, so, als wäre das Element nicht verwendet.',
+    strdDlhy: (tx, n, bez, eri) => tx + ': <Strd> hat zusammen mit den Tags der inneren Elemente ' + n + ' Zeichen (ohne <Strd> und </Strd>). ' + (eri
+      ? 'Bei einer PERI-Zahlung (EPC Extended Remittance Information) liegt die Grenze bei 280 Zeichen je <Strd>, einschließlich der Tags der inneren Elemente.'
+      : 'Die EPC-Regeln für pain.001 erlauben 140: „\'Structured\' can be used, provided the tags and the data within the \'Structured\' element (i.e. excluding <Strd> and </Strd>) do not exceed 140 characters in length.“ Ohne Tags sind es ' + bez + ' Zeichen; der slowakische SBA-Standard für pain.001.001.09 zählt 140 Zeichen ohne Tag-Namen.') + ' Die Bank kann die Zahlung zurückweisen oder den strukturierten Teil nicht vollständig an den Empfänger weitergeben. Kürzen Sie ihn oder schreiben Sie die Information als Text in <Ustrd> (höchstens 140 Zeichen).',
+    cdtrRefBezTp: 'hat keinen Referenztyp <Tp>',
+    cdtrRefBezRef: 'hat keine Referenz <Ref>',
+    cdtrRefZlyTyp: (v) => 'hat den Typ "' + v + '" statt "SCOR"',
+    krat: (n) => ' (' + n + '-mal)',
+    cdtrRefNeuplna: (tx, popis) => tx + ': RmtInf/Strd/CdtrRefInf ' + popis + '. Die EPC-Regeln für pain.001: „When used both \'Type\' and \'Reference\' must be present“, und der Typ darf nur <Tp><CdOrPrtry><Cd>SCOR</Cd></CdOrPrtry></Tp> sein („Only \'SCOR\' is allowed“), also eine strukturierte Gläubigerreferenz wie eine RF-Referenz nach ISO 11649.',
+    cdtrRefNeoveruje: ' Die Bank des Zahlers muss sie nicht prüfen, die Datei verstößt aber gegen die Regel.',
+    cdtrRefSlspRr09: ' Für eine Referenz mit Typ und ohne <Ref> nennt Slovenská sporiteľňa in ihrer Importspezifikation für pain.001.001.09 den Ablehnungsgrund RR09.',
+    symbolyStrd: (zoznam) => ' In <Strd> stehen slowakische Zahlungssymbole (' + zoznam + '). Der slowakische SBA-Standard für pain.001 schreibt sie bei einer SEPA-Überweisung innerhalb der Slowakei in <EndToEndId> in der Form /VS/SS/KS (VÚB nennt das Beispiel /VS123/SS456/KS0308).',
+    symbolyPresun: (sUstrd) => ' Der Vorschlag unten zeigt <EndToEndId> mit den Symbolen (gehört in <PmtId>, statt des bisherigen)' + (sUstrd ? ' und ein neues <RmtInf> statt des ganzen bisherigen: Der Text bleibt in <Ustrd>, <Strd> entfällt.' : '; lassen Sie danach das ganze <RmtInf> weg.'),
+    symbolyNahradi: (v) => ' Der Vorschlag ersetzt den bisherigen Wert von <EndToEndId> "' + v + '"; wenn Sie ihn zum Abgleich verwenden, ändern Sie ihn auch in der Buchhaltung.',
+    symbolyDoplni: (zoznam) => ' Der Vorschlag ergänzt im bisherigen <EndToEndId> die fehlenden Symbole (' + zoznam + ').',
+    symbolyUzVE2E: (sUstrd) => ' Dieselben Symbole stehen schon in <EndToEndId>, ' + (sUstrd ? 'es genügt, <Strd> wegzulassen: Der Vorschlag unten ist ein neues <RmtInf> statt des ganzen bisherigen.' : '<RmtInf> können Sie deshalb ganz weglassen.'),
+    symbolyIne: (v) => ' <EndToEndId> enthält schon andere Symbole ("' + v + '"): Prüfen Sie, welche stimmen, und lassen Sie sie nur in <EndToEndId>.',
+    symbolyMimoSr: ' Einen Wert für <EndToEndId> schlägt das Werkzeug nur bei einem Empfängerkonto mit slowakischer IBAN vor: außerhalb der Slowakei erlaubt der SBA-Standard keinen Schrägstrich am Anfang von <EndToEndId>. Vereinbaren Sie die Schreibweise der Symbole mit dem Empfänger oder klären Sie sie mit Ihrer Bank.',
+    symbolyDlhe: ' Zusammen mit dem bisherigen Wert wäre <EndToEndId> länger als 35 Zeichen, deshalb gibt es keinen Vorschlag.',
+    bezSymbolov: ' Lassen Sie nur eines davon: den Text in <Ustrd> oder die strukturierte Referenz in <Strd>, wenn der Empfänger sie von Ihnen verlangt.',
+    opravaPriUstrdAjStrd: ' Die Korrektur steht beim Befund zu <Ustrd> und <Strd> zugleich in derselben Zahlung.',
+    opravaPriViacStrd: ' Die Korrektur steht beim Befund zu mehreren <Strd> in derselben Zahlung.',
+    symbolNazov: { VS: 'VS', SS: 'SS', KS: 'KS' },
     slspInstant: (tx) => tx + ': PmtTpInf/LclInstrm/Cd ist nicht gesetzt. Soll diese Zahlung als Echtzeitüberweisung verarbeitet werden, verlangt Business24 den Wert "INST": ohne ihn wird die Zahlung ohne Fehlermeldung als normale SEPA-Überweisung verarbeitet.',
     pocetNesedi: (ocak, sk) => 'Sie haben ' + ocak + ' Transaktionen erwartet, die Datei enthält aber ' + sk + '. Prüfen Sie, ob Sie die richtige und vollständige Datei hochgeladen haben, oder ob der Buchhaltungsexport Zahlungen ausgelassen oder verdoppelt hat.',
     suborVelky: (mb) => 'Die Datei ist etwa ' + mb + ' MB groß. Sehr große Dateien können das Importformular der Bank verlangsamen oder dessen Limit überschreiten: erwägen Sie eine Aufteilung.',
@@ -1058,6 +1172,96 @@ function analyzeReferenceSymbols(endToEndId) {
   const canonical = '/VS' + hodnotaSymbolu('VS') + '/SS' + hodnotaSymbolu('SS') + '/KS' + hodnotaSymbolu('KS') + (zvysok ? '/' + zvysok : '');
 
   return { found, order, orderOk, lengthIssues, nonNumericIssues, canonical };
+}
+
+// ───────────────────── RmtInf: Ustrd a Strd (25. 11. 2026) ─────────────────────
+// Podnet: otázka na podporu z 25. 11. 2026, súbor s <Ustrd> a dvoma <Strd>
+// (CdtrRefInf/Ref „VS:...“ a „KS:...“), ktorý nástroj nehlásil.
+// Zdroje (čítané 25. 11. 2026, záznam ops/sepa-doctor/ZMENY-2026-11-25-rmtinf.md v koreňovom repe):
+//  - EPC132-08 SCT Customer-to-PSP IG 2021 V1.0 (pain.001.001.03), prvky 2.137 až 2.145:
+//    https://www.europeanpaymentscouncil.eu/sites/default/files/kb/file/2020-11/EPC132-08%20SCT%20C2PSP%20IG%202021%20V1.0.pdf
+//    a 2025 V1.0 (pain.001.001.09), prvky 2.164 až 2.175 (URL pri pravidle o lomkách nižšie):
+//    RmtInf „Either 'Structured' or 'Unstructured' may be present“; Ustrd „Only one occurrence
+//    of 'Unstructured' is allowed.“; Strd „Only one occurrence of 'Structured' is allowed.“ a
+//    „'Structured' can be used, provided the tags and the data within the 'Structured' element
+//    (i.e. excluding <Strd> and </Strd>) do not exceed 140 characters in length.“; CdtrRefInf
+//    „When used both 'Type' and 'Reference' must be present.“, Cd „Only 'SCOR' is allowed.“
+//    Schéma ISO 20022 (RemittanceInformation5 a 16) dovoľuje Ustrd aj Strd neobmedzene, preto
+//    import podľa XSD takú chybu nevidí; obmedzenie je až v pravidlách EPC a bánk.
+//  - Výnimka EPC: voliteľná služba Extended Remittance Information (príloha V pravidiel SCT,
+//    IG 2025 časť 2.4): jeden Ustrd do 140 znakov a najviac 999 Strd po 280 znakov, platba
+//    označená LclInstrm/Cd „PERI“, len medzi bankami, ktoré k službe pristúpili.
+//  - Slovenský národný štandard SBA (CGI pain.001.001.03 verzia 1.0 a .09) v špecifikáciách SLSP
+//    (https://cdn.erstegroup.com/content/dam/sk/slsp/www_slsp_sk/documents/Zip/xml-platby-cgi-pain-001-001-03.zip
+//    a ...-09.zip) a ČSOB (https://www.csob.sk/documents/11005/100040/CSOB_SK_PAIN_001_001_09_MCCv3):
+//    pri SEPA úhrade len Strd alebo Ustrd (.09: „Môže byť použité buď Strd alebo Ustrd.“),
+//    Strd „jeden výskyt štruktúrovanej Správy pre príjemcu je povolený, pričom môže obsahovať max
+//    140 znakov (bez názvov tagov)“, EndToEndId symboly „/VS(10)/SS(10)/KS(4)“.
+//  - SLSP .09, stĺpec „SLSP - general validation (SEPA)“ (požiadavka REQ-20584 je spoločná pre asi 20
+//    buniek, FF01 tam má aj adresa príjemcu a OrgId s PrvtId): „REQ-20584: IF Strd and Ustrd are used
+//    both then REASON:FF01.“ a pri CdtrRefInf/Ref „REASON:RR09: ... When used both Creditor Reference
+//    Type and Creditor Reference must be present. (only when .../Tp/CdOrPrtry/Cd has value and .../Ref
+//    has no value and is SEPA)“. Tieto dve reakcie banky sú doložené, preto pri SLSP a .09 high.
+//    LclInstrm: SLSP uvádza len okamžitú platbu, „Iné hodnoty ako uvedené budú vyhodnotené ako
+//    nepoužitie tagu LclInstrm“; ČSOB, VÚB ani Tatra banka PERI neuvádzajú. Výnimka ERI preto platí
+//    len bez vybranej banky (brána sepa-rmtinf, pokus 1, P5).
+//  - Tatra banka, Prenosový formát pain.001.001.03, strana 7: „Vyplnený je element Ustrd alebo
+//    Strd.“, Ustrd „Povolená je iba jedna inštancia Ustrd. Nadbytočné elementy budú odstránené.“
+//  - VÚB, Popis formátu pre SEPA úhrady (SCT): „VÚB pre SEPA úhrady bude používať výhradne USTRD
+//    formu.“, EndToEndId „/VS123/SS456/KS0308“.
+
+/** Dĺžka obsahu prvku podľa EPC: značky a údaje vnútorných prvkov (bez značiek samotného
+ *  prvku). Biele znaky medzi značkami sa nepočítajú, text sa počíta bez okrajových medzier. */
+function dlzkaObsahu(node) {
+  let znacky = 0;
+  let data = 0;
+  for (const c of node.children) {
+    if (c.type === 'text') {
+      data += c.text.trim().length;
+    } else if (c.type === 'element') {
+      const n = c.node;
+      const attrs = Object.entries(n.attrs || {}).map(([k, v]) => ' ' + k + '="' + v + '"').join('');
+      znacky += ('<' + n.rawTag + attrs + '>').length + ('</' + n.rawTag + '>').length;
+      const vnutri = dlzkaObsahu(n);
+      znacky += vnutri.znacky;
+      data += vnutri.data;
+    }
+  }
+  return { znacky, data };
+}
+
+/** Slovenské platobné symboly zapísané v Strd/CdtrRefInf/Ref („VS:202611“, „KS 0138“,
+ *  „/VS1/SS2/KS3“). Vráti {VS, SS, KS}, len keď všetky Strd obsahujú iba CdtrRefInf (s Tp
+ *  a Ref) a každý Ref je zložený iba zo symbolov a oddeľovačov s dovolenou dĺžkou (VS a SS
+ *  do 10 číslic, KS do 4). Inak null: návrh by inak potichu zahodil RF referenciu, číslo
+ *  faktúry v RfrdDocInf a podobne (brána sepa-rmtinf, pokus 1, P4), a to isté pri dvoch
+ *  rôznych hodnotách toho istého symbolu. */
+function symbolyZoStrd(strdList) {
+  const MAX = { VS: 10, SS: 10, KS: 4 };
+  const by = {};
+  for (const strd of strdList) {
+    if (strd.children.some((c) => c.type === 'text')) return null;
+    for (const el of elementChildren(strd)) {
+      if (el.tag !== 'CdtrRefInf') return null;
+      if (elementChildren(el).some((d) => d.tag !== 'Tp' && d.tag !== 'Ref')) return null;
+      const ref = textOf(firstChild(el, 'Ref'));
+      const TOKEN = /(VS|SS|KS)\s*[:=]?\s*(\d+)/gi;
+      if (!ref || !TOKEN.test(ref) || ref.replace(TOKEN, '').replace(/[\s\/,;:=?-]+/g, '')) return null;
+      TOKEN.lastIndex = 0;
+      let m;
+      while ((m = TOKEN.exec(ref))) {
+        const druh = m[1].toUpperCase();
+        if (m[2].length > MAX[druh]) return null;
+        if (by[druh] !== undefined && by[druh] !== m[2]) return null;
+        by[druh] = m[2];
+      }
+    }
+  }
+  return Object.keys(by).length ? by : null;
+}
+
+function escXmlText(s) {
+  return safeStr(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 // ────────────────────────────── amount helpers ─────────────────────────────
@@ -2011,6 +2215,158 @@ export function diagnose(input) {
     }
   }
 
+  // ── RmtInf: Ustrd a Strd naraz, viac Strd, dlhý Strd, CdtrRefInf (25. 11. 2026) ──
+  // Pravidlá a zdroje sú pri symbolyZoStrd(). Platba PERI (EPC Extended Remittance
+  // Information) má vlastné limity (jeden Ustrd, najviac 999 Strd po 280 znakov), ale len
+  // bez vybranej banky: SLSP iné LclInstrm než INST berie ako nepoužité, ostatné tri banky
+  // PERI neuvádzajú (brána sepa-rmtinf, pokus 1, P5).
+  // Návrh opravy nesie len jeden nález v platbe (Ustrd a Strd naraz, inak viac Strd, inak
+  // neúplná referencia veriteľa), aby stránka neukázala dve rôzne karty opravy. Návrh do
+  // EndToEndId len pri IBAN príjemcu SK: štandard SBA dovoľuje /VS.../SS.../KS... len v rámci
+  // SR, mimo SR lomku na začiatku zakazuje (pokus 1, P3).
+  function reportRmtInfStrd(rmtInf, ustrdList, txPath, endToEndId, cdtrKrajina, periOznacene) {
+    const strdList = allChildren(rmtInf, 'Strd');
+    if (!strdList.length) return;
+    const eri = periOznacene && bankKey === 'generic';
+    const periVeta = periOznacene && !eri ? (bankKey === 'slsp' ? T.periSlsp : T.periBanka(bank.label)) : '';
+    const slsp09 = bankKey === 'slsp' && ns === PAIN_NAMESPACE_09;
+    const sUstrd = ustrdList.length > 0;
+    const naraz = sUstrd && !eri;
+    const viac = eri ? strdList.length > 999 : strdList.length > 1;
+
+    // CdtrRefInf: Tp aj Ref, typ len SCOR (Cd; Prtry SBA pri SEPA nepodporuje). Jeden nález na platbu.
+    const chyby = [];
+    let rr09 = false;
+    strdList.forEach((strd, i) => {
+      allChildren(strd, 'CdtrRefInf').forEach((cri, j) => {
+        const tp = firstChild(cri, 'Tp');
+        const cdOrPrtry = firstChild(tp, 'CdOrPrtry');
+        const cd = textOf(firstChild(cdOrPrtry, 'Cd'));
+        const prtry = textOf(firstChild(cdOrPrtry, 'Prtry'));
+        const ref = textOf(firstChild(cri, 'Ref'));
+        // Typ aj chýbajúci Ref sa hlásia oba (brána sepa-rmtinf, pokus 2, N5).
+        const co = [];
+        if (!tp || (!cd && !prtry)) co.push(T.cdtrRefBezTp);
+        else if (cd && cd !== 'SCOR') co.push(T.cdtrRefZlyTyp(cd));
+        else if (!cd && prtry) co.push(T.cdtrRefZlyTyp(prtry));
+        if (!ref) co.push(T.cdtrRefBezRef);
+        // SLSP .09 RR09: vyplnené Cd a chýbajúci Ref.
+        if (cd && !ref) rr09 = true;
+        for (const c of co) chyby.push({ co: c, uzol: cri, cesta: `${txPath}/RmtInf/Strd[${i + 1}]/CdtrRefInf${j ? '[' + (j + 1) + ']' : ''}` });
+      });
+    });
+
+    // Návrh pre slovenské platobné symboly zo Strd (štandard SBA: v rámci SR do EndToEndId).
+    let rada = '';
+    let navrh = '';
+    if (naraz || viac || chyby.length) {
+      const sym = eri ? null : symbolyZoStrd(strdList);
+      if (sym) {
+        rada = T.symbolyStrd(['VS', 'SS', 'KS'].filter((k) => sym[k] !== undefined).map((k) => T.symbolNazov[k] + ' ' + sym[k]).join(', '));
+        const e2e = safeStr(endToEndId).trim();
+        const otaznik = /^\?(?=\/)/.test(e2e);
+        const vE2E = analyzeReferenceSymbols(otaznik ? e2e.slice(1) : e2e);
+        // Komentáre v karte opravy len ASCII a bez jazyka: vložené do XML nesmú pridať diakritiku
+        // (ČSOB súbor s diakritikou neimportuje; brána sepa-rmtinf, pokus 2, N1). Kam čo patrí, hovorí hláška.
+        const blokRmtInf = sUstrd ? '<!-- RmtInf -->\n<RmtInf><Ustrd>' + escXmlText(textOf(ustrdList[0])) + '</Ustrd></RmtInf>' : '';
+        const cislo = (v) => String(v).replace(/^0+(?=\d)/, '');
+        let kanon = '';
+        let doplnene = '';
+        if (vE2E) {
+          const v = {};
+          for (const f of vE2E.found) if (v[f.kind] === undefined) v[f.kind] = f.value;
+          const konflikt = Object.keys(sym).some((k) => v[k] && cislo(v[k]) !== cislo(sym[k]));
+          const chybaju = Object.keys(sym).filter((k) => !v[k]);
+          if (konflikt) {
+            rada += T.symbolyIne(e2e) + (cdtrKrajina !== 'SK' ? T.symbolyMimoSr : '');
+          } else if (!chybaju.length) {
+            rada += T.symbolyUzVE2E(sUstrd) + (cdtrKrajina !== 'SK' ? T.symbolyMimoSr : '');
+            if (sUstrd) navrh = blokRmtInf;
+          } else {
+            // Časť symbolov už v EndToEndId je: doplnia sa chýbajúce, text za symbolmi ostáva.
+            const zvysok = (/^\/VS[^\/]*\/SS[^\/]*\/KS[^\/]*(\/.*)?$/.exec(vE2E.canonical) || [])[1] || '';
+            kanon = (otaznik ? '?' : '') + '/VS' + (v.VS || sym.VS || '') + '/SS' + (v.SS || sym.SS || '') + '/KS' + (v.KS || sym.KS || '') + zvysok;
+            doplnene = chybaju.map((k) => T.symbolNazov[k] + ' ' + sym[k]).join(', ');
+          }
+        } else {
+          kanon = '/VS' + (sym.VS || '') + '/SS' + (sym.SS || '') + '/KS' + (sym.KS || '');
+        }
+        if (kanon) {
+          if (cdtrKrajina !== 'SK') {
+            rada += T.symbolyMimoSr;
+          } else if (kanon.length > 35) {
+            rada += T.symbolyDlhe;
+          } else {
+            rada += T.symbolyPresun(sUstrd);
+            if (doplnene) rada += T.symbolyDoplni(doplnene);
+            else if (e2e && e2e.toUpperCase() !== 'NOTPROVIDED') rada += T.symbolyNahradi(e2e);
+            navrh = '<!-- PmtId/EndToEndId -->\n<EndToEndId>' + kanon + '</EndToEndId>' + (blokRmtInf ? '\n' + blokRmtInf : '');
+          }
+        }
+      } else if (naraz) {
+        rada = T.bezSymbolov;
+      }
+    }
+    // Kto nesie návrh: Ustrd a Strd naraz, inak viac Strd, inak neúplná referencia veriteľa.
+    const nositel = naraz ? 'naraz' : viac ? 'viac' : 'cdtr';
+    const odkaz = navrh ? (nositel === 'naraz' ? T.opravaPriUstrdAjStrd : nositel === 'viac' ? T.opravaPriViacStrd : '') : '';
+
+    if (naraz) {
+      const zBanky = bankKey === 'slsp' ? (slsp09 ? 'slsp09' : 'slsp03')
+        : bankKey === 'tatrabanka' ? (ns === PAIN_NAMESPACE_09 ? '' : 'tatrabanka') : (bankKey === 'vub' || bankKey === 'csob' ? bankKey : '');
+      const veta = zBanky ? ' ' + T.ustrdAjStrdBanka[zBanky] : '';
+      addProblem({
+        code: 'rmt_inf_ustrd_and_strd',
+        // SLSP pri .09 uvádza dôvod odmietnutia FF01 (REQ-20584); ostatné banky následok neuvádzajú.
+        severity: zBanky === 'slsp09' ? 'high' : 'medium',
+        message: T.ustrdAjStrd(txPath) + rada + T.ustrdAjStrdPravidlo + veta + periVeta,
+        path: `${txPath}/RmtInf`,
+        node: rmtInf,
+        value: String(strdList.length),
+        fix: navrh || undefined,
+      });
+    }
+    if (viac) {
+      addProblem({
+        code: 'rmt_inf_multiple_strd',
+        severity: 'medium',
+        message: eri
+          ? T.viacStrdEri(txPath, strdList.length)
+          : T.viacStrd(txPath, strdList.length) + (nositel === 'viac' ? rada : odkaz) + T.viacStrdPravidlo + (bankKey === 'generic' ? T.viacStrdEriMoznost : '') + periVeta,
+        path: `${txPath}/RmtInf/Strd[${eri ? 1000 : 2}]`,
+        node: strdList[eri ? 999 : 1],
+        value: String(strdList.length),
+        fix: nositel === 'viac' ? (navrh || undefined) : undefined,
+      });
+    }
+
+    const limit = eri ? 280 : 140;
+    strdList.forEach((strd, i) => {
+      const d = dlzkaObsahu(strd);
+      if (d.znacky + d.data > limit) {
+        addProblem({ code: 'rmt_inf_strd_too_long', severity: 'medium', message: T.strdDlhy(txPath, d.znacky + d.data, d.data, eri) + periVeta, path: `${txPath}/RmtInf/Strd[${i + 1}]`, node: strd, value: String(d.znacky + d.data) });
+      }
+    });
+
+    if (chyby.length) {
+      // Všetky druhy chýb s počtom výskytov, v poradí ako v súbore (pokus 1, O9).
+      const druhy = new Map();
+      for (const c of chyby) druhy.set(c.co, (druhy.get(c.co) || 0) + 1);
+      const popis = [...druhy].map(([co, n]) => co + (n > 1 ? T.krat(n) : '')).join(', ');
+      const odmietne = slsp09 && rr09;
+      addProblem({
+        code: 'rmt_inf_creditor_ref_incomplete',
+        // SLSP pri .09 uvádza dôvod odmietnutia RR09 (Cd bez Ref); inak EPC: banka platiteľa referenciu overovať nemusí.
+        severity: odmietne ? 'high' : 'low',
+        message: T.cdtrRefNeuplna(txPath, popis) + (odmietne ? T.cdtrRefSlspRr09 : T.cdtrRefNeoveruje) + (nositel === 'cdtr' ? rada : odkaz),
+        path: chyby[0].cesta,
+        node: chyby[0].uzol,
+        value: textOf(firstChild(chyby[0].uzol, 'Ref')),
+        fix: nositel === 'cdtr' ? (navrh || undefined) : undefined,
+      });
+    }
+  }
+
   // ── lomky v referenciách a identifikátoroch (pravidlo EPC) ──────────────
   // Zdroj, čítané 19. 11. 2026: EPC132-08 "SEPA Credit Transfer Scheme
   // Customer-to-PSP Implementation Guidelines", 2025 Version 1.0 (vydané
@@ -2432,6 +2788,9 @@ export function diagnose(input) {
           }
           reportCharset(ustrd, `${txPath}/RmtInf/Ustrd`);
         }
+        // Platba PERI (EPC Extended Remittance Information): LclInstrm/Cd v transakcii alebo v PmtInf.
+        const lclInstrmCd = textOf(firstChild(firstChild(txPmtTpInf, 'LclInstrm'), 'Cd')) || textOf(firstChild(firstChild(pmtTpInf, 'LclInstrm'), 'Cd'));
+        reportRmtInfStrd(rmtInf, ustrdList, txPath, endToEndId, cdtrIbanCheck ? cdtrIbanCheck.country : '', lclInstrmCd.toUpperCase() === 'PERI');
       }
 
       if (bankKey === 'slsp') {
